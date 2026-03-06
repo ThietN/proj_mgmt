@@ -1,0 +1,240 @@
+[
+    {
+        "employee_id": "E001",
+        "employee_name": "Nguyen Van An",
+        "team": "AI Platform",
+        "skill_name": "Python",
+        "skill_level": "Expert"
+    },
+    {
+        "employee_id": "E001",
+        "employee_name": "Nguyen Van An",
+        "team": "AI Platform",
+        "skill_name": "LLM",
+        "skill_level": "Advanced"
+    },
+    {
+        "employee_id": "E001",
+        "employee_name": "Nguyen Van An",
+        "team": "AI Platform",
+        "skill_name": "LangGraph",
+        "skill_level": "Intermediate"
+    },
+    {
+        "employee_id": "E001",
+        "employee_name": "Nguyen Van An",
+        "team": "AI Platform",
+        "skill_name": "FastAPI",
+        "skill_level": "Advanced"
+    },
+    {
+        "employee_id": "E001",
+        "employee_name": "Nguyen Van An",
+        "team": "AI Platform",
+        "skill_name": "Docker",
+        "skill_level": "Intermediate"
+    },
+    {
+        "employee_id": "E002",
+        "employee_name": "Tran Thi Bich",
+        "team": "Product Team",
+        "skill_name": "React",
+        "skill_level": "Expert"
+    },
+    {
+        "employee_id": "E002",
+        "employee_name": "Tran Thi Bich",
+        "team": "Product Team",
+        "skill_name": "TypeScript",
+        "skill_level": "Advanced"
+    },
+    {
+        "employee_id": "E002",
+        "employee_name": "Tran Thi Bich",
+        "team": "Product Team",
+        "skill_name": "Next.js",
+        "skill_level": "Advanced"
+    },
+    {
+        "employee_id": "E002",
+        "employee_name": "Tran Thi Bich",
+        "team": "Product Team",
+        "skill_name": "Python",
+        "skill_level": "Beginner"
+    },
+    {
+        "employee_id": "E003",
+        "employee_name": "Le Minh Duc",
+        "team": "Data Platform",
+        "skill_name": "Java",
+        "skill_level": "Expert"
+    },
+    {
+        "employee_id": "E003",
+        "employee_name": "Le Minh Duc",
+        "team": "Data Platform",
+        "skill_name": "Spring Boot",
+        "skill_level": "Expert"
+    },
+    {
+        "employee_id": "E003",
+        "employee_name": "Le Minh Duc",
+        "team": "Data Platform",
+        "skill_name": "PostgreSQL",
+        "skill_level": "Advanced"
+    },
+    {
+        "employee_id": "E003",
+        "employee_name": "Le Minh Duc",
+        "team": "Data Platform",
+        "skill_name": "Kafka",
+        "skill_level": "Intermediate"
+    },
+    {
+        "employee_id": "E003",
+        "employee_name": "Le Minh Duc",
+        "team": "Data Platform",
+        "skill_name": "Docker",
+        "skill_level": "Advanced"
+    },
+    {
+        "employee_id": "E004",
+        "employee_name": "Pham Thi Lan",
+        "team": "Infrastructure",
+        "skill_name": "Kubernetes",
+        "skill_level": "Expert"
+    },
+    {
+        "employee_id": "E004",
+        "employee_name": "Pham Thi Lan",
+        "team": "Infrastructure",
+        "skill_name": "Terraform",
+        "skill_level": "Expert"
+    },
+    {
+        "employee_id": "E004",
+        "employee_name": "Pham Thi Lan",
+        "team": "Infrastructure",
+        "skill_name": "AWS",
+        "skill_level": "Advanced"
+    },
+    {
+        "employee_id": "E004",
+        "employee_name": "Pham Thi Lan",
+        "team": "Infrastructure",
+        "skill_name": "Docker",
+        "skill_level": "Expert"
+    },
+    {
+        "employee_id": "E005",
+        "employee_name": "Hoang Van Cuong",
+        "team": "Data Platform",
+        "skill_name": "Spark",
+        "skill_level": "Advanced"
+    },
+    {
+        "employee_id": "E005",
+        "employee_name": "Hoang Van Cuong",
+        "team": "Data Platform",
+        "skill_name": "Airflow",
+        "skill_level": "Intermediate"
+    },
+    {
+        "employee_id": "E005",
+        "employee_name": "Hoang Van Cuong",
+        "team": "Data Platform",
+        "skill_name": "Python",
+        "skill_level": "Advanced"
+    },
+    {
+        "employee_id": "E005",
+        "employee_name": "Hoang Van Cuong",
+        "team": "Data Platform",
+        "skill_name": "dbt",
+        "skill_level": "Intermediate"
+    },
+    {
+        "employee_id": "E007",
+        "employee_name": "Vu Thanh Tung",
+        "team": "AI Platform",
+        "skill_name": "Python",
+        "skill_level": "Expert"
+    },
+    {
+        "employee_id": "E007",
+        "employee_name": "Vu Thanh Tung",
+        "team": "AI Platform",
+        "skill_name": "ML",
+        "skill_level": "Expert"
+    },
+    {
+        "employee_id": "E007",
+        "employee_name": "Vu Thanh Tung",
+        "team": "AI Platform",
+        "skill_name": "System Design",
+        "skill_level": "Expert"
+    },
+    {
+        "employee_id": "E007",
+        "employee_name": "Vu Thanh Tung",
+        "team": "AI Platform",
+        "skill_name": "LLM",
+        "skill_level": "Advanced"
+    },
+    {
+        "employee_id": "E009",
+        "employee_name": "Ngo Van Khanh",
+        "team": "Infrastructure",
+        "skill_name": "Go",
+        "skill_level": "Advanced"
+    },
+    {
+        "employee_id": "E009",
+        "employee_name": "Ngo Van Khanh",
+        "team": "Infrastructure",
+        "skill_name": "Docker",
+        "skill_level": "Advanced"
+    },
+    {
+        "employee_id": "E009",
+        "employee_name": "Ngo Van Khanh",
+        "team": "Infrastructure",
+        "skill_name": "AWS",
+        "skill_level": "Intermediate"
+    },
+    {
+        "employee_id": "E009",
+        "employee_name": "Ngo Van Khanh",
+        "team": "Infrastructure",
+        "skill_name": "Kubernetes",
+        "skill_level": "Intermediate"
+    },
+    {
+        "employee_id": "E010",
+        "employee_name": "Bui Thi Thu",
+        "team": "AI Platform",
+        "skill_name": "Python",
+        "skill_level": "Advanced"
+    },
+    {
+        "employee_id": "E010",
+        "employee_name": "Bui Thi Thu",
+        "team": "AI Platform",
+        "skill_name": "PyTorch",
+        "skill_level": "Advanced"
+    },
+    {
+        "employee_id": "E010",
+        "employee_name": "Bui Thi Thu",
+        "team": "AI Platform",
+        "skill_name": "MLOps",
+        "skill_level": "Intermediate"
+    },
+    {
+        "employee_id": "E010",
+        "employee_name": "Bui Thi Thu",
+        "team": "AI Platform",
+        "skill_name": "HuggingFace",
+        "skill_level": "Advanced"
+    }
+]

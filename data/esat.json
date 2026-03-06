@@ -1,0 +1,122 @@
+[
+    {
+        "quarter": "Q1 2023",
+        "team": "AI Platform",
+        "score": 7.8,
+        "comment": "Team is motivated but needs more tooling support"
+    },
+    {
+        "quarter": "Q1 2023",
+        "team": "Product Team",
+        "score": 7.2,
+        "comment": "Some concerns about project deadlines"
+    },
+    {
+        "quarter": "Q1 2023",
+        "team": "Data Platform",
+        "score": 8.1,
+        "comment": "Good collaboration and clear goals"
+    },
+    {
+        "quarter": "Q1 2023",
+        "team": "Infrastructure",
+        "score": 7.5,
+        "comment": "Wants more recognition and growth opportunities"
+    },
+    {
+        "quarter": "Q2 2023",
+        "team": "AI Platform",
+        "score": 8.2,
+        "comment": "New tools helped productivity significantly"
+    },
+    {
+        "quarter": "Q2 2023",
+        "team": "Product Team",
+        "score": 7.0,
+        "comment": "Workload is still high, need more resources"
+    },
+    {
+        "quarter": "Q2 2023",
+        "team": "Data Platform",
+        "score": 8.4,
+        "comment": "Very happy with the new project direction"
+    },
+    {
+        "quarter": "Q2 2023",
+        "team": "Infrastructure",
+        "score": 7.8,
+        "comment": "Team bonding activities helped morale"
+    },
+    {
+        "quarter": "Q3 2023",
+        "team": "AI Platform",
+        "score": 8.5,
+        "comment": "Excellent technical growth this quarter"
+    },
+    {
+        "quarter": "Q3 2023",
+        "team": "Product Team",
+        "score": 7.5,
+        "comment": "Process improvements are working well"
+    },
+    {
+        "quarter": "Q3 2023",
+        "team": "Data Platform",
+        "score": 8.0,
+        "comment": "Slight burnout from heavy delivery load"
+    },
+    {
+        "quarter": "Q3 2023",
+        "team": "Infrastructure",
+        "score": 8.2,
+        "comment": "Appreciate the autonomy given to the team"
+    },
+    {
+        "quarter": "Q4 2023",
+        "team": "AI Platform",
+        "score": 8.8,
+        "comment": "Best quarter yet, strong delivery and recognition"
+    },
+    {
+        "quarter": "Q4 2023",
+        "team": "Product Team",
+        "score": 7.8,
+        "comment": "Improved communication with stakeholders"
+    },
+    {
+        "quarter": "Q4 2023",
+        "team": "Data Platform",
+        "score": 8.3,
+        "comment": "Successful project completion boosted morale"
+    },
+    {
+        "quarter": "Q4 2023",
+        "team": "Infrastructure",
+        "score": 8.5,
+        "comment": "Great year-end bonus was a big motivator"
+    },
+    {
+        "quarter": "Q1 2024",
+        "team": "AI Platform",
+        "score": 8.6,
+        "comment": "Exciting new AI projects"
+    },
+    {
+        "quarter": "Q1 2024",
+        "team": "Product Team",
+        "score": 7.3,
+        "comment": "Some team members considering leaving"
+    },
+    {
+        "quarter": "Q1 2024",
+        "team": "Data Platform",
+        "score": 8.1,
+        "comment": "New tech stack challenge is exciting"
+    },
+    {
+        "quarter": "Q1 2024",
+        "team": "Infrastructure",
+        "score": 8.0,
+        "comment": "Stable and productive environment"
+    }
+]

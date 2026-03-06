@@ -1,0 +1,104 @@
+[
+    {
+        "project_id": "P001",
+        "project_name": "AI Customer Service Platform",
+        "customer": "VietcomBank",
+        "team_size": 6,
+        "delivery_status": "On Track",
+        "risk_level": "Low",
+        "milestone_progress": 72,
+        "start_date": "2024-01-15",
+        "end_date": "2024-09-30",
+        "tech_stack": [
+            "Python",
+            "LangGraph",
+            "FastAPI",
+            "React"
+        ]
+    },
+    {
+        "project_id": "P002",
+        "project_name": "Data Lake Modernization",
+        "customer": "Masan Group",
+        "team_size": 5,
+        "delivery_status": "At Risk",
+        "risk_level": "High",
+        "milestone_progress": 45,
+        "start_date": "2024-02-01",
+        "end_date": "2024-08-31",
+        "tech_stack": [
+            "Spark",
+            "dbt",
+            "Airflow",
+            "AWS"
+        ]
+    },
+    {
+        "project_id": "P003",
+        "project_name": "E-Commerce Replatforming",
+        "customer": "Vingroup Retail",
+        "team_size": 8,
+        "delivery_status": "Critical",
+        "risk_level": "High",
+        "milestone_progress": 30,
+        "start_date": "2024-03-01",
+        "end_date": "2024-07-31",
+        "tech_stack": [
+            "Next.js",
+            "Node.js",
+            "PostgreSQL",
+            "Redis"
+        ]
+    },
+    {
+        "project_id": "P004",
+        "project_name": "Infrastructure Automation",
+        "customer": "FPT Software",
+        "team_size": 3,
+        "delivery_status": "On Track",
+        "risk_level": "Low",
+        "milestone_progress": 90,
+        "start_date": "2024-01-01",
+        "end_date": "2024-06-30",
+        "tech_stack": [
+            "Terraform",
+            "Kubernetes",
+            "Helm",
+            "AWS"
+        ]
+    },
+    {
+        "project_id": "P005",
+        "project_name": "Analytics Dashboard",
+        "customer": "Grab Vietnam",
+        "team_size": 4,
+        "delivery_status": "On Track",
+        "risk_level": "Medium",
+        "milestone_progress": 60,
+        "start_date": "2024-03-15",
+        "end_date": "2024-10-15",
+        "tech_stack": [
+            "React",
+            "Python",
+            "BigQuery",
+            "Looker"
+        ]
+    },
+    {
+        "project_id": "P006",
+        "project_name": "Mobile Banking App",
+        "customer": "TechcomBank",
+        "team_size": 7,
+        "delivery_status": "Completed",
+        "risk_level": "Low",
+        "milestone_progress": 100,
+        "start_date": "2023-08-01",
+        "end_date": "2024-03-31",
+        "tech_stack": [
+            "React Native",
+            "Java",
+            "Spring Boot",
+            "Oracle"
+        ]
+    }
+]

@@ -1,0 +1,74 @@
+[
+    {
+        "record_id": "CS001",
+        "project": "AI Customer Service Platform",
+        "customer": "VietcomBank",
+        "survey_date": "2024-03-31",
+        "survey_score": 9.2,
+        "feedback": "The AI chatbot has significantly reduced our support tickets. Very impressed with the quality.",
+        "action_plan": null
+    },
+    {
+        "record_id": "CS002",
+        "project": "Data Lake Modernization",
+        "customer": "Masan Group",
+        "survey_date": "2024-04-15",
+        "survey_score": 6.5,
+        "feedback": "Progress is slower than expected. We are concerned about the timeline.",
+        "action_plan": "Schedule bi-weekly sync meetings, add 1 more senior engineer, reassign tech lead"
+    },
+    {
+        "record_id": "CS003",
+        "project": "E-Commerce Replatforming",
+        "customer": "Vingroup Retail",
+        "survey_date": "2024-04-30",
+        "survey_score": 5.8,
+        "feedback": "Multiple missed milestones. Communication needs to be better.",
+        "action_plan": "Emergency steering committee, scope review, daily standups with customer"
+    },
+    {
+        "record_id": "CS004",
+        "project": "Infrastructure Automation",
+        "customer": "FPT Software",
+        "survey_date": "2024-04-01",
+        "survey_score": 9.0,
+        "feedback": "The automation saved us 30% in infra costs. Exceptional delivery.",
+        "action_plan": null
+    },
+    {
+        "record_id": "CS005",
+        "project": "Analytics Dashboard",
+        "customer": "Grab Vietnam",
+        "survey_date": "2024-04-20",
+        "survey_score": 8.3,
+        "feedback": "Good progress, the dashboard UI is exactly what we needed.",
+        "action_plan": null
+    },
+    {
+        "record_id": "CS006",
+        "project": "Mobile Banking App",
+        "customer": "TechcomBank",
+        "survey_date": "2024-04-05",
+        "survey_score": 9.5,
+        "feedback": "Delivered on time and exceeded our performance expectations. Will expand the engagement.",
+        "action_plan": null
+    },
+    {
+        "record_id": "CS007",
+        "project": "AI Customer Service Platform",
+        "customer": "VietcomBank",
+        "survey_date": "2023-12-31",
+        "survey_score": 8.5,
+        "feedback": "Phase 1 completed successfully. Looking forward to the next phase.",
+        "action_plan": null
+    },
+    {
+        "record_id": "CS008",
+        "project": "Data Lake Modernization",
+        "customer": "Masan Group",
+        "survey_date": "2023-12-31",
+        "survey_score": 7.8,
+        "feedback": "Good start, architecture design is solid.",
+        "action_plan": null
+    }
+]
