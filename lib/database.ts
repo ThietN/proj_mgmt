@@ -348,10 +348,11 @@ export async function getUserByEmail(email: string): Promise<User | null> {
 }
 
 export async function saveUser(u: User): Promise<void> {
+    const { passwordHash, createdAt, ...rest } = u;
     const { error } = await supabase.from('users').upsert([{
-        ...u,
-        password_hash: u.passwordHash,
-        created_at: u.createdAt
+        ...rest,
+        password_hash: passwordHash,
+        created_at: createdAt
     }], { onConflict: 'id' });
     if (error) throw new Error(error.message);
 }

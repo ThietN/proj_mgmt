@@ -18,7 +18,7 @@ export async function POST(req: Request) {
 
         const passwordHash = await bcrypt.hash(password, 10);
         const newUser = {
-            id: `U${Date.now()}`,
+            id: crypto.randomUUID(),
             email,
             passwordHash,
             name,
@@ -41,7 +41,8 @@ export async function POST(req: Request) {
         });
 
         return response;
-    } catch (e) {
-        return NextResponse.json({ error: "Server error" }, { status: 500 });
+    } catch (e: any) {
+        console.error("[POST /api/auth/register] error:", e, e?.message);
+        return NextResponse.json({ error: e?.message || "Server error" }, { status: 500 });
     }
 }
