@@ -21,20 +21,20 @@ export function KpiCard({
     trend,
     trendValue,
     icon: Icon,
-    iconColor = "text-indigo-400",
-    iconBg = "bg-indigo-500/10",
+    iconColor = "text-blue-600",
+    iconBg = "bg-blue-600/10",
     className,
     highlight,
 }: KpiCardProps) {
     const TrendIcon = trend === "up" ? TrendingUp : trend === "down" ? TrendingDown : Minus;
     const trendColor =
-        trend === "up" ? "text-emerald-400" : trend === "down" ? "text-red-400" : "text-slate-500";
+        trend === "up" ? "text-emerald-600" : trend === "down" ? "text-red-600" : "text-slate-500";
 
     return (
         <div
             className={cn(
-                "glass-card p-5 hover:border-indigo-500/20 transition-all duration-200 group cursor-default",
-                highlight && "border-indigo-500/30 bg-indigo-600/5",
+                "glass-card p-5 hover:border-blue-600/20 transition-all duration-200 group cursor-default",
+                highlight && "border-blue-600/30 bg-blue-700/5",
                 className
             )}
         >
@@ -50,10 +50,10 @@ export function KpiCard({
                 )}
             </div>
             <div className="mt-1">
-                <div className="text-2xl font-bold text-white tracking-tight">{value}</div>
-                <div className="text-xs font-medium text-slate-400 mt-0.5">{title}</div>
+                <div className="text-2xl font-bold text-slate-900 tracking-tight">{value}</div>
+                <div className="text-xs font-medium text-slate-500 mt-0.5">{title}</div>
                 {subValue && (
-                    <div className="text-[11px] text-slate-600 mt-1">{subValue}</div>
+                    <div className="text-[11px] text-slate-400 mt-1">{subValue}</div>
                 )}
             </div>
         </div>

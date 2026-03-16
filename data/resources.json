@@ -1,218 +1,75 @@
 [
-    {
-        "employee_id": "E001",
-        "name": "Nguyen Van An",
-        "role": "Senior Engineer",
-        "team": "AI Platform",
-        "grade": "L4",
-        "skills": [
-            "Python",
-            "LLM",
-            "LangGraph",
-            "FastAPI"
-        ],
-        "english_level": "B2",
-        "status": "Billable",
-        "allocation_percentage": 100,
-        "join_date": "2022-03-15",
-        "risk_flag": null
-    },
-    {
-        "employee_id": "E002",
-        "name": "Tran Thi Bich",
-        "role": "Frontend Engineer",
-        "team": "Product Team",
-        "grade": "L3",
-        "skills": [
-            "React",
-            "TypeScript",
-            "Next.js",
-            "TailwindCSS"
-        ],
-        "english_level": "B1",
-        "status": "Billable",
-        "allocation_percentage": 80,
-        "join_date": "2022-07-01",
-        "risk_flag": null
-    },
-    {
-        "employee_id": "E003",
-        "name": "Le Minh Duc",
-        "role": "Backend Engineer",
-        "team": "Data Platform",
-        "grade": "L3",
-        "skills": [
-            "Java",
-            "Spring Boot",
-            "PostgreSQL",
-            "Kafka"
-        ],
-        "english_level": "B2",
-        "status": "Billable",
-        "allocation_percentage": 100,
-        "join_date": "2021-11-20",
-        "risk_flag": null
-    },
-    {
-        "employee_id": "E004",
-        "name": "Pham Thi Lan",
-        "role": "DevOps Engineer",
-        "team": "Infrastructure",
-        "grade": "L4",
-        "skills": [
-            "Kubernetes",
-            "Terraform",
-            "AWS",
-            "CI/CD"
-        ],
-        "english_level": "C1",
-        "status": "Billable",
-        "allocation_percentage": 100,
-        "join_date": "2020-05-10",
-        "risk_flag": null
-    },
-    {
-        "employee_id": "E005",
-        "name": "Hoang Van Cuong",
-        "role": "Data Engineer",
-        "team": "Data Platform",
-        "grade": "L3",
-        "skills": [
-            "Spark",
-            "Airflow",
-            "Python",
-            "dbt"
-        ],
-        "english_level": "B1",
-        "status": "Backup",
-        "allocation_percentage": 50,
-        "join_date": "2023-01-15",
-        "risk_flag": null
-    },
-    {
-        "employee_id": "E006",
-        "name": "Nguyen Thi Mai",
-        "role": "QA Engineer",
-        "team": "Product Team",
-        "grade": "L2",
-        "skills": [
-            "Selenium",
-            "Cypress",
-            "Postman",
-            "JMeter"
-        ],
-        "english_level": "B1",
-        "status": "Billable",
-        "allocation_percentage": 100,
-        "join_date": "2023-04-01",
-        "risk_flag": "Low performance"
-    },
-    {
-        "employee_id": "E007",
-        "name": "Vu Thanh Tung",
-        "role": "Tech Lead",
-        "team": "AI Platform",
-        "grade": "L5",
-        "skills": [
-            "Python",
-            "ML",
-            "System Design",
-            "Leadership"
-        ],
-        "english_level": "C1",
-        "status": "Billable",
-        "allocation_percentage": 100,
-        "join_date": "2019-08-01",
-        "risk_flag": null
-    },
-    {
-        "employee_id": "E008",
-        "name": "Do Thi Huong",
-        "role": "Business Analyst",
-        "team": "Product Team",
-        "grade": "L3",
-        "skills": [
-            "JIRA",
-            "Confluence",
-            "Data Analysis",
-            "Communication"
-        ],
-        "english_level": "C1",
-        "status": "Available",
-        "allocation_percentage": 0,
-        "join_date": "2022-10-17",
-        "risk_flag": "Resign risk"
-    },
-    {
-        "employee_id": "E009",
-        "name": "Ngo Van Khanh",
-        "role": "Senior Engineer",
-        "team": "Infrastructure",
-        "grade": "L4",
-        "skills": [
-            "Go",
-            "gRPC",
-            "Docker",
-            "Linux"
-        ],
-        "english_level": "B2",
-        "status": "Billable",
-        "allocation_percentage": 80,
-        "join_date": "2021-03-22",
-        "risk_flag": null
-    },
-    {
-        "employee_id": "E010",
-        "name": "Bui Thi Thu",
-        "role": "ML Engineer",
-        "team": "AI Platform",
-        "grade": "L3",
-        "skills": [
-            "Python",
-            "PyTorch",
-            "MLOps",
-            "HuggingFace"
-        ],
-        "english_level": "B2",
-        "status": "Billable",
-        "allocation_percentage": 100,
-        "join_date": "2023-06-05",
-        "risk_flag": null
-    },
-    {
-        "employee_id": "E011",
-        "name": "Cao Minh Phuong",
-        "role": "Backend Engineer",
-        "team": "Product Team",
-        "grade": "L2",
-        "skills": [
-            "Node.js",
-            "Express",
-            "MongoDB",
-            "Redis"
-        ],
-        "english_level": "B1",
-        "status": "Backup",
-        "allocation_percentage": 50,
-        "join_date": "2024-01-08",
-        "risk_flag": null
-    },
-    {
-        "employee_id": "E012",
-        "name": "Dinh Quoc Hung",
-        "role": "Solution Architect",
-        "team": "Data Platform",
-        "grade": "L6",
-        "skills": [
-            "System Design",
-            "Cloud",
-            "Microservices",
-            "Leadership"
-        ],
-        "english_level": "C2",
-        "status": "Billable",
-        "allocation_percentage": 100,
-        "join_date": "2018-02-14",
-        "risk_flag": null
-    }
+  {
+    "employee_id": "122952",
+    "name": "Nguyễn Mạnh Thiết",
+    "role": "PM",
+    "team": "Testing Team",
+    "grade": "L11",
+    "skills": [
+      "Python",
+      "Java",
+      "LLM",
+      "ML",
+      "Automation Testing",
+      "Networking...."
+    ],
+    "english_level": "Intermediate",
+    "status": "Billable",
+    "allocation_percentage": 100,
+    "join_date": "2026-03-09",
+    "location": "lab3",
+    "notes": "Bill for ICON & AoS PAL",
+    "project_id": "P1001"
+  },
+  {
+    "employee_id": "122972",
+    "name": "Nguyễn Thị Huỳnh Trâm",
+    "role": "PM",
+    "team": "Testing Team",
+    "grade": "L10",
+    "skills": [],
+    "english_level": "Intermediate",
+    "status": "Billable",
+    "allocation_percentage": 100,
+    "join_date": "2026-03-09",
+    "location": "lab3",
+    "notes": "",
+    "project_id": "P1002"
+  },
+  {
+    "employee_id": "231829",
+    "name": "Dương Minh Quang",
+    "role": "E",
+    "team": "Testing Team",
+    "grade": "L2",
+    "skills": [
+      "JavaScript",
+      "Python"
+    ],
+    "english_level": "Intermediate",
+    "status": "Resigning",
+    "allocation_percentage": 100,
+    "join_date": "2026-03-09",
+    "location": "lab6",
+    "notes": "Resigned. Last day: 15th Apr",
+    "project_id": "P1009"
+  },
+  {
+    "employee_id": "231717",
+    "name": "Nguyễn Huỳnh Quỳnh Thoa",
+    "role": "SE",
+    "team": "Testing Team",
+    "grade": "L5",
+    "skills": [
+      "JavaScript",
+      "Python"
+    ],
+    "english_level": "Intermediate",
+    "status": "Maternity Leave",
+    "allocation_percentage": 100,
+    "join_date": "2026-03-09",
+    "location": "lab6",
+    "notes": "Nghỉ thai sản từ 6/2025. Dự kiến back lại 2/2026",
+    "project_id": "P1008"
+  }
 ]

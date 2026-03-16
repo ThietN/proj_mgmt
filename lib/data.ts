@@ -8,6 +8,8 @@ import {
     ESATRecord,
     CSATRecord,
     Innovation,
+    User,
+    AuditLog,
 } from "@/types";
 
 const dataDir = path.join(process.cwd(), "data");
@@ -25,7 +27,12 @@ function writeJSON<T>(filename: string, data: T[]): void {
 
 // Resources
 export function getResources(): Resource[] {
-    return readJSON<Resource>("resources.json");
+    const data = readJSON<Resource>("resources.json");
+    return data.map(r => {
+        const rawSkills = (r as any).skills;
+        const skills = Array.isArray(rawSkills) ? rawSkills : (typeof rawSkills === 'string' ? rawSkills.split(',').filter(Boolean).map((s: string) => s.trim()) : []);
+        return { ...r, skills };
+    });
 }
 export function saveResources(data: Resource[]): void {
     writeJSON("resources.json", data);
@@ -77,4 +84,36 @@ export function getInnovations(): Innovation[] {
 }
 export function saveInnovations(data: Innovation[]): void {
     writeJSON("innovations.json", data);
+}
+
+// Users
+export function getUsers(): User[] {
+    try { return readJSON<User>("users.json"); } catch { return []; }
+}
+export function saveUsers(data: User[]): void {
+    writeJSON("users.json", data);
+}
+
+// Audit Logs
+export function getAuditLogs(): AuditLog[] {
+    try { return readJSON<AuditLog>("audit.json"); } catch { return []; }
+}
+export function saveAuditLogs(data: AuditLog[]): void {
+    writeJSON("audit.json", data);
+}
+
+export function logAudit(user_id: string, action: string, target_type: string, target_id: string, details: string) {
+    const logs = getAuditLogs();
+    logs.unshift({
+        id: `A${Date.now()}`,
+        user_id,
+        action,
+        target_type,
+        target_id,
+        details,
+        timestamp: new Date().toISOString()
+    });
+    // Keep last 1000 logs
+    if (logs.length > 1000) logs.pop();
+    saveAuditLogs(logs);
 }

@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import {
     LayoutDashboard,
     Users,
-    UserPlus,
+    UserCheck,
     Brain,
     Rocket,
     Smile,
@@ -12,32 +12,55 @@ import {
     Lightbulb,
     Activity,
     ChevronRight,
+    FileText,
+    Briefcase
 } from "lucide-react";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
     { href: "/", label: "Dashboard", icon: LayoutDashboard },
     { href: "/resources", label: "Resources", icon: Users },
-    { href: "/hiring", label: "Hiring & Interns", icon: UserPlus },
+    { href: "/projects", label: "Projects", icon: Briefcase },
+    { href: "/hiring", label: "Hiring & Interns", icon: UserCheck },
     { href: "/skills", label: "Skills Matrix", icon: Brain },
     { href: "/delivery", label: "Delivery", icon: Rocket },
     { href: "/esat", label: "ESAT", icon: Smile },
     { href: "/csat", label: "CSAT", icon: Star },
     { href: "/innovations", label: "Innovations", icon: Lightbulb },
+    { href: "/audit", label: "Audit Logs", icon: FileText },
 ];
 
 export function Sidebar() {
     const pathname = usePathname();
+    const [user, setUser] = useState<{ name: string; email: string; role: string } | null>(null);
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const res = await fetch("/api/auth/me");
+                if (res.ok) {
+                    const data = await res.json();
+                    setUser(data.user);
+                }
+            } catch (err) { }
+        };
+        fetchUser();
+    }, []);
+
+    const initials = user?.name
+        ? user.name.split(" ").map(n => n[0]).slice(0, 2).join("").toUpperCase()
+        : "??";
     return (
-        <aside className="w-60 flex-shrink-0 h-full bg-[#080810] border-r border-[#1a1a2e] flex flex-col">
+        <aside className="w-60 flex-shrink-0 h-full bg-white border-r border-slate-200 flex flex-col">
             {/* Logo */}
-            <div className="px-5 py-5 border-b border-[#1a1a2e]">
+            <div className="px-5 py-5 border-b border-slate-200">
                 <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/25">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-sky-600 flex items-center justify-center shadow-lg shadow-blue-600/25">
                         <Activity className="w-4 h-4 text-white" />
                     </div>
                     <div>
-                        <div className="font-bold text-sm text-white leading-tight">DeliveryOS</div>
+                        <div className="font-bold text-sm text-slate-900 leading-tight">DC12_PG3_MGMT</div>
                         <div className="text-[10px] text-slate-500 leading-tight">Manager Dashboard</div>
                     </div>
                 </div>
@@ -45,7 +68,7 @@ export function Sidebar() {
 
             {/* Navigation */}
             <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-                <div className="text-[10px] font-semibold text-slate-600 uppercase tracking-wider px-3 pb-2">
+                <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 pb-2">
                     Navigation
                 </div>
                 {navItems.map((item) => {
@@ -58,30 +81,32 @@ export function Sidebar() {
                             className={cn(
                                 "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 group relative",
                                 isActive
-                                    ? "bg-indigo-600/15 text-indigo-400 border border-indigo-500/20"
-                                    : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
+                                    ? "bg-blue-50 text-blue-700 border border-blue-200"
+                                    : "text-slate-500 hover:text-slate-800 hover:bg-slate-100"
                             )}
                         >
                             {isActive && (
-                                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-indigo-500 rounded-r-full" />
+                                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-blue-600 rounded-r-full" />
                             )}
-                            <Icon className={cn("w-4 h-4 flex-shrink-0", isActive ? "text-indigo-400" : "text-slate-500 group-hover:text-slate-300")} />
+                            <Icon className={cn("w-4 h-4 flex-shrink-0", isActive ? "text-blue-600" : "text-slate-500 group-hover:text-slate-700")} />
                             <span className="flex-1">{item.label}</span>
-                            {isActive && <ChevronRight className="w-3 h-3 text-indigo-500 opacity-60" />}
+                            {isActive && <ChevronRight className="w-3 h-3 text-blue-600 opacity-60" />}
                         </Link>
                     );
                 })}
             </nav>
 
             {/* Footer */}
-            <div className="px-5 py-4 border-t border-[#1a1a2e]">
+            <div className="px-5 py-4 border-t border-slate-200">
                 <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-xs font-bold text-white">
-                        SM
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-xs font-bold text-white shadow-sm">
+                        {initials}
                     </div>
                     <div>
-                        <div className="text-xs font-medium text-slate-300">Senior Manager</div>
-                        <div className="text-[10px] text-slate-600">manager@company.com</div>
+                        <div className="text-xs font-medium text-slate-700">{user?.role || "..."}</div>
+                        <div className="text-[10px] text-slate-400 truncate max-w-[120px]" title={user?.email}>
+                            {user?.email || "..."}
+                        </div>
                     </div>
                 </div>
             </div>

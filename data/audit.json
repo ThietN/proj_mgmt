@@ -1,0 +1,452 @@
+[
+  {
+    "id": "A1773049315678",
+    "user_id": "nmthiet@tma.com.vn",
+    "action": "UPDATE",
+    "target_type": "Resource",
+    "target_id": "231829",
+    "details": "Updated engineer: Dương Minh Quang",
+    "timestamp": "2026-03-09T09:41:55.678Z"
+  },
+  {
+    "id": "A1773049301711",
+    "user_id": "nmthiet@tma.com.vn",
+    "action": "CREATE",
+    "target_type": "Resource",
+    "target_id": "231717",
+    "details": "Added new engineer: Nguyễn Huỳnh Quỳnh Thoa",
+    "timestamp": "2026-03-09T09:41:41.711Z"
+  },
+  {
+    "id": "A1773049147511",
+    "user_id": "nmthiet@tma.com.vn",
+    "action": "UPDATE",
+    "target_type": "Resource",
+    "target_id": "231829",
+    "details": "Updated engineer: Dương Minh Quang",
+    "timestamp": "2026-03-09T09:39:07.511Z"
+  },
+  {
+    "id": "A1773049063027",
+    "user_id": "nmthiet@tma.com.vn",
+    "action": "CREATE",
+    "target_type": "Resource",
+    "target_id": "231829",
+    "details": "Added new engineer: Dương Minh Quang",
+    "timestamp": "2026-03-09T09:37:43.027Z"
+  },
+  {
+    "id": "A1773048476554",
+    "user_id": "nmthiet@tma.com.vn",
+    "action": "CREATE",
+    "target_type": "Project",
+    "target_id": "P1009",
+    "details": "Created project: iAchieve",
+    "timestamp": "2026-03-09T09:27:56.554Z"
+  },
+  {
+    "id": "A1773048452512",
+    "user_id": "nmthiet@tma.com.vn",
+    "action": "CREATE",
+    "target_type": "Project",
+    "target_id": "P1008",
+    "details": "Created project: RDAF",
+    "timestamp": "2026-03-09T09:27:32.512Z"
+  },
+  {
+    "id": "A1773048438416",
+    "user_id": "nmthiet@tma.com.vn",
+    "action": "CREATE",
+    "target_type": "Project",
+    "target_id": "P1007",
+    "details": "Created project: CTS",
+    "timestamp": "2026-03-09T09:27:18.416Z"
+  },
+  {
+    "id": "A1773048421365",
+    "user_id": "nmthiet@tma.com.vn",
+    "action": "CREATE",
+    "target_type": "Project",
+    "target_id": "P1006",
+    "details": "Created project: IMI",
+    "timestamp": "2026-03-09T09:27:01.365Z"
+  },
+  {
+    "id": "A1773048406199",
+    "user_id": "nmthiet@tma.com.vn",
+    "action": "CREATE",
+    "target_type": "Project",
+    "target_id": "P1005",
+    "details": "Created project: CDR",
+    "timestamp": "2026-03-09T09:26:46.199Z"
+  },
+  {
+    "id": "A1773048149198",
+    "user_id": "nmthiet@tma.com.vn",
+    "action": "UPDATE",
+    "target_type": "Resource",
+    "target_id": "122972",
+    "details": "Updated engineer: Nguyễn Thị Huỳnh Trâm",
+    "timestamp": "2026-03-09T09:22:29.198Z"
+  },
+  {
+    "id": "A1773048122793",
+    "user_id": "nmthiet@tma.com.vn",
+    "action": "CREATE",
+    "target_type": "Resource",
+    "target_id": "122972",
+    "details": "Added new engineer: Nguyễn Thị Huỳnh Trâm",
+    "timestamp": "2026-03-09T09:22:02.793Z"
+  },
+  {
+    "id": "A1773048042631",
+    "user_id": "nmthiet@tma.com.vn",
+    "action": "CREATE",
+    "target_type": "Resource",
+    "target_id": "122952",
+    "details": "Added new engineer: Nguyễn Mạnh Thiết",
+    "timestamp": "2026-03-09T09:20:42.631Z"
+  },
+  {
+    "id": "A1773047431755",
+    "user_id": "nmthiet@tma.com.vn",
+    "action": "UPDATE",
+    "target_type": "Project",
+    "target_id": "P1004",
+    "details": "Updated project: Horizon 2",
+    "timestamp": "2026-03-09T09:10:31.755Z"
+  },
+  {
+    "id": "A1773047361186",
+    "user_id": "nmthiet@tma.com.vn",
+    "action": "CREATE",
+    "target_type": "Project",
+    "target_id": "P1004",
+    "details": "Created project: Horizon 2",
+    "timestamp": "2026-03-09T09:09:21.186Z"
+  },
+  {
+    "id": "A1773047329354",
+    "user_id": "nmthiet@tma.com.vn",
+    "action": "UPDATE",
+    "target_type": "Project",
+    "target_id": "P1003",
+    "details": "Updated project: ICOLIMS",
+    "timestamp": "2026-03-09T09:08:49.354Z"
+  },
+  {
+    "id": "A1773047298402",
+    "user_id": "nmthiet@tma.com.vn",
+    "action": "UPDATE",
+    "target_type": "Project",
+    "target_id": "P1003",
+    "details": "Updated project: ICOLIMS",
+    "timestamp": "2026-03-09T09:08:18.402Z"
+  },
+  {
+    "id": "A1773046733267",
+    "user_id": "nmthiet@tma.com.vn",
+    "action": "UPDATE",
+    "target_type": "Project",
+    "target_id": "P1002",
+    "details": "Updated project: AoS PAL",
+    "timestamp": "2026-03-09T08:58:53.267Z"
+  },
+  {
+    "id": "A1773045845015",
+    "user_id": "nmthiet@tma.com.vn",
+    "action": "CREATE",
+    "target_type": "Project",
+    "target_id": "P1002",
+    "details": "Created project: AoS PAL",
+    "timestamp": "2026-03-09T08:44:05.015Z"
+  },
+  {
+    "id": "A1773045780872",
+    "user_id": "nmthiet@tma.com.vn",
+    "action": "CREATE",
+    "target_type": "Project",
+    "target_id": "P1001",
+    "details": "Created project: ICON APECS",
+    "timestamp": "2026-03-09T08:43:00.872Z"
+  },
+  {
+    "id": "A1773045270726",
+    "user_id": "nmthiet@tma.com.vn",
+    "action": "DELETE",
+    "target_type": "Project",
+    "target_id": "P002",
+    "details": "Deleted project: Data Lake Modernization",
+    "timestamp": "2026-03-09T08:34:30.726Z"
+  },
+  {
+    "id": "A1773045268972",
+    "user_id": "nmthiet@tma.com.vn",
+    "action": "DELETE",
+    "target_type": "Project",
+    "target_id": "P001",
+    "details": "Deleted project: AI Customer Service Platform",
+    "timestamp": "2026-03-09T08:34:28.972Z"
+  },
+  {
+    "id": "A1773044869011",
+    "user_id": "nmthiet@tma.com.vn",
+    "action": "DELETE",
+    "target_type": "Project",
+    "target_id": "P1001",
+    "details": "Deleted project: ICON APECS",
+    "timestamp": "2026-03-09T08:27:49.011Z"
+  },
+  {
+    "id": "A1773044863948",
+    "user_id": "nmthiet@tma.com.vn",
+    "action": "CREATE",
+    "target_type": "Project",
+    "target_id": "P1001",
+    "details": "Created project: ICON APECS",
+    "timestamp": "2026-03-09T08:27:43.948Z"
+  },
+  {
+    "id": "A1773044795691",
+    "user_id": "nmthiet@tma.com.vn",
+    "action": "DELETE",
+    "target_type": "Project",
+    "target_id": "P006",
+    "details": "Deleted project: Mobile Banking App",
+    "timestamp": "2026-03-09T08:26:35.691Z"
+  },
+  {
+    "id": "A1773044794216",
+    "user_id": "nmthiet@tma.com.vn",
+    "action": "DELETE",
+    "target_type": "Project",
+    "target_id": "P005",
+    "details": "Deleted project: Analytics Dashboard",
+    "timestamp": "2026-03-09T08:26:34.216Z"
+  },
+  {
+    "id": "A1773044792552",
+    "user_id": "nmthiet@tma.com.vn",
+    "action": "DELETE",
+    "target_type": "Project",
+    "target_id": "P004",
+    "details": "Deleted project: Infrastructure Automation",
+    "timestamp": "2026-03-09T08:26:32.552Z"
+  },
+  {
+    "id": "A1773044791086",
+    "user_id": "nmthiet@tma.com.vn",
+    "action": "DELETE",
+    "target_type": "Project",
+    "target_id": "P003",
+    "details": "Deleted project: E-Commerce Replatforming",
+    "timestamp": "2026-03-09T08:26:31.086Z"
+  },
+  {
+    "id": "A1773044789447",
+    "user_id": "nmthiet@tma.com.vn",
+    "action": "DELETE",
+    "target_type": "Project",
+    "target_id": "P002",
+    "details": "Deleted project: Data Lake Modernization",
+    "timestamp": "2026-03-09T08:26:29.447Z"
+  },
+  {
+    "id": "A1773044787390",
+    "user_id": "nmthiet@tma.com.vn",
+    "action": "DELETE",
+    "target_type": "Project",
+    "target_id": "P001",
+    "details": "Deleted project: AI Customer Service Platform",
+    "timestamp": "2026-03-09T08:26:27.390Z"
+  },
+  {
+    "id": "A1773039477181",
+    "user_id": "nmthiet@tma.com.vn",
+    "action": "DELETE",
+    "target_type": "Resource",
+    "target_id": "E012",
+    "details": "Removed engineer: Dinh Quoc Hung",
+    "timestamp": "2026-03-09T06:57:57.182Z"
+  },
+  {
+    "id": "A1773039475269",
+    "user_id": "nmthiet@tma.com.vn",
+    "action": "DELETE",
+    "target_type": "Resource",
+    "target_id": "E011",
+    "details": "Removed engineer: Cao Minh Phuong",
+    "timestamp": "2026-03-09T06:57:55.269Z"
+  },
+  {
+    "id": "A1773039472862",
+    "user_id": "nmthiet@tma.com.vn",
+    "action": "DELETE",
+    "target_type": "Resource",
+    "target_id": "E010",
+    "details": "Removed engineer: Bui Thi Thu",
+    "timestamp": "2026-03-09T06:57:52.862Z"
+  },
+  {
+    "id": "A1773039469664",
+    "user_id": "nmthiet@tma.com.vn",
+    "action": "DELETE",
+    "target_type": "Resource",
+    "target_id": "E009",
+    "details": "Removed engineer: Ngo Van Khanh",
+    "timestamp": "2026-03-09T06:57:49.664Z"
+  },
+  {
+    "id": "A1773039466461",
+    "user_id": "nmthiet@tma.com.vn",
+    "action": "DELETE",
+    "target_type": "Resource",
+    "target_id": "E008",
+    "details": "Removed engineer: Do Thi Huong",
+    "timestamp": "2026-03-09T06:57:46.461Z"
+  },
+  {
+    "id": "A1773039462973",
+    "user_id": "nmthiet@tma.com.vn",
+    "action": "DELETE",
+    "target_type": "Resource",
+    "target_id": "E007",
+    "details": "Removed engineer: Vu Thanh Tung",
+    "timestamp": "2026-03-09T06:57:42.973Z"
+  },
+  {
+    "id": "A1773039460336",
+    "user_id": "nmthiet@tma.com.vn",
+    "action": "DELETE",
+    "target_type": "Resource",
+    "target_id": "E006",
+    "details": "Removed engineer: Nguyen Thi Mai",
+    "timestamp": "2026-03-09T06:57:40.336Z"
+  },
+  {
+    "id": "A1773039458566",
+    "user_id": "nmthiet@tma.com.vn",
+    "action": "DELETE",
+    "target_type": "Resource",
+    "target_id": "E004",
+    "details": "Removed engineer: Pham Thi Lan",
+    "timestamp": "2026-03-09T06:57:38.566Z"
+  },
+  {
+    "id": "A1773039456377",
+    "user_id": "nmthiet@tma.com.vn",
+    "action": "DELETE",
+    "target_type": "Resource",
+    "target_id": "E005",
+    "details": "Removed engineer: Hoang Van Cuong",
+    "timestamp": "2026-03-09T06:57:36.377Z"
+  },
+  {
+    "id": "A1773039453823",
+    "user_id": "nmthiet@tma.com.vn",
+    "action": "DELETE",
+    "target_type": "Resource",
+    "target_id": "E003",
+    "details": "Removed engineer: Le Minh Duc",
+    "timestamp": "2026-03-09T06:57:33.823Z"
+  },
+  {
+    "id": "A1773039451801",
+    "user_id": "nmthiet@tma.com.vn",
+    "action": "DELETE",
+    "target_type": "Resource",
+    "target_id": "E002",
+    "details": "Removed engineer: Tran Thi Bich",
+    "timestamp": "2026-03-09T06:57:31.801Z"
+  },
+  {
+    "id": "A1773039449953",
+    "user_id": "nmthiet@tma.com.vn",
+    "action": "DELETE",
+    "target_type": "Resource",
+    "target_id": "E001",
+    "details": "Removed engineer: Nguyen Van An",
+    "timestamp": "2026-03-09T06:57:29.953Z"
+  },
+  {
+    "id": "A1773039444641",
+    "user_id": "nmthiet@tma.com.vn",
+    "action": "DELETE",
+    "target_type": "Resource",
+    "target_id": "E1012",
+    "details": "Removed engineer: Nguyen Manh Thiet",
+    "timestamp": "2026-03-09T06:57:24.641Z"
+  },
+  {
+    "id": "A1773039438856",
+    "user_id": "nmthiet@tma.com.vn",
+    "action": "DELETE",
+    "target_type": "Resource",
+    "target_id": "122952",
+    "details": "Removed engineer: Nguyễn Mạnh Thiết",
+    "timestamp": "2026-03-09T06:57:18.856Z"
+  },
+  {
+    "id": "A1773039423526",
+    "user_id": "nmthiet@tma.com.vn",
+    "action": "CREATE",
+    "target_type": "Resource",
+    "target_id": "122952",
+    "details": "Added new engineer: Nguyễn Mạnh Thiết",
+    "timestamp": "2026-03-09T06:57:03.526Z"
+  },
+  {
+    "id": "A1773030455441",
+    "user_id": "nmthiet@tma.com.vn",
+    "action": "CREATE",
+    "target_type": "Resource",
+    "target_id": "E1012",
+    "details": "Added new engineer: Nguyen Manh Thiet",
+    "timestamp": "2026-03-09T04:27:35.441Z"
+  },
+  {
+    "id": "A1773028897554",
+    "user_id": "nmthiet@tma.com.vn",
+    "action": "CREATE",
+    "target_type": "User",
+    "target_id": "U1773028897552",
+    "details": "User registered: nmthiet@tma.com.vn",
+    "timestamp": "2026-03-09T04:01:37.554Z"
+  },
+  {
+    "id": "A001",
+    "user_id": "manager@company.com",
+    "action": "LOGIN",
+    "target_type": "System",
+    "target_id": "NA",
+    "details": "User logged in successfully",
+    "timestamp": "2026-03-06T08:30:00Z"
+  },
+  {
+    "id": "A002",
+    "user_id": "manager@company.com",
+    "action": "CREATE",
+    "target_type": "Resource",
+    "target_id": "E014",
+    "details": "Added new engineer Nguyen Van Tuan",
+    "timestamp": "2026-03-06T09:15:22Z"
+  },
+  {
+    "id": "A003",
+    "user_id": "manager@company.com",
+    "action": "UPDATE",
+    "target_type": "Project",
+    "target_id": "P002",
+    "details": "Updated risk status from Low to Medium",
+    "timestamp": "2026-03-06T11:42:05Z"
+  },
+  {
+    "id": "A004",
+    "user_id": "hr@company.com",
+    "action": "DELETE",
+    "target_type": "Candidate",
+    "target_id": "C004",
+    "details": "Removed duplicate candidate record",
+    "timestamp": "2026-03-06T14:10:11Z"
+  }
+]

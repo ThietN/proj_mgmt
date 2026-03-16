@@ -1,8 +1,10 @@
-import { getResources } from "@/lib/data";
-import { getProjects } from "@/lib/data";
-import { getESAT } from "@/lib/data";
-import { getCSAT } from "@/lib/data";
-import { getInnovations } from "@/lib/data";
+import {
+    getResources,
+    getProjects,
+    getESAT,
+    getCSAT,
+    getInnovations
+} from "@/lib/database";
 import { KpiCard } from "@/components/ui/KpiCard";
 import { DashboardCharts } from "@/components/dashboard/DashboardCharts";
 import {
@@ -18,12 +20,39 @@ import {
 
 export const dynamic = "force-dynamic";
 
-export default function DashboardPage() {
-    const resources = getResources();
-    const projects = getProjects();
-    const esatRecords = getESAT();
-    const csatRecords = getCSAT();
-    const innovations = getInnovations();
+export default async function DashboardPage({ searchParams }: { searchParams: { month?: string, quarter?: string } }) {
+    const { month, quarter } = searchParams;
+    let resources = await getResources();
+    let projects = await getProjects();
+    let esatRecords = await getESAT();
+    let csatRecords = await getCSAT();
+    let innovations = await getInnovations();
+
+    // Filter by Month (if provided)
+    if (month) {
+        const m = parseInt(month);
+        resources = resources.filter(r => new Date(r.join_date).getMonth() + 1 === m);
+        projects = projects.filter(p => new Date(p.start_date).getMonth() + 1 === m);
+        csatRecords = csatRecords.filter(c => new Date(c.survey_date).getMonth() + 1 === m);
+        innovations = innovations.filter(i => new Date(i.start_date).getMonth() + 1 === m);
+    }
+
+    // Filter by Quarter (if provided)
+    if (quarter) {
+        const q = parseInt(quarter);
+        const qMonths = [
+            [1, 2, 3],
+            [4, 5, 6],
+            [7, 8, 9],
+            [10, 11, 12]
+        ][q - 1];
+
+        resources = resources.filter(r => qMonths.includes(new Date(r.join_date).getMonth() + 1));
+        projects = projects.filter(p => qMonths.includes(new Date(p.start_date).getMonth() + 1));
+        esatRecords = esatRecords.filter(e => e.quarter.includes(`Q${q}`));
+        csatRecords = csatRecords.filter(c => qMonths.includes(new Date(c.survey_date).getMonth() + 1));
+        innovations = innovations.filter(i => qMonths.includes(new Date(i.start_date).getMonth() + 1));
+    }
 
     const billable = resources.filter((r) => r.status === "Billable");
     const backup = resources.filter((r) => r.status === "Backup");
@@ -79,16 +108,22 @@ export default function DashboardPage() {
     });
 
     // CSAT trend
-    const csatProjects = Array.from(new Set(csatRecords.map((c) => c.project)));
-    const csatByProject = csatProjects.map((p) => {
-        const recs = csatRecords.filter((c) => c.project === p);
+    const csatCustomers = Array.from(new Set(csatRecords.map((c) => c.customer)));
+    const csatByProject = csatCustomers.map((cust) => {
+        const recs = csatRecords.filter((c) => c.customer === cust);
         const avg = recs.reduce((a, b) => a + b.survey_score, 0) / recs.length;
-        return { project: p.split(" ").slice(0, 2).join(" "), score: parseFloat(avg.toFixed(1)) };
+        const displayName = cust ? (cust.split(" ").slice(0, 2).join(" ")) : "Unknown";
+        return { project: displayName, score: parseFloat(avg.toFixed(1)) };
     });
 
     // Skills coverage (top skills)
     const allSkills: Record<string, number> = {};
-    resources.forEach((r) => r.skills.forEach((s) => { allSkills[s] = (allSkills[s] ?? 0) + 1; }));
+    resources.forEach((r) => {
+        const skillsArray = Array.isArray(r.skills) ? r.skills : [];
+        skillsArray.forEach((s) => {
+            allSkills[s] = (allSkills[s] ?? 0) + 1;
+        });
+    });
     const topSkills = Object.entries(allSkills)
         .sort((a, b) => b[1] - a[1])
         .slice(0, 7)
@@ -99,13 +134,13 @@ export default function DashboardPage() {
             {/* Header */}
             <div className="flex items-start justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-white">Executive Dashboard</h1>
+                    <h1 className="text-2xl font-bold text-slate-900">Executive Dashboard</h1>
                     <p className="text-sm text-slate-500 mt-0.5">
                         {latestQ} · {resources.length} engineers · {projects.filter(p => p.delivery_status !== "Completed").length} active projects
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
-                    <span className="text-xs text-slate-500 bg-[#111122] border border-[#1a1a2e] px-3 py-1.5 rounded-lg">
+                    <span className="text-xs text-slate-500 bg-white border border-slate-200 px-3 py-1.5 rounded-lg">
                         Last updated: today
                     </span>
                 </div>
@@ -121,8 +156,8 @@ export default function DashboardPage() {
                         trend="up"
                         trendValue="20%"
                         icon={Users}
-                        iconColor="text-indigo-400"
-                        iconBg="bg-indigo-500/10"
+                        iconColor="text-blue-600"
+                        iconBg="bg-blue-600/10"
                     />
                 </div>
                 <div className="animate-fadeInUp animate-fadeInUp-delay-2">
@@ -133,8 +168,8 @@ export default function DashboardPage() {
                         trend="up"
                         trendValue="5%"
                         icon={TrendingUp}
-                        iconColor="text-emerald-400"
-                        iconBg="bg-emerald-500/10"
+                        iconColor="text-emerald-600"
+                        iconBg="bg-emerald-50"
                     />
                 </div>
                 <div className="animate-fadeInUp animate-fadeInUp-delay-3">
@@ -144,8 +179,8 @@ export default function DashboardPage() {
                         subValue="Ready for new projects"
                         trend="neutral"
                         icon={UserCheck}
-                        iconColor="text-cyan-400"
-                        iconBg="bg-cyan-500/10"
+                        iconColor="text-cyan-600"
+                        iconBg="bg-cyan-50"
                     />
                 </div>
                 <div className="animate-fadeInUp animate-fadeInUp-delay-4">
@@ -155,8 +190,8 @@ export default function DashboardPage() {
                         subValue="Partially allocated"
                         trend="neutral"
                         icon={Shield}
-                        iconColor="text-amber-400"
-                        iconBg="bg-amber-500/10"
+                        iconColor="text-amber-600"
+                        iconBg="bg-amber-50"
                     />
                 </div>
                 <div className="animate-fadeInUp animate-fadeInUp-delay-5">
@@ -167,8 +202,8 @@ export default function DashboardPage() {
                         trend={atRisk.length > 1 ? "down" : "neutral"}
                         trendValue={atRisk.length > 1 ? "Needs attention" : undefined}
                         icon={AlertTriangle}
-                        iconColor="text-red-400"
-                        iconBg="bg-red-500/10"
+                        iconColor="text-red-600"
+                        iconBg="bg-red-50"
                         highlight={atRisk.length > 0}
                     />
                 </div>
@@ -180,8 +215,8 @@ export default function DashboardPage() {
                         trend="up"
                         trendValue="+0.5"
                         icon={Smile}
-                        iconColor="text-violet-400"
-                        iconBg="bg-violet-500/10"
+                        iconColor="text-sky-600"
+                        iconBg="bg-sky-50"
                     />
                 </div>
                 <div className="animate-fadeInUp animate-fadeInUp-delay-7">
@@ -192,8 +227,8 @@ export default function DashboardPage() {
                         trend="up"
                         trendValue="+0.3"
                         icon={Star}
-                        iconColor="text-amber-400"
-                        iconBg="bg-amber-500/10"
+                        iconColor="text-amber-600"
+                        iconBg="bg-amber-50"
                     />
                 </div>
                 <div className="animate-fadeInUp animate-fadeInUp-delay-8">
@@ -223,21 +258,21 @@ export default function DashboardPage() {
             {atRisk.length > 0 && (
                 <div className="glass-card p-5">
                     <div className="flex items-center gap-2 mb-4">
-                        <AlertTriangle className="w-4 h-4 text-red-400" />
-                        <h2 className="text-sm font-semibold text-white">Projects Needing Attention</h2>
+                        <AlertTriangle className="w-4 h-4 text-red-600" />
+                        <h2 className="text-sm font-semibold text-slate-900">Projects Needing Attention</h2>
                     </div>
                     <div className="space-y-2">
                         {atRisk.map((proj) => (
                             <div key={proj.project_id} className="flex items-center justify-between p-3 bg-red-500/5 border border-red-500/15 rounded-lg">
                                 <div>
-                                    <div className="text-sm font-medium text-white">{proj.project_name}</div>
-                                    <div className="text-xs text-slate-500">{proj.customer} · Team: {proj.team_size}</div>
+                                    <div className="text-sm font-medium text-slate-900">{proj.project_name}</div>
+                                    <div className="text-xs text-slate-500">{proj.customer} · HC: {proj.headcount} · Effort: {proj.effort}</div>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    <div className="text-xs text-slate-400">Milestone: {proj.milestone_progress}%</div>
+                                    <div className="text-xs text-slate-500">Milestone: {proj.milestone_progress}%</div>
                                     <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${proj.delivery_status === "Critical"
-                                        ? "bg-red-500/10 text-red-400 border-red-500/20"
-                                        : "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                                        ? "bg-red-50 text-red-600 border-red-200"
+                                        : "bg-amber-50 text-amber-600 border-amber-200"
                                         }`}>
                                         {proj.delivery_status}
                                     </span>

@@ -1,122 +1,202 @@
 [
-    {
-        "quarter": "Q1 2023",
-        "team": "AI Platform",
-        "score": 7.8,
-        "comment": "Team is motivated but needs more tooling support"
-    },
-    {
-        "quarter": "Q1 2023",
-        "team": "Product Team",
-        "score": 7.2,
-        "comment": "Some concerns about project deadlines"
-    },
-    {
-        "quarter": "Q1 2023",
-        "team": "Data Platform",
-        "score": 8.1,
-        "comment": "Good collaboration and clear goals"
-    },
-    {
-        "quarter": "Q1 2023",
-        "team": "Infrastructure",
-        "score": 7.5,
-        "comment": "Wants more recognition and growth opportunities"
-    },
-    {
-        "quarter": "Q2 2023",
-        "team": "AI Platform",
-        "score": 8.2,
-        "comment": "New tools helped productivity significantly"
-    },
-    {
-        "quarter": "Q2 2023",
-        "team": "Product Team",
-        "score": 7.0,
-        "comment": "Workload is still high, need more resources"
-    },
-    {
-        "quarter": "Q2 2023",
-        "team": "Data Platform",
-        "score": 8.4,
-        "comment": "Very happy with the new project direction"
-    },
-    {
-        "quarter": "Q2 2023",
-        "team": "Infrastructure",
-        "score": 7.8,
-        "comment": "Team bonding activities helped morale"
-    },
-    {
-        "quarter": "Q3 2023",
-        "team": "AI Platform",
-        "score": 8.5,
-        "comment": "Excellent technical growth this quarter"
-    },
-    {
-        "quarter": "Q3 2023",
-        "team": "Product Team",
-        "score": 7.5,
-        "comment": "Process improvements are working well"
-    },
-    {
-        "quarter": "Q3 2023",
-        "team": "Data Platform",
-        "score": 8.0,
-        "comment": "Slight burnout from heavy delivery load"
-    },
-    {
-        "quarter": "Q3 2023",
-        "team": "Infrastructure",
-        "score": 8.2,
-        "comment": "Appreciate the autonomy given to the team"
-    },
-    {
-        "quarter": "Q4 2023",
-        "team": "AI Platform",
-        "score": 8.8,
-        "comment": "Best quarter yet, strong delivery and recognition"
-    },
-    {
-        "quarter": "Q4 2023",
-        "team": "Product Team",
-        "score": 7.8,
-        "comment": "Improved communication with stakeholders"
-    },
-    {
-        "quarter": "Q4 2023",
-        "team": "Data Platform",
-        "score": 8.3,
-        "comment": "Successful project completion boosted morale"
-    },
-    {
-        "quarter": "Q4 2023",
-        "team": "Infrastructure",
-        "score": 8.5,
-        "comment": "Great year-end bonus was a big motivator"
-    },
-    {
-        "quarter": "Q1 2024",
-        "team": "AI Platform",
-        "score": 8.6,
-        "comment": "Exciting new AI projects"
-    },
-    {
-        "quarter": "Q1 2024",
-        "team": "Product Team",
-        "score": 7.3,
-        "comment": "Some team members considering leaving"
-    },
-    {
-        "quarter": "Q1 2024",
-        "team": "Data Platform",
-        "score": 8.1,
-        "comment": "New tech stack challenge is exciting"
-    },
-    {
-        "quarter": "Q1 2024",
-        "team": "Infrastructure",
-        "score": 8.0,
-        "comment": "Stable and productive environment"
-    }
+  {
+    "id": "E1000",
+    "quarter": "Q1 2023",
+    "team": "AI Platform",
+    "score": 7.8,
+    "respondents": 12,
+    "top_positive": "Good collaboration and environment",
+    "top_improvement": "Needs more career growth clarity",
+    "comment": "Team is motivated but needs more tooling support"
+  },
+  {
+    "id": "E1001",
+    "quarter": "Q1 2023",
+    "team": "Product Team",
+    "score": 7.2,
+    "respondents": 22,
+    "top_positive": "Good collaboration and environment",
+    "top_improvement": "Needs more career growth clarity",
+    "comment": "Some concerns about project deadlines"
+  },
+  {
+    "id": "E1002",
+    "quarter": "Q1 2023",
+    "team": "Data Platform",
+    "score": 8.1,
+    "respondents": 29,
+    "top_positive": "Good collaboration and environment",
+    "top_improvement": "Needs more career growth clarity",
+    "comment": "Good collaboration and clear goals"
+  },
+  {
+    "id": "E1003",
+    "quarter": "Q1 2023",
+    "team": "Infrastructure",
+    "score": 7.5,
+    "respondents": 18,
+    "top_positive": "Good collaboration and environment",
+    "top_improvement": "Needs more career growth clarity",
+    "comment": "Wants more recognition and growth opportunities"
+  },
+  {
+    "id": "E1004",
+    "quarter": "Q2 2023",
+    "team": "AI Platform",
+    "score": 8.2,
+    "respondents": 25,
+    "top_positive": "Good collaboration and environment",
+    "top_improvement": "Needs more career growth clarity",
+    "comment": "New tools helped productivity significantly"
+  },
+  {
+    "id": "E1005",
+    "quarter": "Q2 2023",
+    "team": "Product Team",
+    "score": 7,
+    "respondents": 29,
+    "top_positive": "Good collaboration and environment",
+    "top_improvement": "Needs more career growth clarity",
+    "comment": "Workload is still high, need more resources"
+  },
+  {
+    "id": "E1006",
+    "quarter": "Q2 2023",
+    "team": "Data Platform",
+    "score": 8.4,
+    "respondents": 29,
+    "top_positive": "Good collaboration and environment",
+    "top_improvement": "Needs more career growth clarity",
+    "comment": "Very happy with the new project direction"
+  },
+  {
+    "id": "E1007",
+    "quarter": "Q2 2023",
+    "team": "Infrastructure",
+    "score": 7.8,
+    "respondents": 28,
+    "top_positive": "Good collaboration and environment",
+    "top_improvement": "Needs more career growth clarity",
+    "comment": "Team bonding activities helped morale"
+  },
+  {
+    "id": "E1008",
+    "quarter": "Q3 2023",
+    "team": "AI Platform",
+    "score": 8.5,
+    "respondents": 25,
+    "top_positive": "Good collaboration and environment",
+    "top_improvement": "Needs more career growth clarity",
+    "comment": "Excellent technical growth this quarter"
+  },
+  {
+    "id": "E1009",
+    "quarter": "Q3 2023",
+    "team": "Product Team",
+    "score": 7.5,
+    "respondents": 15,
+    "top_positive": "Good collaboration and environment",
+    "top_improvement": "Needs more career growth clarity",
+    "comment": "Process improvements are working well"
+  },
+  {
+    "id": "E1010",
+    "quarter": "Q3 2023",
+    "team": "Data Platform",
+    "score": 8,
+    "respondents": 26,
+    "top_positive": "Good collaboration and environment",
+    "top_improvement": "Needs more career growth clarity",
+    "comment": "Slight burnout from heavy delivery load"
+  },
+  {
+    "id": "E1011",
+    "quarter": "Q3 2023",
+    "team": "Infrastructure",
+    "score": 8.2,
+    "respondents": 25,
+    "top_positive": "Good collaboration and environment",
+    "top_improvement": "Needs more career growth clarity",
+    "comment": "Appreciate the autonomy given to the team"
+  },
+  {
+    "id": "E1012",
+    "quarter": "Q4 2023",
+    "team": "AI Platform",
+    "score": 8.8,
+    "respondents": 25,
+    "top_positive": "Good collaboration and environment",
+    "top_improvement": "Needs more career growth clarity",
+    "comment": "Best quarter yet, strong delivery and recognition"
+  },
+  {
+    "id": "E1013",
+    "quarter": "Q4 2023",
+    "team": "Product Team",
+    "score": 7.8,
+    "respondents": 15,
+    "top_positive": "Good collaboration and environment",
+    "top_improvement": "Needs more career growth clarity",
+    "comment": "Improved communication with stakeholders"
+  },
+  {
+    "id": "E1014",
+    "quarter": "Q4 2023",
+    "team": "Data Platform",
+    "score": 8.3,
+    "respondents": 29,
+    "top_positive": "Good collaboration and environment",
+    "top_improvement": "Needs more career growth clarity",
+    "comment": "Successful project completion boosted morale"
+  },
+  {
+    "id": "E1015",
+    "quarter": "Q4 2023",
+    "team": "Infrastructure",
+    "score": 8.5,
+    "respondents": 24,
+    "top_positive": "Good collaboration and environment",
+    "top_improvement": "Needs more career growth clarity",
+    "comment": "Great year-end bonus was a big motivator"
+  },
+  {
+    "id": "E1016",
+    "quarter": "Q1 2024",
+    "team": "AI Platform",
+    "score": 8.6,
+    "respondents": 20,
+    "top_positive": "Good collaboration and environment",
+    "top_improvement": "Needs more career growth clarity",
+    "comment": "Exciting new AI projects"
+  },
+  {
+    "id": "E1017",
+    "quarter": "Q1 2024",
+    "team": "Product Team",
+    "score": 7.3,
+    "respondents": 20,
+    "top_positive": "Good collaboration and environment",
+    "top_improvement": "Needs more career growth clarity",
+    "comment": "Some team members considering leaving"
+  },
+  {
+    "id": "E1018",
+    "quarter": "Q1 2024",
+    "team": "Data Platform",
+    "score": 8.1,
+    "respondents": 28,
+    "top_positive": "Good collaboration and environment",
+    "top_improvement": "Needs more career growth clarity",
+    "comment": "New tech stack challenge is exciting"
+  },
+  {
+    "id": "E1019",
+    "quarter": "Q1 2024",
+    "team": "Infrastructure",
+    "score": 8,
+    "respondents": 25,
+    "top_positive": "Good collaboration and environment",
+    "top_improvement": "Needs more career growth clarity",
+    "comment": "Stable and productive environment"
+  }
 ]

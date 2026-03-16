@@ -1,4 +1,4 @@
-# DeliveryOS – Web Management System
+# DC12_PG3_MGMT – Web Management System
 
 A clean, production-ready management dashboard for Senior Delivery Managers built with **Next.js 14**, **TypeScript**, **TailwindCSS**, and **JSON file storage**.
 

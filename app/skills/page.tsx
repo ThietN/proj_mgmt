@@ -16,15 +16,15 @@ export default function SkillsPage() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-2xl font-bold text-white">Skills & Capability Matrix</h1>
+                <h1 className="text-2xl font-bold text-slate-900">Skills & Capability Matrix</h1>
                 <p className="text-sm text-slate-500 mt-0.5">Team skill coverage, levels, and gap analysis</p>
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <KpiCard title="Unique Skills" value={uniqueSkills.length} icon={Brain} iconColor="text-indigo-400" iconBg="bg-indigo-500/10" />
-                <KpiCard title="Expert Engineers" value={experts} icon={Star} iconColor="text-amber-400" iconBg="bg-amber-500/10" subValue="Expert-level entries" />
-                <KpiCard title="Teams Tracked" value={teams.length} icon={Users} iconColor="text-violet-400" iconBg="bg-violet-500/10" />
-                <KpiCard title="Skill Entries" value={skills.length} icon={Zap} iconColor="text-cyan-400" iconBg="bg-cyan-500/10" />
+                <KpiCard title="Unique Skills" value={uniqueSkills.length} icon={Brain} iconColor="text-blue-600" iconBg="bg-blue-600/10" />
+                <KpiCard title="Expert Engineers" value={experts} icon={Star} iconColor="text-amber-600" iconBg="bg-amber-50" subValue="Expert-level entries" />
+                <KpiCard title="Teams Tracked" value={teams.length} icon={Users} iconColor="text-sky-600" iconBg="bg-sky-50" />
+                <KpiCard title="Skill Entries" value={skills.length} icon={Zap} iconColor="text-cyan-600" iconBg="bg-cyan-50" />
             </div>
 
             <SkillsClient skills={skills} resources={resources} />

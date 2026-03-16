@@ -10,23 +10,30 @@ export interface Resource {
     grade: string;
     skills: string[];
     english_level: string;
-    status: "Billable" | "Backup" | "Available";
+    status: "Billable" | "Backup" | "Available" | "Maternity Leave" | "Resigning";
     allocation_percentage: number;
     join_date: string;
     risk_flag?: "Low performance" | "Resign risk" | null;
+    location: "lab3" | "lab6";
+    notes?: string;
+    project_id?: string;
 }
 
 export interface Project {
     project_id: string;
     project_name: string;
     customer: string;
-    team_size: number;
+    headcount: number;
+    effort: number;
+    billable: number;
+    nbr: number;
     delivery_status: "On Track" | "At Risk" | "Critical" | "Completed";
     risk_level: "Low" | "Medium" | "High";
     milestone_progress: number; // 0-100
     start_date: string;
     end_date: string;
     tech_stack: string[];
+    parent_id?: string;
 }
 
 export interface Candidate {
@@ -42,23 +49,28 @@ export interface Candidate {
 }
 
 export interface SkillEntry {
+    id: string; // Unique entry ID
     employee_id: string;
-    employee_name: string;
-    team: string;
     skill_name: string;
     skill_level: "Beginner" | "Intermediate" | "Advanced" | "Expert";
 }
 
 export interface ESATRecord {
+    id: string;
     quarter: string; // e.g. "Q1 2024"
     team: string;
     score: number; // 1-10
+    respondents: number;
+    top_positive: string;
+    top_improvement: string;
     comment?: string;
 }
 
 export interface CSATRecord {
-    record_id: string;
-    project: string;
+    id: string;
+    record_id?: string;
+    project?: string;
+    project_id: string;
     customer: string;
     survey_date: string;
     survey_score: number; // 1-10
@@ -88,4 +100,23 @@ export interface DashboardKPI {
     avg_esat: number;
     avg_csat: number;
     active_innovations: number;
+}
+
+export interface User {
+    id: string;
+    email: string;
+    passwordHash: string;
+    name: string;
+    role: "Admin" | "Manager" | "Viewer" | "Senior Manager" | "Team Lead" | "PM" | "SM";
+    createdAt: string;
+}
+
+export interface AuditLog {
+    id: string;
+    user_id: string;
+    action: string;
+    target_type: string;
+    target_id: string;
+    details: string;
+    timestamp: string;
 }

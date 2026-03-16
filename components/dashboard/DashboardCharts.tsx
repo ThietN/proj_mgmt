@@ -65,7 +65,7 @@ export function DashboardCharts({
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
             {/* Resource Allocation Pie */}
             <div className="glass-card p-5">
-                <h2 className="text-sm font-semibold text-white mb-1">Resource Allocation</h2>
+                <h2 className="text-sm font-semibold text-slate-900 mb-1">Resource Allocation</h2>
                 <p className="text-xs text-slate-500 mb-4">By billability status</p>
                 <ResponsiveContainer width="100%" height={200}>
                     <PieChart>
@@ -95,7 +95,7 @@ export function DashboardCharts({
 
             {/* Headcount Trend */}
             <div className="glass-card p-5">
-                <h2 className="text-sm font-semibold text-white mb-1">Headcount Trend</h2>
+                <h2 className="text-sm font-semibold text-slate-900 mb-1">Headcount Trend</h2>
                 <p className="text-xs text-slate-500 mb-4">Last 7 months</p>
                 <ResponsiveContainer width="100%" height={200}>
                     <AreaChart data={headcountTrend}>
@@ -116,7 +116,7 @@ export function DashboardCharts({
 
             {/* Skill Coverage */}
             <div className="glass-card p-5">
-                <h2 className="text-sm font-semibold text-white mb-1">Top Skills Coverage</h2>
+                <h2 className="text-sm font-semibold text-slate-900 mb-1">Top Skills Coverage</h2>
                 <p className="text-xs text-slate-500 mb-4">Engineers per skill</p>
                 <ResponsiveContainer width="100%" height={200}>
                     <BarChart data={topSkills} layout="vertical">
@@ -131,7 +131,7 @@ export function DashboardCharts({
 
             {/* ESAT Trend */}
             <div className="glass-card p-5 lg:col-span-1">
-                <h2 className="text-sm font-semibold text-white mb-1">ESAT Trend</h2>
+                <h2 className="text-sm font-semibold text-slate-900 mb-1">ESAT Trend</h2>
                 <p className="text-xs text-slate-500 mb-4">Average company score by quarter</p>
                 <ResponsiveContainer width="100%" height={200}>
                     <LineChart data={esatByQuarter}>
@@ -152,7 +152,7 @@ export function DashboardCharts({
 
             {/* CSAT by Project */}
             <div className="glass-card p-5 lg:col-span-2">
-                <h2 className="text-sm font-semibold text-white mb-1">CSAT by Project</h2>
+                <h2 className="text-sm font-semibold text-slate-900 mb-1">CSAT by Project</h2>
                 <p className="text-xs text-slate-500 mb-4">Customer satisfaction scores</p>
                 <ResponsiveContainer width="100%" height={200}>
                     <BarChart data={csatByProject}>
