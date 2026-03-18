@@ -5,6 +5,26 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Bot, Zap, Code2, FlaskConical, Plus, X, Check, Trash2, Edit2, Lightbulb, Star } from "lucide-react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
+import 'react-quill/dist/quill.snow.css';
+
+const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
+
+const quillModules = {
+    toolbar: [
+        [{ 'header': [1, 2, false] }],
+        ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+        ['link', 'clean']
+    ],
+};
+
+const quillFormats = [
+    'header',
+    'bold', 'italic', 'underline', 'strike', 'blockquote',
+    'list', 'bullet',
+    'link'
+];
 
 interface InnovationsClientProps {
     innovations: Innovation[];
@@ -245,15 +265,19 @@ export function InnovationsClient({ innovations: initialData }: InnovationsClien
                                 />
                             </div>
                         </div>
-                        <div>
+                        <div className="md:col-span-2">
                             <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Description</label>
-                            <textarea
-                                value={formData.description}
-                                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                rows={3}
-                                className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 outline-none focus:border-rose-400 shadow-sm resize-none"
-                                placeholder="Explain the value and goals of this initiative..."
-                            />
+                            <div className="bg-white rounded-lg overflow-hidden border border-slate-200 focus-within:border-rose-400 transition-all shadow-sm">
+                                <ReactQuill
+                                    theme="snow"
+                                    value={formData.description}
+                                    onChange={(content) => setFormData({ ...formData, description: content })}
+                                    modules={quillModules}
+                                    formats={quillFormats}
+                                    className="h-48"
+                                    placeholder="Explain the value and goals of this initiative..."
+                                />
+                            </div>
                         </div>
                         <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
                             <button
@@ -313,7 +337,13 @@ export function InnovationsClient({ innovations: initialData }: InnovationsClien
                                 </div>
                             </div>
 
-                            <p className="text-xs text-slate-500 mt-4 leading-relaxed font-medium bg-slate-50/50 p-3 rounded-xl border border-slate-100 italic">"{init.description}"</p>
+                            <div className="mt-4 bg-slate-50/50 p-4 rounded-xl border border-slate-100 italic relative overflow-hidden">
+                                <span className="text-[9px] font-black text-rose-300 uppercase absolute top-2 right-3">Initiative Brief</span>
+                                <div 
+                                    className="text-xs text-slate-600 leading-relaxed font-medium prose prose-slate prose-xs max-w-none"
+                                    dangerouslySetInnerHTML={{ __html: init.description || "No description provided." }}
+                                />
+                            </div>
 
                             <div className="flex items-center justify-between mt-5 pt-3 border-t border-slate-100">
                                 <div className="flex flex-col gap-1.5">

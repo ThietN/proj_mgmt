@@ -1,4 +1,4 @@
-import { getCSAT } from "@/lib/database";
+import { getCSAT, getProjects } from "@/lib/database";
 import { CSATClient } from "@/components/csat/CSATClient";
 import { KpiCard } from "@/components/ui/KpiCard";
 import { Star, AlertTriangle, TrendingUp, Users } from "lucide-react";
@@ -8,6 +8,7 @@ export const dynamic = "force-dynamic";
 export default async function CSATPage({ searchParams }: { searchParams: { month?: string, quarter?: string } }) {
     const { month, quarter } = searchParams;
     let records = await getCSAT();
+    const projects = await getProjects();
 
     // Filter by Month
     if (month) {
@@ -43,7 +44,7 @@ export default async function CSATPage({ searchParams }: { searchParams: { month
                 <KpiCard title="At Risk (<7)" value={atRisk.length} icon={AlertTriangle} iconColor="text-red-600" iconBg="bg-red-50" highlight={atRisk.length > 0} />
             </div>
 
-            <CSATClient records={records} />
+            <CSATClient records={records} projects={projects} />
         </div>
     );
 }

@@ -3,7 +3,7 @@ import { SkillEntry, Resource } from "@/types";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { Plus, X, Check, Trash2, Edit2, Brain, Search, Filter, Users } from "lucide-react";
+import { Plus, X, Check, Trash2, Edit2, Brain, Search, Filter, Users, Sparkles, TrendingUp, ShieldAlert, Star } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 const SKILL_LEVEL_ORDER = ["Beginner", "Intermediate", "Advanced", "Expert"] as const;
@@ -93,8 +93,64 @@ export function SkillsClient({ skills: initialSkills, resources }: SkillsClientP
         } catch (err) { }
     }
 
+    // AI Team Evaluation
+    const levelScores: Record<string, number> = { Beginner: 1, Intermediate: 2, Advanced: 3, Expert: 4 };
+    let totalScore = 0;
+    filteredSkills.forEach(s => { totalScore += levelScores[s.skill_level] || 0; });
+    const avgScore = filteredSkills.length > 0 ? (totalScore / filteredSkills.length).toFixed(1) : "0.0";
+    const seniorRatio = filteredSkills.length > 0 ? Math.round((filteredSkills.filter(s => s.skill_level === 'Expert' || s.skill_level === 'Advanced').length / filteredSkills.length) * 100) : 0;
+    
+    const domainScores: Record<string, number> = {};
+    filteredSkills.forEach(s => {
+        domainScores[s.skill_name] = (domainScores[s.skill_name] || 0) + (levelScores[s.skill_level] || 0);
+    });
+    const strongestDomain = Object.entries(domainScores).sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A';
+
     return (
         <div className="space-y-4">
+            {/* AI Insights Widget */}
+            <div className="glass-card p-5 bg-gradient-to-br from-indigo-50/50 to-purple-50/50 border-indigo-100">
+                <h3 className="text-xs font-black text-indigo-600 uppercase tracking-widest flex items-center gap-2 mb-4">
+                    <Sparkles className="w-4 h-4" /> Team Capability Evaluation
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="bg-white/60 p-4 rounded-xl border border-indigo-50/50 shadow-sm flex flex-col justify-between">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Mastery Index</span>
+                        <div className="flex items-end justify-between mt-2">
+                            <span className="text-2xl font-black text-slate-800">{avgScore}<span className="text-sm text-slate-400">/4.0</span></span>
+                            <Brain className="w-5 h-5 text-indigo-400 mb-1" />
+                        </div>
+                    </div>
+                    <div className="bg-white/60 p-4 rounded-xl border border-indigo-50/50 shadow-sm flex flex-col justify-between">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Seniority Ratio</span>
+                        <div className="flex items-end justify-between mt-2">
+                            <span className="text-2xl font-black text-slate-800">{seniorRatio}%</span>
+                            <TrendingUp className="w-5 h-5 text-emerald-500 mb-1" />
+                        </div>
+                        <p className="text-[9px] font-medium text-slate-400 mt-1">Advanced or higher</p>
+                    </div>
+                    <div className="bg-white/60 p-4 rounded-xl border border-indigo-50/50 shadow-sm flex flex-col justify-between">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Strongest Domain</span>
+                        <div className="flex items-end justify-between mt-2">
+                            <span className="text-xl font-black text-indigo-600 truncate pr-2">{strongestDomain}</span>
+                            <Star className="w-5 h-5 text-amber-400 mb-1 shrink-0" />
+                        </div>
+                    </div>
+                    <div className="bg-white/60 p-4 rounded-xl border border-indigo-50/50 shadow-sm flex flex-col justify-between">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Risk Analysis</span>
+                        <div className="flex items-start justify-between mt-2 max-w-[90%]">
+                            <span className="text-xs font-bold text-slate-600">
+                                {gapSkills.length > 0 
+                                    ? <span className="text-rose-500">{gapSkills.length} critical gaps identified. Training required.</span>
+                                    : <span className="text-emerald-500">Strong coverage across all tracked technologies.</span>
+                                }
+                            </span>
+                            <ShieldAlert className={cn("w-4 h-4 shrink-0 mt-0.5", gapSkills.length > 0 ? "text-rose-400" : "text-emerald-400")} />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             {/* Header / Controls */}
             <div className="glass-card p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex flex-wrap items-center gap-3">

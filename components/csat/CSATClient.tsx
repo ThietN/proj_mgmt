@@ -1,25 +1,26 @@
 "use client";
-import { CSATRecord } from "@/types";
-import { useState } from "react";
+import { CSATRecord, Project } from "@/types";
+import { useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
-import { Star, Plus, X, Check, Trash2, Edit2, ShieldAlert, Heart, Calendar, MessageSquare, ListChecks } from "lucide-react";
+import { Star, Plus, X, Check, Trash2, Edit2, ShieldAlert, Heart, Calendar, MessageSquare, ListChecks, Building2, Briefcase } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface CSATClientProps {
     records: CSATRecord[];
+    projects: Project[];
 }
 
 const DEFAULT_FORM = {
     id: "",
-    customer: "",
     project_id: "",
+    customer: "",
     survey_date: new Date().toISOString().split("T")[0],
     survey_score: 10,
     feedback: "",
     action_plan: ""
 };
 
-export function CSATClient({ records: initialData }: CSATClientProps) {
+export function CSATClient({ records: initialData, projects }: CSATClientProps) {
     const router = useRouter();
     const [records, setRecords] = useState<CSATRecord[]>(initialData);
     const [isAdding, setIsAdding] = useState(false);
@@ -28,10 +29,26 @@ export function CSATClient({ records: initialData }: CSATClientProps) {
     const [isLoading, setIsLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
 
-    const filtered = records.filter((r) =>
-        r.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        r.project_id.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filtered = useMemo(() => {
+        return records.filter((r) => {
+            const project = projects.find(p => p.project_id === r.project_id);
+            const projectName = project?.project_name || "";
+            return (
+                r.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                r.project_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                projectName.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+        });
+    }, [records, projects, searchTerm]);
+
+    const handleProjectChange = (projectId: string) => {
+        const project = projects.find(p => p.project_id === projectId);
+        setFormData({
+            ...formData,
+            project_id: projectId,
+            customer: project ? project.customer : formData.customer
+        });
+    };
 
     const startAdding = () => {
         setFormData({ ...DEFAULT_FORM, id: `C${Date.now()}` });
@@ -123,38 +140,45 @@ export function CSATClient({ records: initialData }: CSATClientProps) {
                     <form onSubmit={handleSubmit} className="space-y-4 max-w-4xl mx-auto">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                             <div className="lg:col-span-2">
-                                <label className="block text-[10px] font-black text-amber-600 uppercase tracking-widest mb-1.5">Client / Organization</label>
-                                <input
-                                    required
-                                    value={formData.customer}
-                                    onChange={(e) => setFormData({ ...formData, customer: e.target.value })}
-                                    className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm font-bold text-slate-900 outline-none focus:border-amber-500 shadow-sm"
-                                    placeholder="Ex: Coca-Cola Japan"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-[10px] font-black text-amber-600 uppercase tracking-widest mb-1.5">Project ID</label>
-                                <input
+                                <label className="block text-[10px] font-black text-amber-600 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                                    <Briefcase className="w-3 h-3" /> Select Project
+                                </label>
+                                <select
                                     required
                                     value={formData.project_id}
-                                    onChange={(e) => setFormData({ ...formData, project_id: e.target.value })}
+                                    onChange={(e) => handleProjectChange(e.target.value)}
                                     className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm font-bold text-slate-900 outline-none focus:border-amber-500 shadow-sm"
-                                    placeholder="P10XX"
+                                >
+                                    <option value="">-- Choose a Project --</option>
+                                    {projects.map(p => (
+                                        <option key={p.project_id} value={p.project_id}>
+                                            {p.project_name} ({p.customer})
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-black text-amber-600 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                                    <Building2 className="w-3 h-3" /> Customer (Auto)
+                                </label>
+                                <input
+                                    readOnly
+                                    value={formData.customer}
+                                    className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm font-bold text-slate-500 outline-none cursor-not-allowed shadow-sm"
+                                    placeholder="Customer name..."
                                 />
                             </div>
                             <div>
-                                <label className="block text-[10px] font-black text-amber-600 uppercase tracking-widest mb-1.5">CSAT Score (1-10)</label>
-                                <div className="flex items-center gap-3">
-                                    <input
-                                        type="range"
-                                        min="1"
-                                        max="10"
-                                        value={formData.survey_score}
-                                        onChange={(e) => setFormData({ ...formData, survey_score: parseInt(e.target.value) })}
-                                        className="flex-1 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-amber-500"
-                                    />
-                                    <span className="text-sm font-black text-amber-500 w-6">{formData.survey_score}</span>
-                                </div>
+                                <label className="block text-[10px] font-black text-amber-600 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                                    <Calendar className="w-3 h-3" /> Survey Date
+                                </label>
+                                <input
+                                    type="date"
+                                    required
+                                    value={formData.survey_date}
+                                    onChange={(e) => setFormData({ ...formData, survey_date: e.target.value })}
+                                    className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm font-bold text-slate-900 outline-none focus:border-amber-500 shadow-sm"
+                                />
                             </div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -225,11 +249,17 @@ export function CSATClient({ records: initialData }: CSATClientProps) {
 
                         <div className="flex flex-col gap-4">
                             <div className="flex-1">
-                                <h3 className="text-lg font-black text-slate-900 group-hover:text-amber-600 transition-colors leading-tight">{r.customer}</h3>
+                                <h3 className="text-lg font-black text-slate-900 group-hover:text-amber-600 transition-colors leading-tight">
+                                    {projects.find(p => p.project_id === r.project_id)?.project_name || "Unknown Project"}
+                                </h3>
                                 <div className="flex items-center gap-3 mt-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                                    <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5 text-slate-300" /> {new Date(r.survey_date).toLocaleDateString()}</span>
+                                    <span className="flex items-center gap-1.5 bg-slate-100 px-2 py-0.5 rounded text-slate-500">
+                                        <Building2 className="w-3 h-3" /> {r.customer}
+                                    </span>
                                     <span className="w-1 h-1 rounded-full bg-slate-200" />
-                                    <span className="flex items-center gap-1">Project ID: <strong className="text-slate-700">{r.project_id}</strong></span>
+                                    <span className="flex items-center gap-1.5">
+                                        <Calendar className="w-3 h-3 text-slate-300" /> {new Date(r.survey_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                                    </span>
                                 </div>
                             </div>
 
@@ -239,7 +269,7 @@ export function CSATClient({ records: initialData }: CSATClientProps) {
                                         <MessageSquare className="w-4 h-4 text-blue-500" />
                                     </div>
                                     <div>
-                                        <span className="text-[9px] font-black text-blue-500 uppercase tracking-widest mb-1 block">Customer Voice</span>
+                                        <span className="text-[9px] font-black text-blue-500 uppercase tracking-widest mb-1 block">Customer Feedbacks</span>
                                         <p className="text-xs font-medium text-slate-600 leading-relaxed bg-slate-50/50 p-2 rounded-lg border border-slate-100 italic">
                                             "{r.feedback || "No feedback provided"}"
                                         </p>
