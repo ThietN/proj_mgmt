@@ -1,13 +1,13 @@
-import { getInnovations } from "@/lib/data";
+import { getInnovations } from "@/lib/database";
 import { InnovationsClient } from "@/components/innovations/InnovationsClient";
 import { KpiCard } from "@/components/ui/KpiCard";
 import { Lightbulb, Zap, CheckCircle, Clock } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
-export default function InnovationsPage({ searchParams }: { searchParams: { month?: string, quarter?: string } }) {
+export default async function InnovationsPage({ searchParams }: { searchParams: { month?: string, quarter?: string } }) {
     const { month, quarter } = searchParams;
-    let innovations = getInnovations();
+    let innovations = await getInnovations();
 
     // Filter by Month (if provided)
     if (month) {

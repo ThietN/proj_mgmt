@@ -1,13 +1,13 @@
-import { getProjects } from "@/lib/data";
+import { getProjects } from "@/lib/database";
 import { DeliveryClient } from "@/components/delivery/DeliveryClient";
 import { KpiCard } from "@/components/ui/KpiCard";
 import { Rocket, AlertTriangle, CheckCircle, Activity } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
-export default function DeliveryPage({ searchParams }: { searchParams: { month?: string, quarter?: string } }) {
+export default async function DeliveryPage({ searchParams }: { searchParams: { month?: string, quarter?: string } }) {
     const { month, quarter } = searchParams;
-    let projects = getProjects();
+    let projects = await getProjects();
 
     // Filter by Month (if provided)
     if (month) {

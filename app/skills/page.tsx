@@ -1,13 +1,13 @@
-import { getSkills, getResources } from "@/lib/data";
+import { getSkills, getResources } from "@/lib/database";
 import { SkillsClient } from "@/components/skills/SkillsClient";
 import { KpiCard } from "@/components/ui/KpiCard";
 import { Brain, Star, Users, Zap } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
-export default function SkillsPage() {
-    const skills = getSkills();
-    const resources = getResources();
+export default async function SkillsPage() {
+    const skills = await getSkills();
+    const resources = await getResources();
 
     const uniqueSkills = Array.from(new Set(skills.map((s) => s.skill_name)));
     const experts = skills.filter((s) => s.skill_level === "Expert").length;

@@ -1,13 +1,13 @@
-import { getHiring } from "@/lib/data";
+import { getHiring } from "@/lib/database";
 import { HiringClient } from "@/components/hiring/HiringClient";
 import { KpiCard } from "@/components/ui/KpiCard";
 import { UserPlus, CheckCircle, Clock, Users } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
-export default function HiringPage({ searchParams }: { searchParams: { month?: string, quarter?: string } }) {
+export default async function HiringPage({ searchParams }: { searchParams: { month?: string, quarter?: string } }) {
     const { month, quarter } = searchParams;
-    let candidates = getHiring();
+    let candidates = await getHiring();
 
     // Filter by Month (if provided)
     if (month) {

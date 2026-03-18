@@ -1,11 +1,11 @@
 import { AuditClient } from "@/components/audit/AuditClient";
-import { getAuditLogs } from "@/lib/data";
+import { getAuditLogs } from "@/lib/database";
 
 // Next.js config for dynamic
 export const dynamic = "force-dynamic";
 
 export default async function AuditPage() {
-    const logs = getAuditLogs();
+    const logs = await getAuditLogs();
 
     return (
         <div className="space-y-6">
