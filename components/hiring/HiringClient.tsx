@@ -26,10 +26,23 @@ const DEFAULT_FORM = {
     role_applied: "",
     interview_status: "Applied" as Candidate["interview_status"],
     expected_join_date: new Date().toISOString().split("T")[0],
+    start_date: new Date().toISOString().split("T")[0],
+    end_date: new Date(new Date().setMonth(new Date().getMonth() + 3)).toISOString().split("T")[0],
     mentor: "",
-    internship_progress: 0,
     type: "Candidate" as Candidate["type"]
 };
+
+function calculateProgress(start?: string, end?: string) {
+    if (!start || !end) return 0;
+    const startDate = new Date(start).getTime();
+    const endDate = new Date(end).getTime();
+    const now = new Date().getTime();
+    if (now < startDate) return 0;
+    if (now > endDate) return 100;
+    const total = endDate - startDate;
+    if (total <= 0) return 0;
+    return Math.round(((now - startDate) / total) * 100);
+}
 
 export function HiringClient({ initialData }: HiringClientProps) {
     const router = useRouter();
@@ -57,8 +70,9 @@ export function HiringClient({ initialData }: HiringClientProps) {
             role_applied: c.role_applied,
             interview_status: c.interview_status,
             expected_join_date: c.expected_join_date,
+            start_date: c.start_date || new Date().toISOString().split("T")[0],
+            end_date: c.end_date || new Date(new Date().setMonth(new Date().getMonth() + 3)).toISOString().split("T")[0],
             mentor: c.mentor || "",
-            internship_progress: c.internship_progress || 0,
             type: c.type
         });
         setEditingId(c.candidate_id);
@@ -183,27 +197,38 @@ export function HiringClient({ initialData }: HiringClientProps) {
                                     <option value="Rejected">Rejected</option>
                                 </select>
                             </div>
-                            <div>
-                                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Join Date</label>
-                                <input
-                                    type="date"
-                                    value={formData.expected_join_date}
-                                    onChange={(e) => setFormData({ ...formData, expected_join_date: e.target.value })}
-                                    className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 outline-none focus:border-blue-500 shadow-sm"
-                                />
-                            </div>
-                            {formData.type === 'Intern' && (
+                            {formData.type === 'Candidate' && (
                                 <div>
-                                    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Progress %</label>
+                                    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Join Date</label>
                                     <input
-                                        type="number"
-                                        min="0"
-                                        max="100"
-                                        value={formData.internship_progress}
-                                        onChange={(e) => setFormData({ ...formData, internship_progress: parseInt(e.target.value) })}
+                                        type="date"
+                                        value={formData.expected_join_date}
+                                        onChange={(e) => setFormData({ ...formData, expected_join_date: e.target.value })}
                                         className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 outline-none focus:border-blue-500 shadow-sm"
                                     />
                                 </div>
+                            )}
+                            {formData.type === 'Intern' && (
+                                <>
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Start Date</label>
+                                        <input
+                                            type="date"
+                                            value={formData.start_date}
+                                            onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                                            className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 outline-none focus:border-blue-500 shadow-sm"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">End Date</label>
+                                        <input
+                                            type="date"
+                                            value={formData.end_date}
+                                            onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+                                            className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 outline-none focus:border-blue-500 shadow-sm"
+                                        />
+                                    </div>
+                                </>
                             )}
                         </div>
                         <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
@@ -305,17 +330,21 @@ export function HiringClient({ initialData }: HiringClientProps) {
                                     <div className="flex-1 bg-slate-100 rounded-full h-2 overflow-hidden ring-1 ring-slate-200">
                                         <div
                                             className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 transition-all duration-1000"
-                                            style={{ width: `${intern.internship_progress}%` }}
+                                            style={{ width: `${calculateProgress(intern.start_date, intern.end_date)}%` }}
                                         />
                                     </div>
-                                    <span className="text-[11px] font-black text-slate-500 w-10 text-right">{intern.internship_progress}%</span>
+                                    <span className="text-[11px] font-black text-slate-500 w-10 text-right">{calculateProgress(intern.start_date, intern.end_date)}%</span>
                                 </div>
                                 <div className="mt-2 flex items-center justify-between text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
                                     <div className="flex items-center gap-3">
                                         <span className="bg-slate-100 px-2 py-0.5 rounded">ID: {intern.candidate_id}</span>
                                         <span>Source: {intern.source}</span>
                                     </div>
-                                    <span className="text-blue-500">Target Joined: {new Date(intern.expected_join_date).toLocaleDateString()}</span>
+                                    {intern.start_date && intern.end_date ? (
+                                        <span className="text-blue-500">{new Date(intern.start_date).toLocaleDateString()} - {new Date(intern.end_date).toLocaleDateString()}</span>
+                                    ) : (
+                                        <span className="text-blue-500">Target Joined: {new Date(intern.expected_join_date).toLocaleDateString()}</span>
+                                    )}
                                 </div>
                             </div>
                         ))}

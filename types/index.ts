@@ -44,7 +44,9 @@ export interface Candidate {
     interview_status: "Applied" | "Screening" | "Interview" | "Offer" | "Joined" | "Rejected";
     expected_join_date: string;
     mentor?: string;
-    internship_progress?: number; // 0-100
+    internship_progress?: number; // 0-100 (kept for backward compatibility if needed, but we'll calculate dynamically)
+    start_date?: string;
+    end_date?: string;
     type: "Candidate" | "Intern";
 }
 

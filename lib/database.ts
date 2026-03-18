@@ -247,16 +247,23 @@ export async function deleteInnovation(id: string): Promise<void> {
 // HIRING
 // ==========================================
 export async function getHiring(): Promise<Candidate[]> {
+    noStore();
     const { data, error } = await supabase
         .from('candidates')
         .select('*');
     if (error) throw new Error(error.message);
     return (data || []).map((h: Candidate) => ({
         ...h,
-        internship_progress: Number(h.internship_progress),
+        internship_progress: Number(h.internship_progress || 0),
         expected_join_date: typeof h.expected_join_date === 'object' && h.expected_join_date !== null && 'toISOString' in h.expected_join_date
             ? (h.expected_join_date as Date).toISOString().split('T')[0]
-            : h.expected_join_date
+            : h.expected_join_date,
+        start_date: typeof h.start_date === 'object' && h.start_date !== null && 'toISOString' in h.start_date
+            ? (h.start_date as Date).toISOString().split('T')[0]
+            : h.start_date,
+        end_date: typeof h.end_date === 'object' && h.end_date !== null && 'toISOString' in h.end_date
+            ? (h.end_date as Date).toISOString().split('T')[0]
+            : h.end_date
     }));
 }
 
@@ -266,11 +273,15 @@ export async function createCandidate(h: Candidate): Promise<void> {
 }
 
 export async function updateCandidate(id: string, updates: Partial<Candidate>): Promise<void> {
-    const { error } = await supabase
+    const payload = { ...updates, candidate_id: id };
+    const { data, error } = await supabase
         .from('candidates')
-        .update(updates)
-        .eq('candidate_id', id);
-    if (error) throw new Error(error.message);
+        .upsert(payload, { onConflict: 'candidate_id' })
+        .select();
+    if (error) {
+        console.error("[updateCandidate] Supabase upsert error:", error);
+        throw new Error(error.message);
+    }
 }
 
 export async function deleteCandidate(id: string): Promise<void> {

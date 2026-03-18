@@ -23,6 +23,8 @@ export async function POST(req: Request) {
             expected_join_date: body.expected_join_date || new Date().toISOString().split("T")[0],
             mentor: body.mentor || "",
             internship_progress: Number(body.internship_progress) || 0,
+            start_date: body.start_date || null,
+            end_date: body.end_date || null,
             type: body.type || "Candidate"
         };
 
