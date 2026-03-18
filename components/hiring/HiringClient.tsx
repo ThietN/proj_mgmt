@@ -41,7 +41,8 @@ function calculateProgress(start?: string, end?: string) {
     if (now > endDate) return 100;
     const total = endDate - startDate;
     if (total <= 0) return 0;
-    return Math.round(((now - startDate) / total) * 100);
+    const progress = Math.round(((now - startDate) / total) * 100);
+    return Math.max(1, progress); // At least 1% if they started
 }
 
 export function HiringClient({ initialData }: HiringClientProps) {
@@ -53,7 +54,7 @@ export function HiringClient({ initialData }: HiringClientProps) {
     const [formData, setFormData] = useState(DEFAULT_FORM);
     const [isLoading, setIsLoading] = useState(false);
 
-    const pipeline = candidates.filter((c) => c.type === "Candidate");
+    const pipeline = candidates;
     const internsList = candidates.filter((c) => c.type === "Intern");
 
     const startAdding = (type: Candidate["type"]) => {
