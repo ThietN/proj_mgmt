@@ -122,3 +122,34 @@ export interface AuditLog {
     details: string;
     timestamp: string;
 }
+
+export interface TrackingTask {
+    id: string;
+    title: string;
+    description?: string;
+    status: "Backlog" | "To Do" | "In Progress" | "Review" | "Done";
+    priority: "Low" | "Medium" | "High" | "Urgent";
+    assignee?: string;
+    project_id?: string;
+    labels?: string[];
+    due_date?: string;
+    effort?: number; // in hours
+    created_at: string;
+    updated_at: string;
+    order_index: number;
+}
+
+export interface WorkspaceNote {
+    id: string;
+    project_id: string;
+    content: string;
+    updated_at: string;
+}
+
+export interface TrackingWorkspace {
+    id: string;
+    name: string;
+    icon?: string; // emoji
+    color?: string;
+    created_at: string;
+}

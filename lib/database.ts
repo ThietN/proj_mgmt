@@ -9,7 +9,10 @@ import {
     CSATRecord,
     Innovation,
     User,
-    AuditLog
+    AuditLog,
+    TrackingTask,
+    WorkspaceNote,
+    TrackingWorkspace
 } from "@/types";
 
 // ==========================================
@@ -373,5 +376,103 @@ export async function deleteUser(id: string): Promise<void> {
         .from('users')
         .delete()
         .eq('id', id);
+    if (error) throw new Error(error.message);
+}
+
+// ==========================================
+// TRACKING TASKS (Kanban)
+// ==========================================
+export async function getTrackingTasks(): Promise<TrackingTask[]> {
+    noStore();
+    const { data, error } = await supabase
+        .from('tracking_tasks')
+        .select('*')
+        .order('order_index', { ascending: true });
+    if (error) throw new Error(error.message);
+    return (data || []).map((t: any) => ({
+        ...t,
+        order_index: Number(t.order_index || 0),
+        labels: t.labels || [],
+        due_date: typeof t.due_date === 'object' && t.due_date !== null && 'toISOString' in t.due_date
+            ? (t.due_date as Date).toISOString().split('T')[0]
+            : t.due_date
+    }));
+}
+
+export async function createTrackingTask(t: TrackingTask): Promise<void> {
+    const { error } = await supabase.from('tracking_tasks').insert([t]);
+    if (error) throw new Error(error.message);
+}
+
+export async function updateTrackingTask(id: string, updates: Partial<TrackingTask>): Promise<void> {
+    const payload = { ...updates, id };
+    const { error } = await supabase
+        .from('tracking_tasks')
+        .upsert(payload, { onConflict: 'id' })
+        .select();
+    if (error) {
+        console.error("[updateTrackingTask] Supabase upsert error:", error);
+        throw new Error(error.message);
+    }
+}
+
+export async function deleteTrackingTask(id: string): Promise<void> {
+    const { error } = await supabase
+        .from('tracking_tasks')
+        .delete()
+        .eq('id', id);
+    if (error) throw new Error(error.message);
+}
+
+// ==========================================
+// WORKSPACE NOTES
+// ==========================================
+export async function getWorkspaceNotes(): Promise<WorkspaceNote[]> {
+    noStore();
+    const { data, error } = await supabase
+        .from('workspace_notes')
+        .select('*');
+    if (error) throw new Error(error.message);
+    return (data || []) as WorkspaceNote[];
+}
+
+export async function upsertWorkspaceNote(note: WorkspaceNote): Promise<void> {
+    const { error } = await supabase
+        .from('workspace_notes')
+        .upsert([note], { onConflict: 'id' });
+    if (error) throw new Error(error.message);
+}
+
+// ==========================================
+// TRACKING WORKSPACES
+// ==========================================
+export async function getTrackingWorkspaces(): Promise<TrackingWorkspace[]> {
+    noStore();
+    const { data, error } = await supabase
+        .from('tracking_workspaces')
+        .select('*')
+        .order('created_at', { ascending: true });
+    if (error) throw new Error(error.message);
+    return (data || []) as TrackingWorkspace[];
+}
+
+export async function createTrackingWorkspace(ws: TrackingWorkspace): Promise<void> {
+    const { error } = await supabase.from('tracking_workspaces').insert([ws]);
+    if (error) throw new Error(error.message);
+}
+
+export async function updateTrackingWorkspace(id: string, updates: Partial<TrackingWorkspace>): Promise<void> {
+    const { error } = await supabase
+        .from('tracking_workspaces')
+        .update(updates)
+        .eq('id', id);
+    if (error) throw new Error(error.message);
+}
+
+export async function deleteTrackingWorkspace(id: string): Promise<void> {
+    // Also delete related tasks and notes
+    await supabase.from('tracking_tasks').delete().eq('project_id', id);
+    await supabase.from('workspace_notes').delete().eq('project_id', id);
+    const { error } = await supabase.from('tracking_workspaces').delete().eq('id', id);
     if (error) throw new Error(error.message);
 }
