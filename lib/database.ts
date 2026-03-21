@@ -12,7 +12,8 @@ import {
     AuditLog,
     TrackingTask,
     WorkspaceNote,
-    TrackingWorkspace
+    TrackingWorkspace,
+    WeeklyReportData
 } from "@/types";
 
 // ==========================================
@@ -474,5 +475,32 @@ export async function deleteTrackingWorkspace(id: string): Promise<void> {
     await supabase.from('tracking_tasks').delete().eq('project_id', id);
     await supabase.from('workspace_notes').delete().eq('project_id', id);
     const { error } = await supabase.from('tracking_workspaces').delete().eq('id', id);
+    if (error) throw new Error(error.message);
+}
+
+// ==========================================
+// WEEKLY REPORTS
+// ==========================================
+export async function getWeeklyReports(): Promise<WeeklyReportData[]> {
+    noStore();
+    const { data, error } = await supabase
+        .from('weekly_reports')
+        .select('*')
+        .order('year', { ascending: false })
+        .order('week_number', { ascending: false });
+    if (error) {
+        if (error.message.includes('Could not find the table')) {
+            console.warn("Table 'weekly_reports' is missing. Please create it in Supabase.");
+            return [];
+        }
+        throw new Error(error.message);
+    }
+    return (data || []) as WeeklyReportData[];
+}
+
+export async function upsertWeeklyReport(report: WeeklyReportData): Promise<void> {
+    const { error } = await supabase
+        .from('weekly_reports')
+        .upsert([report], { onConflict: 'id' });
     if (error) throw new Error(error.message);
 }

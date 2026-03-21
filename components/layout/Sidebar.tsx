@@ -14,7 +14,8 @@ import {
     ChevronRight,
     FileText,
     Briefcase,
-    KanbanSquare
+    KanbanSquare,
+    ClipboardList
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
@@ -30,6 +31,7 @@ const navItems = [
     { href: "/csat", label: "CSAT", icon: Star },
     { href: "/innovations", label: "Innovations", icon: Lightbulb },
     { href: "/tracking", label: "Tracking Tool", icon: KanbanSquare },
+    { href: "/report", label: "Weekly Report", icon: ClipboardList },
     { href: "/audit", label: "Audit Logs", icon: FileText },
 ];
 

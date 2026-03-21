@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Resource, Project } from "@/types";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { Search, Filter, AlertTriangle, Plus, Trash2, X, Check, Edit2, Briefcase } from "lucide-react";
+import { Search, Filter, AlertTriangle, Plus, Trash2, X, Check, Edit2, Briefcase, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 
@@ -21,7 +21,8 @@ const DEFAULT_FORM = {
     status: "Billable" as Resource["status"],
     location: "lab3" as Resource["location"],
     notes: "",
-    project_id: ""
+    project_id: "",
+    is_ramp_up: false
 };
 
 export function ResourcesClient({ initialData, projects }: ResourcesClientProps) {
@@ -66,7 +67,8 @@ export function ResourcesClient({ initialData, projects }: ResourcesClientProps)
             status: r.status,
             location: r.location,
             notes: r.notes || "",
-            project_id: r.project_id || ""
+            project_id: r.project_id || "",
+            is_ramp_up: r.is_ramp_up || false
         });
         setEditingId(r.employee_id);
         setIsAdding(true);
@@ -241,6 +243,20 @@ export function ResourcesClient({ initialData, projects }: ResourcesClientProps)
                                     ))}
                                 </select>
                             </div>
+                        </div>
+                        <div className="flex items-center gap-3 px-1">
+                            <label className="flex items-center gap-2 cursor-pointer group">
+                                <input
+                                    type="checkbox"
+                                    checked={formData.is_ramp_up}
+                                    onChange={(e) => setFormData({ ...formData, is_ramp_up: e.target.checked })}
+                                    className="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                                />
+                                <span className="flex items-center gap-1.5 text-xs font-bold text-slate-600 group-hover:text-emerald-600 transition-colors">
+                                    <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />
+                                    Ramp-up (new onboarding — will appear in Weekly Report)
+                                </span>
+                            </label>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>

@@ -17,6 +17,7 @@ export interface Resource {
     location: "lab3" | "lab6";
     notes?: string;
     project_id?: string;
+    is_ramp_up?: boolean;
 }
 
 export interface Project {
@@ -152,4 +153,16 @@ export interface TrackingWorkspace {
     icon?: string; // emoji
     color?: string;
     created_at: string;
+}
+
+export interface WeeklyReportData {
+    id: string;
+    week_number: number;
+    year: number;
+    resource_notes: string;
+    program_notes: string;
+    innovation_notes: string;
+    activities_notes: string;
+    other_notes: string;
+    updated_at: string;
 }
