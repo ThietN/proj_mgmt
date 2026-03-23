@@ -5,7 +5,8 @@ import { cookies } from "next/headers";
 
 export async function POST(req: Request) {
     try {
-        const token = cookies().get("auth_token")?.value;
+        const cookieStore = await cookies();
+        const token = cookieStore.get("auth_token")?.value;
         if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
         const decoded = await verifyToken(token);
@@ -49,7 +50,8 @@ export async function POST(req: Request) {
 
 export async function PUT(req: Request) {
     try {
-        const token = cookies().get("auth_token")?.value;
+        const cookieStore = await cookies();
+        const token = cookieStore.get("auth_token")?.value;
         if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
         const decoded = await verifyToken(token);
@@ -82,7 +84,8 @@ export async function PUT(req: Request) {
 
 export async function DELETE(req: Request) {
     try {
-        const token = cookies().get("auth_token")?.value;
+        const cookieStore = await cookies();
+        const token = cookieStore.get("auth_token")?.value;
         if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
         const decoded = await verifyToken(token);
