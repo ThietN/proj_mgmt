@@ -27,7 +27,8 @@ export async function POST(req: Request) {
             join_date: body.join_date || new Date().toISOString().split("T")[0],
             location: body.location || "lab3",
             notes: body.notes || "",
-            project_id: body.project_id || ""
+            project_id: body.project_id || "",
+            is_ramp_up: body.is_ramp_up || false
         };
 
         await createResource(newResource as any);

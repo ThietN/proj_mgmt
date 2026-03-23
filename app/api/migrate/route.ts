@@ -50,7 +50,8 @@ export async function GET() {
                 risk_flag TEXT,
                 location TEXT NOT NULL,
                 notes TEXT,
-                project_id TEXT REFERENCES projects(project_id)
+                project_id TEXT REFERENCES projects(project_id),
+                is_ramp_up BOOLEAN DEFAULT FALSE
             );
         `;
 
@@ -167,11 +168,13 @@ export async function GET() {
             await sql`
                 INSERT INTO resources (
                     employee_id, name, role, team, grade, skills, english_level, status, 
-                    allocation_percentage, join_date, risk_flag, location, notes, project_id
+                    allocation_percentage, join_date, risk_flag, location, notes, project_id,
+                    is_ramp_up
                 ) VALUES (
                     ${r.employee_id}, ${r.name}, ${r.role}, ${r.team}, ${r.grade}, ${r.skills as any},
                     ${r.english_level}, ${r.status}, ${r.allocation_percentage}, ${r.join_date},
-                    ${r.risk_flag || null}, ${r.location}, ${r.notes || null}, ${r.project_id || null}
+                    ${r.risk_flag || null}, ${r.location}, ${r.notes || null}, ${r.project_id || null},
+                    ${r.is_ramp_up || false}
                 ) ON CONFLICT (employee_id) DO UPDATE SET
                     name = EXCLUDED.name,
                     role = EXCLUDED.role,
@@ -185,7 +188,8 @@ export async function GET() {
                     risk_flag = EXCLUDED.risk_flag,
                     location = EXCLUDED.location,
                     notes = EXCLUDED.notes,
-                    project_id = EXCLUDED.project_id;
+                    project_id = EXCLUDED.project_id,
+                    is_ramp_up = EXCLUDED.is_ramp_up;
             `;
         }
 

@@ -112,14 +112,13 @@ export function ReportClient({ resources, projects, innovations, csat, esat, hir
     const riskResources = resources.filter(r => r.risk_flag);
     const billableRate = totalHC > 0 ? ((billable.length / totalHC) * 100).toFixed(1) : "0";
 
-    // New joiners (hired in last 30 days proxy: join_date recent)
-    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-    const recentJoiners = resources.filter(r => new Date(r.join_date) >= thirtyDaysAgo || r.is_ramp_up);
+    const recentJoiners = resources.filter(r => r.is_ramp_up);
 
     // Hiring pipeline
     const activeCandidates = hiring.filter(c => c.type === "Candidate" && c.interview_status !== "Rejected" && c.interview_status !== "Joined");
     const activeInterns = hiring.filter(c => c.type === "Intern");
-    const joinedRecent = hiring.filter(c => c.interview_status === "Joined");
+    const joinedRecent = hiring.filter(c => c.interview_status === "Joined" && c.type !== "Intern");
+    const totalNBR = projects.reduce((s, p) => s + p.nbr, 0);
 
     // 2. Program Status
     const activeProjects = projects.filter(p => p.delivery_status !== "Completed");
@@ -159,7 +158,7 @@ export function ReportClient({ resources, projects, innovations, csat, esat, hir
         text += `Date: ${formatDate(now)}\n\n`;
 
         text += `1. Resource Update\n`;
-        text += `   • Headcount: ${totalHC} | Billable: ${billable.length} (${billableRate}%) | Available: ${available.length} | Backup: ${backup.length}\n`;
+        text += `   • Headcount: ${totalHC} | Effort: ${totalEffort.toFixed(1)} | Billable: ${totalBillable.toFixed(1)} | NBR: ${totalNBR.toFixed(1)} | Available (non-bill): ${available.length + backup.length}\n`;
         if (resigning.length > 0) text += `   • Ramp-down:\n${resigning.map(r => `     - ${r.name} (${r.role})`).join("\n")}\n`;
         if (recentJoiners.length > 0) text += `   • Ramp-up:\n${recentJoiners.map(r => `     - ${r.name} (${r.role}) — Joined: ${r.join_date}`).join("\n")}\n`;
         if (activeCandidates.length > 0) text += `   • Hiring Pipeline: ${activeCandidates.length} active candidates\n`;
@@ -301,10 +300,10 @@ export function ReportClient({ resources, projects, innovations, csat, esat, hir
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
                         {[
                             { label: "Headcount", value: totalHC, color: "text-slate-800" },
-                            { label: "Billable", value: `${billable.length} (${billableRate}%)`, color: "text-emerald-600" },
-                            { label: "Available", value: available.length, color: "text-blue-600" },
-                            { label: "Backup", value: backup.length, color: "text-amber-600" },
-                            { label: "Resigning", value: resigning.length, color: resigning.length > 0 ? "text-red-600" : "text-slate-400" },
+                            { label: "Total Effort", value: totalEffort.toFixed(1), color: "text-indigo-600" },
+                            { label: "Billable HC", value: totalBillable.toFixed(1), color: "text-emerald-600" },
+                            { label: "Total NBR", value: totalNBR.toFixed(1), color: "text-rose-600" },
+                            { label: "Available (Non-bill)", value: available.length + backup.length, color: "text-blue-600" },
                         ].map(item => (
                             <div key={item.label} className="bg-slate-50/70 rounded-xl p-3 border border-slate-100">
                                 <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{item.label}</span>
