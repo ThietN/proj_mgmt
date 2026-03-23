@@ -1,5 +1,6 @@
 import { sql } from "@vercel/postgres";
 import { NextResponse } from "next/server";
+export const dynamic = "force-dynamic";
 import {
     getResources,
     getProjects,
@@ -10,6 +11,7 @@ import {
     getUsers,
     getHiring
 } from "@/lib/data";
+import { supabase } from "@/lib/supabase";
 
 export async function GET() {
     try {
