@@ -5,8 +5,9 @@ import { Lightbulb, Zap, CheckCircle, Clock } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
-export default async function InnovationsPage({ searchParams }: { searchParams: { month?: string, quarter?: string } }) {
-    const { month, quarter } = searchParams;
+export default async function InnovationsPage({ searchParams }: { searchParams: Promise<{ month?: string, quarter?: string }> }) {
+    const sp = await searchParams;
+    const { month, quarter } = sp;
     let innovations = await getInnovations();
 
     // Filter by Month (if provided)

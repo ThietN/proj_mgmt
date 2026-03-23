@@ -5,8 +5,9 @@ import { Star, AlertTriangle, TrendingUp, Users } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
-export default async function CSATPage({ searchParams }: { searchParams: { month?: string, quarter?: string } }) {
-    const { month, quarter } = searchParams;
+export default async function CSATPage({ searchParams }: { searchParams: Promise<{ month?: string, quarter?: string }> }) {
+    const sp = await searchParams;
+    const { month, quarter } = sp;
     let records = await getCSAT();
     const projects = await getProjects();
 

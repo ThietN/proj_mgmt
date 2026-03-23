@@ -20,8 +20,9 @@ import {
 
 export const dynamic = "force-dynamic";
 
-export default async function DashboardPage({ searchParams }: { searchParams: { month?: string, quarter?: string } }) {
-    const { month, quarter } = searchParams;
+export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ month?: string, quarter?: string }> }) {
+    const sp = await searchParams;
+    const { month, quarter } = sp;
     let resources = await getResources();
     let projects = await getProjects();
     let esatRecords = await getESAT();

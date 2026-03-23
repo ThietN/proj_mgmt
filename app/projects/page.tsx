@@ -5,8 +5,9 @@ import { Briefcase, Rocket, AlertTriangle, ShieldCheck, Users, TrendingUp, Calen
 
 export const dynamic = "force-dynamic";
 
-export default async function ProjectsPage({ searchParams }: { searchParams: { month?: string, quarter?: string } }) {
-    const { month, quarter } = searchParams;
+export default async function ProjectsPage({ searchParams }: { searchParams: Promise<{ month?: string, quarter?: string }> }) {
+    const sp = await searchParams;
+    const { month, quarter } = sp;
     let projects = await getProjects();
 
     // Filter by Month (if provided)

@@ -5,8 +5,9 @@ import { Users, TrendingUp, UserCheck, Shield, AlertTriangle } from "lucide-reac
 
 export const dynamic = "force-dynamic";
 
-export default async function ResourcesPage({ searchParams }: { searchParams: { month?: string, quarter?: string } }) {
-    const { month, quarter } = searchParams;
+export default async function ResourcesPage({ searchParams }: { searchParams: Promise<{ month?: string, quarter?: string }> }) {
+    const sp = await searchParams;
+    const { month, quarter } = sp;
     let resources = await getResources();
     const projects = await getProjects();
 

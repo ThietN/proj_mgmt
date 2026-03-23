@@ -5,8 +5,9 @@ import { Smile, TrendingUp, Users, Star } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
-export default async function ESATPage({ searchParams }: { searchParams: { month?: string, quarter?: string } }) {
-    const { month, quarter } = searchParams;
+export default async function ESATPage({ searchParams }: { searchParams: Promise<{ month?: string, quarter?: string }> }) {
+    const sp = await searchParams;
+    const { month, quarter } = sp;
     let records = await getESAT();
 
     // Filter by Quarter (based on Topbar)
