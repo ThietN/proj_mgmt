@@ -166,3 +166,137 @@ export interface WeeklyReportData {
     other_notes: string;
     updated_at: string;
 }
+
+// ============================================================
+// ESAT PLATFORM TYPES
+// ============================================================
+
+export type PollStatus = "Draft" | "Active" | "Closed";
+export type PollAudience = "All" | "Department" | "Team" | "Role";
+
+export interface PollOption {
+    id: string;
+    label: string;
+    votes: number;
+}
+
+export interface Poll {
+    id: string;
+    title: string;
+    question: string;
+    options: PollOption[];
+    status: PollStatus;
+    is_anonymous: boolean;
+    audience: PollAudience;
+    audience_value?: string; // e.g. department name
+    deadline?: string;
+    created_by: string;
+    created_at: string;
+    updated_at: string;
+    total_votes: number;
+}
+
+export type QuestionType = "multiple_choice" | "rating" | "nps" | "text" | "checkbox";
+
+export interface SurveyQuestion {
+    id: string;
+    order_index: number;
+    type: QuestionType;
+    question: string;
+    required: boolean;
+    options?: string[]; // for multiple_choice / checkbox
+    min_label?: string; // for rating/nps
+    max_label?: string;
+    skip_logic?: { if_answer: string; go_to: string }; // conditional logic
+}
+
+export type SurveyStatus = "Draft" | "Scheduled" | "Active" | "Closed";
+
+export interface Survey {
+    id: string;
+    title: string;
+    description?: string;
+    questions: SurveyQuestion[];
+    status: SurveyStatus;
+    is_anonymous: boolean;
+    audience: PollAudience;
+    audience_value?: string;
+    start_date?: string;
+    end_date?: string;
+    created_by: string;
+    created_at: string;
+    updated_at: string;
+    response_count: number;
+    participation_rate?: number;
+}
+
+export type RSVPStatus = "Accepted" | "Declined" | "Maybe" | "Pending";
+
+export interface EventRSVP {
+    id: string;
+    event_id: string;
+    employee_id: string;
+    employee_name: string;
+    status: RSVPStatus;
+    responded_at?: string;
+}
+
+export type EventStatus = "Upcoming" | "Ongoing" | "Completed" | "Cancelled";
+
+export interface OrgEvent {
+    id: string;
+    title: string;
+    description?: string;
+    event_date: string;
+    end_date?: string;
+    location?: string;
+    meeting_link?: string;
+    organizer: string;
+    capacity?: number;
+    status: EventStatus;
+    rsvp_count: number;
+    attended_count?: number;
+    feedback_enabled: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+export type FeedbackCategory = "Workplace" | "Management" | "Tools" | "Culture" | "Benefits" | "Other";
+export type FeedbackPriority = "Low" | "Medium" | "High" | "Critical";
+export type FeedbackStatus = "New" | "In Review" | "Resolved" | "Closed";
+
+export interface FeedbackComment {
+    id: string;
+    feedback_id: string;
+    author: string;
+    is_admin: boolean;
+    message: string;
+    created_at: string;
+}
+
+export interface Feedback {
+    id: string;
+    title: string;
+    message: string;
+    category: FeedbackCategory;
+    priority: FeedbackPriority;
+    status: FeedbackStatus;
+    is_anonymous: boolean;
+    submitted_by?: string; // null if anonymous
+    assigned_to?: string;
+    admin_response?: string;
+    comments?: FeedbackComment[];
+    created_at: string;
+    updated_at: string;
+}
+
+export interface ESATHubStats {
+    overall_score: number;
+    participation_rate: number;
+    active_polls: number;
+    active_surveys: number;
+    upcoming_events: number;
+    open_feedback: number;
+    resolved_feedback: number;
+    avg_response_time_days: number;
+}

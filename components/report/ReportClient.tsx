@@ -46,11 +46,33 @@ function formatDate(d: Date): string {
 
 export function ReportClient({ resources, projects, innovations, csat, esat, hiring, trackingTasks, workspaces, pastReports }: ReportClientProps) {
     const now = new Date();
+    const currentYear = now.getFullYear();
     const currentWeekNum = getWeekNumber(now);
     const [selectedWeek, setSelectedWeek] = useState(currentWeekNum);
+    const [selectedYear, setSelectedYear] = useState(currentYear);
     const reportRef = useRef<HTMLDivElement>(null);
     const [copied, setCopied] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+
+    // Calculate available weeks (showing 12 weeks back and 12 weeks forward from current week)
+    const availableWeeks = useMemo(() => {
+        const weeks = [];
+        const startWeek = Math.max(1, currentWeekNum - 12);
+        const endWeek = Math.min(52, currentWeekNum + 12);
+        
+        for (let w = endWeek; w >= startWeek; w--) {
+            weeks.push({ week: w, year: currentYear });
+        }
+        
+        // Add previous year's last weeks if we're in early weeks of current year
+        if (currentWeekNum <= 12) {
+            for (let w = 52; w >= 52 - (12 - currentWeekNum); w--) {
+                weeks.push({ week: w, year: currentYear - 1 });
+            }
+        }
+        
+        return weeks;
+    }, [currentWeekNum, currentYear]);
 
     // Editable sections
     const [customNotes, setCustomNotes] = useState({
@@ -64,7 +86,7 @@ export function ReportClient({ resources, projects, innovations, csat, esat, hir
 
     // Sync saved notes based on the selected week
     useEffect(() => {
-        const saved = pastReports.find(r => r.week_number === selectedWeek && r.year === now.getFullYear());
+        const saved = pastReports.find(r => r.week_number === selectedWeek && r.year === selectedYear);
         if (saved) {
             setCustomNotes({
                 resourceExtra: saved.resource_notes || "",
@@ -76,7 +98,7 @@ export function ReportClient({ resources, projects, innovations, csat, esat, hir
         } else {
             setCustomNotes({ resourceExtra: "", programExtra: "", innovationExtra: "", activitiesExtra: "", otherUpdates: "" });
         }
-    }, [selectedWeek, pastReports, now.getFullYear()]);
+    }, [selectedWeek, selectedYear, pastReports]);
 
     async function saveNotes(field: string, val: string) {
         setIsSaving(true);
@@ -88,7 +110,7 @@ export function ReportClient({ resources, projects, innovations, csat, esat, hir
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     week_number: selectedWeek,
-                    year: now.getFullYear(),
+                    year: selectedYear,
                     resource_notes: newNotes.resourceExtra,
                     program_notes: newNotes.programExtra,
                     innovation_notes: newNotes.innovationExtra,
@@ -154,7 +176,7 @@ export function ReportClient({ resources, projects, innovations, csat, esat, hir
     async function copyReport() {
         if (!reportRef.current) return;
         // Build plain text version
-        let text = `Weekly Program Update — W#${selectedWeek}\n`;
+        let text = `Weekly Program Update — W${selectedWeek}-${selectedYear}\n`;
         text += `Date: ${formatDate(now)}\n\n`;
 
         text += `1. Resource Update\n`;
@@ -258,15 +280,36 @@ export function ReportClient({ resources, projects, innovations, csat, esat, hir
                     <div>
                         <div className="flex items-center gap-2">
                             <h2 className="text-sm font-black text-slate-900">Program 3 — Weekly Update</h2>
-                            <select
-                                value={selectedWeek}
-                                onChange={e => setSelectedWeek(Number(e.target.value))}
-                                className="text-xs bg-indigo-50 border border-indigo-100 rounded-md px-2 py-0.5 font-black text-indigo-700 outline-none"
-                            >
-                                {Array.from({ length: currentWeekNum }, (_, i) => currentWeekNum - i).map(w => (
-                                    <option key={w} value={w}>W#{w}</option>
-                                ))}
-                            </select>
+                            <div className="flex items-center gap-1.5">
+                                <select
+                                    value={selectedWeek}
+                                    onChange={e => setSelectedWeek(Number(e.target.value))}
+                                    className="text-xs bg-indigo-50 border border-indigo-100 rounded-md px-2 py-0.5 font-black text-indigo-700 outline-none"
+                                >
+                                    {availableWeeks
+                                        .filter(w => w.year === selectedYear)
+                                        .map(w => (
+                                            <option key={`${w.year}-${w.week}`} value={w.week}>
+                                                W{w.week}
+                                            </option>
+                                        ))
+                                    }
+                                </select>
+                                <select
+                                    value={selectedYear}
+                                    onChange={e => setSelectedYear(Number(e.target.value))}
+                                    className="text-xs bg-indigo-50 border border-indigo-100 rounded-md px-2 py-0.5 font-black text-indigo-700 outline-none"
+                                >
+                                    {[currentYear - 1, currentYear, currentYear + 1].map(year => (
+                                        <option key={year} value={year}>{year}</option>
+                                    ))}
+                                </select>
+                                {selectedWeek === currentWeekNum && selectedYear === currentYear && (
+                                    <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[9px] font-black rounded-full border border-emerald-200">
+                                        CURRENT
+                                    </span>
+                                )}
+                            </div>
                         </div>
                         <p className="text-[10px] text-slate-400 font-bold mt-0.5">{formatDate(now)} • Auto-generated from all modules</p>
                     </div>

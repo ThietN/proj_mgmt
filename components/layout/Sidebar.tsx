@@ -15,7 +15,11 @@ import {
     FileText,
     Briefcase,
     KanbanSquare,
-    ClipboardList
+    ClipboardList,
+    BarChart2,
+    Calendar,
+    MessageSquare,
+    Gauge
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
@@ -27,12 +31,20 @@ const navItems = [
     { href: "/hiring", label: "Hiring & Interns", icon: UserCheck },
     { href: "/skills", label: "Skills Matrix", icon: Brain },
     { href: "/delivery", label: "Delivery", icon: Rocket },
-    { href: "/esat", label: "ESAT", icon: Smile },
-    { href: "/csat", label: "CSAT", icon: Star },
     { href: "/innovations", label: "Innovations", icon: Lightbulb },
     { href: "/tracking", label: "Tracking Tool", icon: KanbanSquare },
     { href: "/report", label: "Weekly Report", icon: ClipboardList },
     { href: "/audit", label: "Audit Logs", icon: FileText },
+];
+
+const esatPlatformItems = [
+    { href: "/esat-hub", label: "ESAT Hub", icon: Gauge },
+    { href: "/esat", label: "ESAT", icon: Smile },
+    { href: "/csat", label: "CSAT", icon: Star },
+    { href: "/polls", label: "Polls", icon: BarChart2 },
+    { href: "/surveys", label: "Surveys", icon: ClipboardList },
+    { href: "/events", label: "Events", icon: Calendar },
+    { href: "/feedback", label: "Feedback", icon: MessageSquare },
 ];
 
 export function Sidebar() {
@@ -95,6 +107,34 @@ export function Sidebar() {
                             <Icon className={cn("w-4 h-4 flex-shrink-0", isActive ? "text-blue-600" : "text-slate-500 group-hover:text-slate-700")} />
                             <span className="flex-1">{item.label}</span>
                             {isActive && <ChevronRight className="w-3 h-3 text-blue-600 opacity-60" />}
+                        </Link>
+                    );
+                })}
+
+                {/* ESAT/CSAT Platform section */}
+                <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 pt-4 pb-2">
+                    ESAT / CSAT Platform
+                </div>
+                {esatPlatformItems.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = pathname === item.href;
+                    return (
+                        <Link
+                            key={item.href}
+                            href={item.href}
+                            className={cn(
+                                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 group relative",
+                                isActive
+                                    ? "bg-violet-50 text-violet-700 border border-violet-200"
+                                    : "text-slate-500 hover:text-slate-800 hover:bg-slate-100"
+                            )}
+                        >
+                            {isActive && (
+                                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-violet-600 rounded-r-full" />
+                            )}
+                            <Icon className={cn("w-4 h-4 flex-shrink-0", isActive ? "text-violet-600" : "text-slate-500 group-hover:text-slate-700")} />
+                            <span className="flex-1">{item.label}</span>
+                            {isActive && <ChevronRight className="w-3 h-3 text-violet-600 opacity-60" />}
                         </Link>
                     );
                 })}

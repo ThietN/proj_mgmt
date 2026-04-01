@@ -13,7 +13,11 @@ import {
     TrackingTask,
     WorkspaceNote,
     TrackingWorkspace,
-    WeeklyReportData
+    WeeklyReportData,
+    Poll,
+    Survey,
+    OrgEvent,
+    Feedback
 } from "@/types";
 
 // ==========================================
@@ -502,5 +506,157 @@ export async function upsertWeeklyReport(report: WeeklyReportData): Promise<void
     const { error } = await supabase
         .from('weekly_reports')
         .upsert([report], { onConflict: 'id' });
+    if (error) throw new Error(error.message);
+}
+
+// ==========================================
+// POLLS
+// ==========================================
+export async function getPolls(): Promise<Poll[]> {
+    noStore();
+    const { data, error } = await supabase
+        .from('polls')
+        .select('*')
+        .order('created_at', { ascending: false });
+    if (error) {
+        if (error.message.includes('Could not find the table') || error.code === '42P01') return [];
+        throw new Error(error.message);
+    }
+    return (data || []) as Poll[];
+}
+
+export async function createPoll(poll: Omit<Poll, 'id' | 'created_at' | 'updated_at' | 'total_votes'>): Promise<Poll> {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { created_at, updated_at, ...cleanPoll } = poll as any;
+    const { data, error } = await supabase.from('polls').insert([{ ...cleanPoll, total_votes: 0 }]).select().single();
+    if (error) throw new Error(error.message);
+    return data as Poll;
+}
+
+export async function updatePoll(id: string, updates: Partial<Poll>): Promise<void> {
+    // Strip auto-managed / read-only fields before sending to Supabase
+    const { id: _id, created_at, updated_at, total_votes, ...safeUpdates } = updates as any;
+    const { error } = await supabase.from('polls').update(safeUpdates).eq('id', id);
+    if (error) throw new Error(error.message);
+}
+
+export async function deletePoll(id: string): Promise<void> {
+    const { error } = await supabase.from('polls').delete().eq('id', id);
+    if (error) throw new Error(error.message);
+}
+
+export async function votePoll(pollId: string, optionId: string): Promise<void> {
+    const { data: poll } = await supabase.from('polls').select('*').eq('id', pollId).single();
+    if (!poll) throw new Error('Poll not found');
+    const options = (poll.options as Poll['options']).map(o =>
+        o.id === optionId ? { ...o, votes: (o.votes || 0) + 1 } : o
+    );
+    const totalVotes = options.reduce((s, o) => s + o.votes, 0);
+    const { error } = await supabase.from('polls').update({ options, total_votes: totalVotes }).eq('id', pollId);
+    if (error) throw new Error(error.message);
+}
+
+// ==========================================
+// SURVEYS
+// ==========================================
+export async function getSurveys(): Promise<Survey[]> {
+    noStore();
+    const { data, error } = await supabase
+        .from('surveys')
+        .select('*')
+        .order('created_at', { ascending: false });
+    if (error) {
+        if (error.message.includes('Could not find the table') || error.code === '42P01') return [];
+        throw new Error(error.message);
+    }
+    return (data || []) as Survey[];
+}
+
+export async function createSurvey(survey: Omit<Survey, 'id' | 'created_at' | 'updated_at' | 'response_count'>): Promise<Survey> {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { created_at, updated_at, ...cleanSurvey } = survey as any;
+    const { data, error } = await supabase.from('surveys').insert([{ ...cleanSurvey, response_count: 0 }]).select().single();
+    if (error) throw new Error(error.message);
+    return data as Survey;
+}
+
+export async function updateSurvey(id: string, updates: Partial<Survey>): Promise<void> {
+    const { id: _id, created_at, updated_at, response_count, participation_rate, ...safeUpdates } = updates as any;
+    const { error } = await supabase.from('surveys').update(safeUpdates).eq('id', id);
+    if (error) throw new Error(error.message);
+}
+
+export async function deleteSurvey(id: string): Promise<void> {
+    const { error } = await supabase.from('surveys').delete().eq('id', id);
+    if (error) throw new Error(error.message);
+}
+
+// ==========================================
+// EVENTS
+// ==========================================
+export async function getEvents(): Promise<OrgEvent[]> {
+    noStore();
+    const { data, error } = await supabase
+        .from('org_events')
+        .select('*')
+        .order('event_date', { ascending: true });
+    if (error) {
+        if (error.message.includes('Could not find the table') || error.code === '42P01') return [];
+        throw new Error(error.message);
+    }
+    return (data || []) as OrgEvent[];
+}
+
+export async function createEvent(event: Omit<OrgEvent, 'id' | 'created_at' | 'updated_at' | 'rsvp_count'>): Promise<OrgEvent> {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { created_at, updated_at, ...cleanEvent } = event as any;
+    const { data, error } = await supabase.from('org_events').insert([{ ...cleanEvent, rsvp_count: 0 }]).select().single();
+    if (error) throw new Error(error.message);
+    return data as OrgEvent;
+}
+
+export async function updateEvent(id: string, updates: Partial<OrgEvent>): Promise<void> {
+    const { id: _id, created_at, updated_at, rsvp_count, attended_count, ...safeUpdates } = updates as any;
+    const { error } = await supabase.from('org_events').update(safeUpdates).eq('id', id);
+    if (error) throw new Error(error.message);
+}
+
+export async function deleteEvent(id: string): Promise<void> {
+    const { error } = await supabase.from('org_events').delete().eq('id', id);
+    if (error) throw new Error(error.message);
+}
+
+// ==========================================
+// FEEDBACK
+// ==========================================
+export async function getFeedback(): Promise<Feedback[]> {
+    noStore();
+    const { data, error } = await supabase
+        .from('feedback')
+        .select('*')
+        .order('created_at', { ascending: false });
+    if (error) {
+        if (error.message.includes('Could not find the table') || error.code === '42P01') return [];
+        throw new Error(error.message);
+    }
+    return (data || []) as Feedback[];
+}
+
+export async function createFeedback(fb: Omit<Feedback, 'id' | 'created_at' | 'updated_at'>): Promise<Feedback> {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { created_at, updated_at, ...cleanFb } = fb as any;
+    const { data, error } = await supabase.from('feedback').insert([cleanFb]).select().single();
+    if (error) throw new Error(error.message);
+    return data as Feedback;
+}
+
+export async function updateFeedback(id: string, updates: Partial<Feedback>): Promise<void> {
+    const { id: _id, created_at, updated_at, submitted_by, ...safeUpdates } = updates as any;
+    const { error } = await supabase.from('feedback').update(safeUpdates).eq('id', id);
+    if (error) throw new Error(error.message);
+}
+
+export async function deleteFeedback(id: string): Promise<void> {
+    const { error } = await supabase.from('feedback').delete().eq('id', id);
     if (error) throw new Error(error.message);
 }
