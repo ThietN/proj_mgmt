@@ -6,7 +6,8 @@ import {
     getInnovations
 } from "@/lib/database";
 import { KpiCard } from "@/components/ui/KpiCard";
-import { DashboardCharts } from "@/components/dashboard/DashboardCharts";
+import nextDynamic from "next/dynamic";
+const DashboardCharts = nextDynamic(() => import("@/components/dashboard/DashboardCharts").then(mod => mod.DashboardCharts), { ssr: false });
 import {
     Users,
     TrendingUp,
