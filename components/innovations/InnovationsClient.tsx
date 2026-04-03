@@ -6,9 +6,9 @@ import { cn } from "@/lib/utils";
 import { Bot, Zap, Code2, FlaskConical, Plus, X, Check, Trash2, Edit2, Lightbulb, Star } from "lucide-react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-import 'react-quill/dist/quill.snow.css';
+import 'react-quill-new/dist/quill.snow.css';
 
-const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
+const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false });
 
 const quillModules = {
     toolbar: [
