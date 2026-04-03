@@ -6,8 +6,7 @@ import {
     getInnovations
 } from "@/lib/database";
 import { KpiCard } from "@/components/ui/KpiCard";
-import nextDynamic from "next/dynamic";
-const DashboardCharts = nextDynamic(() => import("@/components/dashboard/DashboardCharts").then(mod => mod.DashboardCharts), { ssr: false });
+import { DashboardChartsDynamic } from "@/components/dashboard/DashboardChartsDynamic";
 import {
     Users,
     TrendingUp,
@@ -248,7 +247,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
             </div>
 
             {/* Charts */}
-            <DashboardCharts
+            <DashboardChartsDynamic
                 allocationData={allocationData}
                 headcountTrend={headcountTrend}
                 esatByQuarter={esatByQuarter}
