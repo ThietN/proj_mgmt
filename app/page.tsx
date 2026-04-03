@@ -21,268 +21,286 @@ import {
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ month?: string, quarter?: string }> }) {
+    let resources: any[] = [];
+    let projects: any[] = [];
+    let esatRecords: any[] = [];
+    let csatRecords: any[] = [];
+    let innovations: any[] = [];
+
     const sp = await searchParams;
     const { month, quarter } = sp;
-    let resources = await getResources();
-    let projects = await getProjects();
-    let esatRecords = await getESAT();
-    let csatRecords = await getCSAT();
-    let innovations = await getInnovations();
 
-    // Filter by Month (if provided)
-    if (month) {
-        const m = parseInt(month);
-        resources = resources.filter(r => new Date(r.join_date).getMonth() + 1 === m);
-        projects = projects.filter(p => new Date(p.start_date).getMonth() + 1 === m);
-        csatRecords = csatRecords.filter(c => new Date(c.survey_date).getMonth() + 1 === m);
-        innovations = innovations.filter(i => new Date(i.start_date).getMonth() + 1 === m);
-    }
+    try {
 
-    // Filter by Quarter (if provided)
-    if (quarter) {
-        const q = parseInt(quarter);
-        const qMonths = [
-            [1, 2, 3],
-            [4, 5, 6],
-            [7, 8, 9],
-            [10, 11, 12]
-        ][q - 1];
+        resources = await getResources();
+        projects = await getProjects();
+        esatRecords = await getESAT();
+        csatRecords = await getCSAT();
+        innovations = await getInnovations();
 
-        resources = resources.filter(r => qMonths.includes(new Date(r.join_date).getMonth() + 1));
-        projects = projects.filter(p => qMonths.includes(new Date(p.start_date).getMonth() + 1));
-        esatRecords = esatRecords.filter(e => e.quarter.includes(`Q${q}`));
-        csatRecords = csatRecords.filter(c => qMonths.includes(new Date(c.survey_date).getMonth() + 1));
-        innovations = innovations.filter(i => qMonths.includes(new Date(i.start_date).getMonth() + 1));
-    }
+        // Filter by Month (if provided)
+        if (month) {
+            const m = parseInt(month);
+            resources = resources.filter(r => new Date(r.join_date).getMonth() + 1 === m);
+            projects = projects.filter(p => new Date(p.start_date).getMonth() + 1 === m);
+            csatRecords = csatRecords.filter(c => new Date(c.survey_date).getMonth() + 1 === m);
+            innovations = innovations.filter(i => new Date(i.start_date).getMonth() + 1 === m);
+        }
 
-    const billable = resources.filter((r) => r.status === "Billable");
-    const backup = resources.filter((r) => r.status === "Backup");
-    const available = resources.filter((r) => r.status === "Available");
-    const billableRate = Math.round((billable.length / resources.length) * 100);
+        // Filter by Quarter (if provided)
+        if (quarter) {
+            const q = parseInt(quarter);
+            const qMonths = [
+                [1, 2, 3],
+                [4, 5, 6],
+                [7, 8, 9],
+                [10, 11, 12]
+            ][q - 1];
 
-    const atRisk = projects.filter(
-        (p) => p.delivery_status === "At Risk" || p.delivery_status === "Critical"
-    );
+            resources = resources.filter(r => qMonths.includes(new Date(r.join_date).getMonth() + 1));
+            projects = projects.filter(p => qMonths.includes(new Date(p.start_date).getMonth() + 1));
+            esatRecords = esatRecords.filter(e => e.quarter.includes(`Q${q}`));
+            csatRecords = csatRecords.filter(c => qMonths.includes(new Date(c.survey_date).getMonth() + 1));
+            innovations = innovations.filter(i => qMonths.includes(new Date(i.start_date).getMonth() + 1));
+        }
 
-    // ESAT: latest quarter average
-    const quarters = Array.from(new Set(esatRecords.map((e) => e.quarter))).sort();
-    const latestQ = quarters[quarters.length - 1];
-    const latestESAT = esatRecords.filter((e) => e.quarter === latestQ);
-    const avgESAT =
-        latestESAT.length > 0
-            ? (latestESAT.reduce((a, b) => a + b.score, 0) / latestESAT.length).toFixed(1)
-            : "N/A";
+        const billable = resources.filter((r) => r.status === "Billable");
+        const backup = resources.filter((r) => r.status === "Backup");
+        const available = resources.filter((r) => r.status === "Available");
+        const billableRate = Math.round((billable.length / resources.length) * 100);
 
-    // CSAT: average of recent records
-    const avgCSAT =
-        csatRecords.length > 0
-            ? (csatRecords.reduce((a, b) => a + b.survey_score, 0) / csatRecords.length).toFixed(1)
-            : "N/A";
+        const atRisk = projects.filter(
+            (p) => p.delivery_status === "At Risk" || p.delivery_status === "Critical"
+        );
 
-    const activeInnovations = innovations.filter(
-        (i) => i.status === "In Progress" || i.status === "Planning"
-    ).length;
+        // ESAT: latest quarter average
+        const quarters = Array.from(new Set(esatRecords.map((e) => e.quarter))).sort();
+        const latestQ = quarters[quarters.length - 1];
+        const latestESAT = esatRecords.filter((e) => e.quarter === latestQ);
+        const avgESAT =
+            latestESAT.length > 0
+                ? (latestESAT.reduce((a, b) => a + b.score, 0) / latestESAT.length).toFixed(1)
+                : "N/A";
 
-    // Chart data for resource allocation pie
-    const allocationData = [
-        { name: "Billable", value: billable.length, fill: "#6366f1" },
-        { name: "Backup", value: backup.length, fill: "#f59e0b" },
-        { name: "Available", value: available.length, fill: "#06b6d4" },
-    ];
+        // CSAT: average of recent records
+        const avgCSAT =
+            csatRecords.length > 0
+                ? (csatRecords.reduce((a, b) => a + b.survey_score, 0) / csatRecords.length).toFixed(1)
+                : "N/A";
 
-    // Headcount trend (simulated monthly)
-    const headcountTrend = [
-        { month: "Sep", headcount: 8 },
-        { month: "Oct", headcount: 9 },
-        { month: "Nov", headcount: 10 },
-        { month: "Dec", headcount: 10 },
-        { month: "Jan", headcount: 11 },
-        { month: "Feb", headcount: 12 },
-        { month: "Mar", headcount: resources.length },
-    ];
+        const activeInnovations = innovations.filter(
+            (i) => i.status === "In Progress" || i.status === "Planning"
+        ).length;
 
-    // ESAT trend per quarter
-    const esatByQuarter = quarters.map((q) => {
-        const qRecords = esatRecords.filter((e) => e.quarter === q);
-        const avg = qRecords.reduce((a, b) => a + b.score, 0) / qRecords.length;
-        return { quarter: q, score: parseFloat(avg.toFixed(1)) };
-    });
+        // Chart data for resource allocation pie
+        const allocationData = [
+            { name: "Billable", value: billable.length, fill: "#6366f1" },
+            { name: "Backup", value: backup.length, fill: "#f59e0b" },
+            { name: "Available", value: available.length, fill: "#06b6d4" },
+        ];
 
-    // CSAT trend
-    const csatCustomers = Array.from(new Set(csatRecords.map((c) => c.customer)));
-    const csatByProject = csatCustomers.map((cust) => {
-        const recs = csatRecords.filter((c) => c.customer === cust);
-        const avg = recs.reduce((a, b) => a + b.survey_score, 0) / recs.length;
-        const displayName = cust ? (cust.split(" ").slice(0, 2).join(" ")) : "Unknown";
-        return { project: displayName, score: parseFloat(avg.toFixed(1)) };
-    });
+        // Headcount trend (simulated monthly)
+        const headcountTrend = [
+            { month: "Sep", headcount: 8 },
+            { month: "Oct", headcount: 9 },
+            { month: "Nov", headcount: 10 },
+            { month: "Dec", headcount: 10 },
+            { month: "Jan", headcount: 11 },
+            { month: "Feb", headcount: 12 },
+            { month: "Mar", headcount: resources.length },
+        ];
 
-    // Skills coverage (top skills)
-    const allSkills: Record<string, number> = {};
-    resources.forEach((r) => {
-        const skillsArray = Array.isArray(r.skills) ? r.skills : [];
-        skillsArray.forEach((s) => {
-            allSkills[s] = (allSkills[s] ?? 0) + 1;
+        // ESAT trend per quarter
+        const esatByQuarter = quarters.map((q) => {
+            const qRecords = esatRecords.filter((e) => e.quarter === q);
+            const avg = qRecords.reduce((a, b) => a + b.score, 0) / qRecords.length;
+            return { quarter: q, score: parseFloat(avg.toFixed(1)) };
         });
-    });
-    const topSkills = Object.entries(allSkills)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 7)
-        .map(([skill, count]) => ({ skill, count }));
 
-    return (
-        <div className="space-y-6">
-            {/* Header */}
-            <div className="flex items-start justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-900">Executive Dashboard</h1>
-                    <p className="text-sm text-slate-500 mt-0.5">
-                        {latestQ} · {resources.length} engineers · {projects.filter(p => p.delivery_status !== "Completed").length} active projects
-                    </p>
-                </div>
-                <div className="flex items-center gap-2">
-                    <span className="text-xs text-slate-500 bg-white border border-slate-200 px-3 py-1.5 rounded-lg">
-                        Last updated: today
-                    </span>
-                </div>
-            </div>
+        // CSAT trend
+        const csatCustomers = Array.from(new Set(csatRecords.map((c) => c.customer)));
+        const csatByProject = csatCustomers.map((cust) => {
+            const recs = csatRecords.filter((c) => c.customer === cust);
+            const avg = recs.reduce((a, b) => a + b.survey_score, 0) / recs.length;
+            const displayName = cust ? (cust.split(" ").slice(0, 2).join(" ")) : "Unknown";
+            return { project: displayName, score: parseFloat(avg.toFixed(1)) };
+        });
 
-            {/* KPI Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="animate-fadeInUp animate-fadeInUp-delay-1">
-                    <KpiCard
-                        title="Total Headcount"
-                        value={resources.length}
-                        subValue={`+2 this quarter`}
-                        trend="up"
-                        trendValue="20%"
-                        icon={Users}
-                        iconColor="text-blue-600"
-                        iconBg="bg-blue-600/10"
-                    />
-                </div>
-                <div className="animate-fadeInUp animate-fadeInUp-delay-2">
-                    <KpiCard
-                        title="Billable Rate"
-                        value={`${billableRate}%`}
-                        subValue={`${billable.length} of ${resources.length} engineers`}
-                        trend="up"
-                        trendValue="5%"
-                        icon={TrendingUp}
-                        iconColor="text-emerald-600"
-                        iconBg="bg-emerald-50"
-                    />
-                </div>
-                <div className="animate-fadeInUp animate-fadeInUp-delay-3">
-                    <KpiCard
-                        title="Available Pool"
-                        value={available.length}
-                        subValue="Ready for new projects"
-                        trend="neutral"
-                        icon={UserCheck}
-                        iconColor="text-cyan-600"
-                        iconBg="bg-cyan-50"
-                    />
-                </div>
-                <div className="animate-fadeInUp animate-fadeInUp-delay-4">
-                    <KpiCard
-                        title="Backup Engineers"
-                        value={backup.length}
-                        subValue="Partially allocated"
-                        trend="neutral"
-                        icon={Shield}
-                        iconColor="text-amber-600"
-                        iconBg="bg-amber-50"
-                    />
-                </div>
-                <div className="animate-fadeInUp animate-fadeInUp-delay-5">
-                    <KpiCard
-                        title="Projects at Risk"
-                        value={atRisk.length}
-                        subValue={`of ${projects.length} total projects`}
-                        trend={atRisk.length > 1 ? "down" : "neutral"}
-                        trendValue={atRisk.length > 1 ? "Needs attention" : undefined}
-                        icon={AlertTriangle}
-                        iconColor="text-red-600"
-                        iconBg="bg-red-50"
-                        highlight={atRisk.length > 0}
-                    />
-                </div>
-                <div className="animate-fadeInUp animate-fadeInUp-delay-6">
-                    <KpiCard
-                        title="ESAT Score"
-                        value={`${avgESAT}/10`}
-                        subValue={latestQ}
-                        trend="up"
-                        trendValue="+0.5"
-                        icon={Smile}
-                        iconColor="text-sky-600"
-                        iconBg="bg-sky-50"
-                    />
-                </div>
-                <div className="animate-fadeInUp animate-fadeInUp-delay-7">
-                    <KpiCard
-                        title="CSAT Score"
-                        value={`${avgCSAT}/10`}
-                        subValue="Across all customers"
-                        trend="up"
-                        trendValue="+0.3"
-                        icon={Star}
-                        iconColor="text-amber-600"
-                        iconBg="bg-amber-50"
-                    />
-                </div>
-                <div className="animate-fadeInUp animate-fadeInUp-delay-8">
-                    <KpiCard
-                        title="Active Innovations"
-                        value={activeInnovations}
-                        subValue={`of ${innovations.length} initiatives`}
-                        trend="up"
-                        trendValue="+2"
-                        icon={Lightbulb}
-                        iconColor="text-pink-400"
-                        iconBg="bg-pink-500/10"
-                    />
-                </div>
-            </div>
+        // Skills coverage (top skills)
+        const allSkills: Record<string, number> = {};
+        resources.forEach((r) => {
+            const skillsArray = Array.isArray(r.skills) ? r.skills : [];
+            skillsArray.forEach((s: string) => {
+                allSkills[s] = (allSkills[s] ?? 0) + 1;
+            });
+        });
+        const topSkills = Object.entries(allSkills)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 7)
+            .map(([skill, count]) => ({ skill, count }));
 
-            {/* Charts */}
-            <DashboardChartsDynamic
-                allocationData={allocationData}
-                headcountTrend={headcountTrend}
-                esatByQuarter={esatByQuarter}
-                csatByProject={csatByProject}
-                topSkills={topSkills}
-            />
-
-            {/* Quick risk table */}
-            {atRisk.length > 0 && (
-                <div className="glass-card p-5">
-                    <div className="flex items-center gap-2 mb-4">
-                        <AlertTriangle className="w-4 h-4 text-red-600" />
-                        <h2 className="text-sm font-semibold text-slate-900">Projects Needing Attention</h2>
+        return (
+            <div className="space-y-6">
+                {/* Header */}
+                <div className="flex items-start justify-between">
+                    <div>
+                        <h1 className="text-2xl font-bold text-slate-900">Executive Dashboard</h1>
+                        <p className="text-sm text-slate-500 mt-0.5">
+                            {latestQ} · {resources.length} engineers · {projects.filter(p => p.delivery_status !== "Completed").length} active projects
+                        </p>
                     </div>
-                    <div className="space-y-2">
-                        {atRisk.map((proj) => (
-                            <div key={proj.project_id} className="flex items-center justify-between p-3 bg-red-500/5 border border-red-500/15 rounded-lg">
-                                <div>
-                                    <div className="text-sm font-medium text-slate-900">{proj.project_name}</div>
-                                    <div className="text-xs text-slate-500">{proj.customer} · HC: {proj.headcount} · Effort: {proj.effort}</div>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <div className="text-xs text-slate-500">Milestone: {proj.milestone_progress}%</div>
-                                    <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${proj.delivery_status === "Critical"
-                                        ? "bg-red-50 text-red-600 border-red-200"
-                                        : "bg-amber-50 text-amber-600 border-amber-200"
-                                        }`}>
-                                        {proj.delivery_status}
-                                    </span>
-                                </div>
-                            </div>
-                        ))}
+                    <div className="flex items-center gap-2">
+                        <span className="text-xs text-slate-500 bg-white border border-slate-200 px-3 py-1.5 rounded-lg">
+                            Last updated: today
+                        </span>
                     </div>
                 </div>
-            )}
-        </div>
-    );
+
+                {/* KPI Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="animate-fadeInUp animate-fadeInUp-delay-1">
+                        <KpiCard
+                            title="Total Headcount"
+                            value={resources.length}
+                            subValue={`+2 this quarter`}
+                            trend="up"
+                            trendValue="20%"
+                            icon={Users}
+                            iconColor="text-blue-600"
+                            iconBg="bg-blue-600/10"
+                        />
+                    </div>
+                    <div className="animate-fadeInUp animate-fadeInUp-delay-2">
+                        <KpiCard
+                            title="Billable Rate"
+                            value={`${billableRate}%`}
+                            subValue={`${billable.length} of ${resources.length} engineers`}
+                            trend="up"
+                            trendValue="5%"
+                            icon={TrendingUp}
+                            iconColor="text-emerald-600"
+                            iconBg="bg-emerald-50"
+                        />
+                    </div>
+                    <div className="animate-fadeInUp animate-fadeInUp-delay-3">
+                        <KpiCard
+                            title="Available Pool"
+                            value={available.length}
+                            subValue="Ready for new projects"
+                            trend="neutral"
+                            icon={UserCheck}
+                            iconColor="text-cyan-600"
+                            iconBg="bg-cyan-50"
+                        />
+                    </div>
+                    <div className="animate-fadeInUp animate-fadeInUp-delay-4">
+                        <KpiCard
+                            title="Backup Engineers"
+                            value={backup.length}
+                            subValue="Partially allocated"
+                            trend="neutral"
+                            icon={Shield}
+                            iconColor="text-amber-600"
+                            iconBg="bg-amber-50"
+                        />
+                    </div>
+                    <div className="animate-fadeInUp animate-fadeInUp-delay-5">
+                        <KpiCard
+                            title="Projects at Risk"
+                            value={atRisk.length}
+                            subValue={`of ${projects.length} total projects`}
+                            trend={atRisk.length > 1 ? "down" : "neutral"}
+                            trendValue={atRisk.length > 1 ? "Needs attention" : undefined}
+                            icon={AlertTriangle}
+                            iconColor="text-red-600"
+                            iconBg="bg-red-50"
+                            highlight={atRisk.length > 0}
+                        />
+                    </div>
+                    <div className="animate-fadeInUp animate-fadeInUp-delay-6">
+                        <KpiCard
+                            title="ESAT Score"
+                            value={`${avgESAT}/10`}
+                            subValue={latestQ}
+                            trend="up"
+                            trendValue="+0.5"
+                            icon={Smile}
+                            iconColor="text-sky-600"
+                            iconBg="bg-sky-50"
+                        />
+                    </div>
+                    <div className="animate-fadeInUp animate-fadeInUp-delay-7">
+                        <KpiCard
+                            title="CSAT Score"
+                            value={`${avgCSAT}/10`}
+                            subValue="Across all customers"
+                            trend="up"
+                            trendValue="+0.3"
+                            icon={Star}
+                            iconColor="text-amber-600"
+                            iconBg="bg-amber-50"
+                        />
+                    </div>
+                    <div className="animate-fadeInUp animate-fadeInUp-delay-8">
+                        <KpiCard
+                            title="Active Innovations"
+                            value={activeInnovations}
+                            subValue={`of ${innovations.length} initiatives`}
+                            trend="up"
+                            trendValue="+2"
+                            icon={Lightbulb}
+                            iconColor="text-pink-400"
+                            iconBg="bg-pink-500/10"
+                        />
+                    </div>
+                </div>
+
+                {/* Charts */}
+                <DashboardChartsDynamic
+                    allocationData={allocationData}
+                    headcountTrend={headcountTrend}
+                    esatByQuarter={esatByQuarter}
+                    csatByProject={csatByProject}
+                    topSkills={topSkills}
+                />
+
+                {/* Quick risk table */}
+                {atRisk.length > 0 && (
+                    <div className="glass-card p-5">
+                        <div className="flex items-center gap-2 mb-4">
+                            <AlertTriangle className="w-4 h-4 text-red-600" />
+                            <h2 className="text-sm font-semibold text-slate-900">Projects Needing Attention</h2>
+                        </div>
+                        <div className="space-y-2">
+                            {atRisk.map((proj) => (
+                                <div key={proj.project_id} className="flex items-center justify-between p-3 bg-red-500/5 border border-red-500/15 rounded-lg">
+                                    <div>
+                                        <div className="text-sm font-medium text-slate-900">{proj.project_name}</div>
+                                        <div className="text-xs text-slate-500">{proj.customer} · HC: {proj.headcount} · Effort: {proj.effort}</div>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <div className="text-xs text-slate-500">Milestone: {proj.milestone_progress}%</div>
+                                        <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${proj.delivery_status === "Critical"
+                                            ? "bg-red-50 text-red-600 border-red-200"
+                                            : "bg-amber-50 text-amber-600 border-amber-200"
+                                            }`}>
+                                            {proj.delivery_status}
+                                        </span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+            </div>
+        );
+    } catch (error: any) {
+        return (
+            <div className="p-10 m-10 bg-red-100 border-2 border-red-500 rounded-xl text-red-900 overflow-auto">
+                <h1 className="text-xl font-bold mb-4">Error Detected in Server Component</h1>
+                <pre className="whitespace-pre-wrap">{error?.message || String(error)}</pre>
+                <div className="mt-4 text-sm font-mono whitespace-pre-wrap">Stack trace:<br />{error?.stack}</div>
+            </div>
+        );
+    }
 }
