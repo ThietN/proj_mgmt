@@ -22,7 +22,7 @@ export async function POST(req: Request) {
             email,
             passwordHash,
             name,
-            role: role || "Viewer",
+            role: "User",
             createdAt: new Date().toISOString()
         };
 

@@ -410,13 +410,12 @@ export async function createTrackingTask(t: TrackingTask): Promise<void> {
 }
 
 export async function updateTrackingTask(id: string, updates: Partial<TrackingTask>): Promise<void> {
-    const payload = { ...updates, id };
     const { error } = await supabase
         .from('tracking_tasks')
-        .upsert(payload, { onConflict: 'id' })
-        .select();
+        .update(updates)
+        .eq('id', id);
     if (error) {
-        console.error("[updateTrackingTask] Supabase upsert error:", error);
+        console.error("[updateTrackingTask] Supabase update error:", error);
         throw new Error(error.message);
     }
 }
@@ -659,4 +658,138 @@ export async function updateFeedback(id: string, updates: Partial<Feedback>): Pr
 export async function deleteFeedback(id: string): Promise<void> {
     const { error } = await supabase.from('feedback').delete().eq('id', id);
     if (error) throw new Error(error.message);
+}
+
+// ==========================================
+// ATTENDANCE / WORK TRACKER
+// ==========================================
+
+export async function batchInsertAttendance(records: any[]) {
+    const { data, error } = await supabase
+        .from('attendance_records')
+        .insert(records);
+    if (error) throw error;
+    return data;
+}
+
+export async function logAttendanceUpload(log: any) {
+    const { error } = await supabase
+        .from('attendance_uploads')
+        .insert([log]);
+    if (error) throw error;
+}
+
+export async function getAttendanceStats(filters: any = {}): Promise<any> {
+    noStore();
+    let query = supabase.from('attendance_records').select('status, tracking_date', { count: 'exact' });
+
+    if (filters.startDate && filters.endDate) {
+        query = query.gte('tracking_date', filters.startDate).lte('tracking_date', filters.endDate);
+    }
+    if (filters.project) query = query.eq('project', filters.project);
+    if (filters.status) query = query.eq('status', filters.status);
+
+    const { data, count, error } = await query;
+    if (error) throw error;
+
+    const dates = data?.map((r: any) => r.tracking_date).filter(Boolean) || [];
+    const minDate = dates.length > 0 ? dates.reduce((a: string, b: string) => a < b ? a : b) : null;
+    const maxDate = dates.length > 0 ? dates.reduce((a: string, b: string) => a > b ? a : b) : null;
+
+    const stats = {
+        total: count || 0,
+        late: data?.filter((r: any) => r.status === 'LATE').length || 0,
+        notAccess: data?.filter((r: any) => r.status === 'NOT_ACCESS').length || 0,
+        onTime: data?.filter((r: any) => r.status === 'ON_TIME').length || 0,
+        invalid: data?.filter((r: any) => r.status === 'INVALID').length || 0,
+        startDate: minDate,
+        endDate: maxDate
+    };
+
+    return stats;
+}
+
+export async function getTopLateMembers(limit: number = 10, filters: any = {}) {
+    noStore();
+    let query = supabase
+        .from('attendance_records')
+        .select('username, employee_name, status, tracking_date, check_in_time')
+        .eq('status', 'LATE');
+
+    if (filters.startDate && filters.endDate) {
+        query = query.gte('tracking_date', filters.startDate).lte('tracking_date', filters.endDate);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+
+    const map: Record<string, { name: string, details: { date: string, time: string }[] }> = {};
+    data?.forEach((r: any) => {
+        if (!map[r.username]) map[r.username] = { name: r.employee_name, details: [] };
+        map[r.username].details.push({ date: r.tracking_date, time: r.check_in_time });
+    });
+
+    return Object.entries(map)
+        .map(([username, val]) => ({ 
+            username, 
+            name: val.name, 
+            count: val.details.length,
+            details: val.details.sort((a, b) => b.date.localeCompare(a.date))
+        }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, limit);
+}
+
+export async function getTopNotAccessMembers(limit: number = 10, filters: any = {}) {
+    noStore();
+    let query = supabase
+        .from('attendance_records')
+        .select('username, employee_name, status, tracking_date, check_in_time')
+        .eq('status', 'NOT_ACCESS');
+
+    if (filters.startDate && filters.endDate) {
+        query = query.gte('tracking_date', filters.startDate).lte('tracking_date', filters.endDate);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+
+    const map: Record<string, { name: string, details: { date: string, time: string }[] }> = {};
+    data?.forEach((r: any) => {
+        if (!map[r.username]) map[r.username] = { name: r.employee_name, details: [] };
+        map[r.username].details.push({ date: r.tracking_date, time: r.check_in_time || "Not Access" });
+    });
+
+    return Object.entries(map)
+        .map(([username, val]) => ({ 
+            username, 
+            name: val.name, 
+            count: val.details.length,
+            details: val.details.sort((a, b) => b.date.localeCompare(a.date))
+        }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, limit);
+}
+
+export async function getAttendanceTrend(days: number = 7) {
+    noStore();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    
+    const { data, error } = await supabase
+        .from('attendance_records')
+        .select('tracking_date, status')
+        .gte('tracking_date', startDate.toISOString().split('T')[0]);
+    
+    if (error) throw error;
+
+    const trend: Record<string, { date: string, late: number, notAccess: number }> = {};
+    data?.forEach((r: any) => {
+        const d = r.tracking_date;
+        if (!trend[d]) trend[d] = { date: d, late: 0, notAccess: 0 };
+        if (r.status === 'LATE') trend[d].late++;
+        if (r.status === 'NOT_ACCESS') trend[d].notAccess++;
+    });
+
+    return Object.values(trend).sort((a, b) => a.date.localeCompare(b.date));
 }

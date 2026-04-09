@@ -220,14 +220,32 @@ export function TrackingClient({ tasks: initialTasks, projects, resources, innov
     async function handleDrop(taskId: string, newStatus: TrackingTask["status"]) {
         const task = tasks.find(t => t.id === taskId);
         if (!task || task.status === newStatus) return;
-        setTasks(tasks.map(t => t.id === taskId ? { ...t, status: newStatus } : t));
+
+        const previousStatus = task.status;
+        console.log(`[DragDrop] Moving task ${taskId} from ${previousStatus} to ${newStatus}`);
+
         try {
-            await fetch("/api/tracking", {
-                method: "PUT", headers: { "Content-Type": "application/json" },
+            const res = await fetch("/api/tracking", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ id: taskId, status: newStatus }),
             });
-            router.refresh();
-        } catch (err) { }
+
+            console.log(`[DragDrop] API Response status: ${res.status}`);
+
+            if (res.ok) {
+                // Task 6: Update state only after successful API response
+                setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: newStatus, updated_at: new Date().toISOString() } : t));
+                router.refresh();
+            } else {
+                const error = await res.json();
+                console.error(`[DragDrop] Failed to update task status:`, error);
+                alert(`Failed to update status: ${error.error || "Unknown error"}`);
+            }
+        } catch (err) {
+            console.error(`[DragDrop] Network error:`, err);
+            alert("Network error. Please try again.");
+        }
     }
 
     // ─── Notes handler ──────────────────────────

@@ -110,7 +110,7 @@ export interface User {
     email: string;
     passwordHash: string;
     name: string;
-    role: "Admin" | "Manager" | "Viewer" | "Senior Manager" | "Team Lead" | "PM" | "SM";
+    role: "SuperAdmin" | "User";
     createdAt: string;
 }
 
@@ -299,4 +299,55 @@ export interface ESATHubStats {
     open_feedback: number;
     resolved_feedback: number;
     avg_response_time_days: number;
+}
+
+// ============================================================
+// ATTENDANCE / WORK TRACKER TYPES
+// ============================================================
+
+export type AttendanceStatus = "ON_TIME" | "LATE" | "NOT_ACCESS" | "INVALID";
+
+export interface AttendanceRecord {
+    id: string;
+    employee_name: string;
+    username: string;
+    badge_id?: string;
+    project?: string;
+    program?: string;
+    dc_name?: string;
+    bu_name?: string;
+    tracking_date: string; // YYYY-MM-DD
+    check_in_time?: string; // HH:mm or "Not Access"
+    status: AttendanceStatus;
+    created_at: string;
+}
+
+export interface AttendanceUploadLog {
+    id: string;
+    file_name: string;
+    rows_processed: number;
+    late_count: number;
+    not_access_count: number;
+    invalid_count: number;
+    processing_time_ms: number;
+    upload_user: string;
+    upload_time: string;
+}
+
+export interface AttendanceStats {
+    total_records: number;
+    late_count: number;
+    not_access_count: number;
+    on_time_count: number;
+    late_rate: number;
+    not_access_rate: number;
+    start_date?: string;
+    end_date?: string;
+}
+
+export interface AttendanceRankingMember {
+    username: string;
+    name: string;
+    count: number;
+    details: { date: string; time: string }[];
 }

@@ -71,6 +71,8 @@ export async function PUT(req: Request) {
 
         if (!id) return NextResponse.json({ error: "Missing ID" }, { status: 400 });
 
+        console.log(`[PUT /api/tracking] Updating task ${id}:`, updates);
+
         updates.updated_at = new Date().toISOString();
         if (updates.effort !== undefined) updates.effort = Number(updates.effort);
 
@@ -81,10 +83,10 @@ export async function PUT(req: Request) {
             "UPDATE",
             "TrackingTask",
             id,
-            `Updated task: ${id}`
+            `Updated task ${id}: ${Object.keys(updates).join(", ")}`
         );
 
-        return NextResponse.json({ success: true });
+        return NextResponse.json({ success: true, id, updates });
     } catch (e: any) {
         console.error("[PUT /api/tracking] error:", e);
         return NextResponse.json({ error: e?.message || "Server error" }, { status: 500 });
