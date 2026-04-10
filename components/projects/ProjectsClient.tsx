@@ -18,7 +18,10 @@ import {
     Layers,
     Target,
     CornerDownRight,
-    ArrowRight
+    ArrowRight,
+    TrendingUp,
+    UserCheck,
+    Shield
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
@@ -27,6 +30,7 @@ import toast from "react-hot-toast";
 
 interface ProjectsClientProps {
     initialData: Project[];
+    resources?: any[];
 }
 
 const DEFAULT_FORM = {
@@ -58,7 +62,7 @@ const normalizeTechStack = (techStack: Project["tech_stack"] | string | null | u
     return [];
 };
 
-export function ProjectsClient({ initialData }: ProjectsClientProps) {
+export function ProjectsClient({ initialData, resources = [] }: ProjectsClientProps) {
     const router = useRouter();
     const [projects, setProjects] = useState<Project[]>(initialData.map(p => ({
         ...p,
@@ -203,7 +207,7 @@ export function ProjectsClient({ initialData }: ProjectsClientProps) {
             toast.error(err?.message || "An error occurred");
         }
     }
-    // All blocks are closed before return
+
     return (
         <div className="space-y-4">
             {/* Action Bar */}
@@ -489,12 +493,29 @@ export function ProjectsClient({ initialData }: ProjectsClientProps) {
                                         <span className="text-sm font-black text-slate-400">{proj.nbr}</span>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <div className="flex flex-wrap gap-1 max-w-[200px]">
-                                            {proj.tech_stack.map((tech, i) => (
-                                                <span key={i} className="text-[9px] font-bold px-2 py-0.5 bg-slate-50 text-slate-600 rounded-full border border-slate-200 whitespace-nowrap">
+                                        <div className="flex flex-wrap gap-1 max-w-[200px] relative group cursor-help" title={proj.tech_stack.join(", ")}>
+                                            {proj.tech_stack.slice(0, 3).map((tech, i) => (
+                                                <span key={i} className="text-[9px] font-bold px-2 py-0.5 bg-blue-50/50 text-blue-700 rounded-full border border-blue-100 whitespace-nowrap uppercase tracking-tighter">
                                                     {tech}
                                                 </span>
                                             ))}
+                                            {proj.tech_stack.length > 3 && (
+                                                <div className="relative">
+                                                    <span className="text-[9px] font-black bg-slate-100 text-slate-500 border border-slate-200 px-1.5 py-0.5 rounded-full">+{proj.tech_stack.length - 3}</span>
+                                                    {/* Tooltip */}
+                                                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-40 p-2 bg-white/95 backdrop-blur-md border border-slate-200 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                                                        <p className="text-[10px] font-black text-slate-400 uppercase mb-1 border-b border-slate-100 pb-1">Tech Stack</p>
+                                                        <div className="flex flex-wrap gap-1">
+                                                            {proj.tech_stack.map(t => (
+                                                                <span key={t} className="text-[9px] font-bold bg-slate-50 text-slate-600 px-1.5 py-0.5 rounded border border-slate-100">
+                                                                    {t}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-white/95" />
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">

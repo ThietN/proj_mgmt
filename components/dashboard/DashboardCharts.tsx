@@ -23,6 +23,9 @@ interface DashboardChartsProps {
     esatByQuarter: { quarter: string; score: number }[];
     csatByProject: { project: string; score: number }[];
     topSkills: { skill: string; count: number }[];
+    attendanceTrend: { date: string; late: number; notAccess: number }[];
+    internMetrics: { totalInterns: number; inProgress: number; completed: number; convertedToBillable: number; completionRate: number };
+    candidates: any[];
 }
 
 const tooltipStyle = {
@@ -33,41 +36,42 @@ const tooltipStyle = {
     fontSize: "12px",
 };
 
-const RADIAN = Math.PI / 180;
-interface LabelProps {
-    cx: number;
-    cy: number;
-    midAngle: number;
-    innerRadius: number;
-    outerRadius: number;
-    percent: number;
-    name: string;
-}
-const renderCustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, name }: LabelProps) => {
-    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-    const x = cx + radius * Math.cos(-midAngle * RADIAN);
-    const y = cy + radius * Math.sin(-midAngle * RADIAN);
-    return (
-        <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" fontSize={11} fontWeight={600}>
-            {`${name}\n${(percent * 100).toFixed(0)}%`}
-        </text>
-    );
-};
-
 export function DashboardCharts({
     allocationData,
     headcountTrend,
     esatByQuarter,
     csatByProject,
     topSkills,
+    attendanceTrend,
+    internMetrics,
+    candidates,
 }: DashboardChartsProps) {
+    // Process Hiring Data
+    const hiringStatusCount = candidates.reduce((acc: any, c) => {
+        acc[c.status] = (acc[c.status] || 0) + 1;
+        return acc;
+    }, {});
+    
+    const hiringData = [
+        { name: "Initial", value: hiringStatusCount["Initial Contact"] || 0, fill: "#94a3b8" },
+        { name: "Interview", value: hiringStatusCount["Interviewing"] || 0, fill: "#6366f1" },
+        { name: "Offer", value: hiringStatusCount["Offer Extended"] || 0, fill: "#10b981" },
+        { name: "Joined", value: hiringStatusCount["Joined"] || 0, fill: "#0ea5e9" },
+    ];
+
+    const internStatusData = [
+        { name: "In Training", value: internMetrics.inProgress, fill: "#f59e0b" },
+        { name: "Completed", value: internMetrics.completed, fill: "#10b981" },
+        { name: "Converted", value: internMetrics.convertedToBillable, fill: "#6366f1" },
+    ];
+
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
             {/* Resource Allocation Pie */}
             <div className="glass-card p-5">
                 <h2 className="text-sm font-semibold text-slate-900 mb-1">Resource Allocation</h2>
                 <p className="text-xs text-slate-500 mb-4">By billability status</p>
-                <ResponsiveContainer width="100%" height={200}>
+                <ResponsiveContainer width="100%" height={220}>
                     <PieChart>
                         <Pie
                             data={allocationData}
@@ -93,72 +97,82 @@ export function DashboardCharts({
                 </ResponsiveContainer>
             </div>
 
-            {/* Headcount Trend */}
+            {/* Work Tracker - Lateness & Access */}
             <div className="glass-card p-5">
-                <h2 className="text-sm font-semibold text-slate-900 mb-1">Headcount Trend</h2>
-                <p className="text-xs text-slate-500 mb-4">Last 7 months</p>
-                <ResponsiveContainer width="100%" height={200}>
-                    <AreaChart data={headcountTrend}>
+                <h2 className="text-sm font-semibold text-slate-900 mb-1">Work Tracker Trend</h2>
+                <p className="text-xs text-slate-500 mb-4">Lateness and Not Access (Last 14 days)</p>
+                <ResponsiveContainer width="100%" height={220}>
+                    <AreaChart data={attendanceTrend}>
                         <defs>
-                            <linearGradient id="hcGrad" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
-                                <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                            <linearGradient id="lateGrad" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#ef4444" stopOpacity={0.2} />
+                                <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                            </linearGradient>
+                            <linearGradient id="accessGrad" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.2} />
+                                <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
                             </linearGradient>
                         </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#1a1a2e" />
-                        <XAxis dataKey="month" tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} />
-                        <YAxis tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} domain={[0, "dataMax + 2"]} />
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                        <XAxis 
+                            dataKey="date" 
+                            tick={{ fill: "#64748b", fontSize: 9 }} 
+                            axisLine={false} 
+                            tickLine={false} 
+                            tickFormatter={(val) => val.split("-").slice(1).join("/")}
+                        />
+                        <YAxis tick={{ fill: "#64748b", fontSize: 10 }} axisLine={false} tickLine={false} />
                         <Tooltip contentStyle={tooltipStyle} />
-                        <Area type="monotone" dataKey="headcount" stroke="#6366f1" strokeWidth={2} fill="url(#hcGrad)" dot={{ fill: "#6366f1", r: 3 }} />
+                        <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: "11px" }} />
+                        <Area type="monotone" name="Late" dataKey="late" stroke="#ef4444" strokeWidth={2} fill="url(#lateGrad)" dot={{ r: 2 }} />
+                        <Area type="monotone" name="No Access" dataKey="notAccess" stroke="#f59e0b" strokeWidth={2} fill="url(#accessGrad)" dot={{ r: 2 }} />
                     </AreaChart>
                 </ResponsiveContainer>
             </div>
 
-            {/* Skill Coverage */}
+            {/* Intern Funnel */}
             <div className="glass-card p-5">
-                <h2 className="text-sm font-semibold text-slate-900 mb-1">Top Skills Coverage</h2>
-                <p className="text-xs text-slate-500 mb-4">Engineers per skill</p>
-                <ResponsiveContainer width="100%" height={200}>
-                    <BarChart data={topSkills} layout="vertical">
-                        <CartesianGrid strokeDasharray="3 3" stroke="#1a1a2e" horizontal={false} />
-                        <XAxis type="number" tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} />
-                        <YAxis dataKey="skill" type="category" tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} width={80} />
+                <h2 className="text-sm font-semibold text-slate-900 mb-1">Internship Pipeline</h2>
+                <p className="text-xs text-slate-500 mb-4">Statuses and conversions</p>
+                <ResponsiveContainer width="100%" height={220}>
+                    <BarChart data={internStatusData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                        <XAxis dataKey="name" tick={{ fill: "#64748b", fontSize: 10 }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fill: "#64748b", fontSize: 10 }} axisLine={false} tickLine={false} />
                         <Tooltip contentStyle={tooltipStyle} />
-                        <Bar dataKey="count" fill="#8b5cf6" radius={[0, 4, 4, 0]} />
+                        <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                            {internStatusData.map((entry, index) => (
+                                <Cell key={index} fill={entry.fill} />
+                            ))}
+                        </Bar>
                     </BarChart>
                 </ResponsiveContainer>
             </div>
 
-            {/* ESAT Trend */}
+            {/* Hiring Pipeline */}
             <div className="glass-card p-5 lg:col-span-1">
-                <h2 className="text-sm font-semibold text-slate-900 mb-1">ESAT Trend</h2>
-                <p className="text-xs text-slate-500 mb-4">Average company score by quarter</p>
+                <h2 className="text-sm font-semibold text-slate-900 mb-1">Hiring Progress</h2>
+                <p className="text-xs text-slate-500 mb-4">External candidates by stage</p>
                 <ResponsiveContainer width="100%" height={200}>
-                    <LineChart data={esatByQuarter}>
-                        <defs>
-                            <linearGradient id="esatGrad" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#a78bfa" stopOpacity={0.2} />
-                                <stop offset="95%" stopColor="#a78bfa" stopOpacity={0} />
-                            </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#1a1a2e" />
-                        <XAxis dataKey="quarter" tick={{ fill: "#64748b", fontSize: 10 }} axisLine={false} tickLine={false} />
-                        <YAxis domain={[6, 10]} tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} />
+                    <BarChart data={hiringData} layout="vertical">
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
+                        <XAxis type="number" tick={{ fill: "#64748b", fontSize: 10 }} axisLine={false} tickLine={false} />
+                        <YAxis dataKey="name" type="category" tick={{ fill: "#64748b", fontSize: 10 }} axisLine={false} tickLine={false} width={70} />
                         <Tooltip contentStyle={tooltipStyle} />
-                        <Line type="monotone" dataKey="score" stroke="#a78bfa" strokeWidth={2.5} dot={{ fill: "#a78bfa", r: 4 }} activeDot={{ r: 6, fill: "#7c3aed" }} />
-                    </LineChart>
+                        <Bar dataKey="value" fill="#6366f1" radius={[0, 4, 4, 0]} />
+                    </BarChart>
                 </ResponsiveContainer>
             </div>
 
             {/* CSAT by Project */}
-            <div className="glass-card p-5 lg:col-span-2">
+            <div className="glass-card p-5 lg:col-span-1">
                 <h2 className="text-sm font-semibold text-slate-900 mb-1">CSAT by Project</h2>
                 <p className="text-xs text-slate-500 mb-4">Customer satisfaction scores</p>
                 <ResponsiveContainer width="100%" height={200}>
                     <BarChart data={csatByProject}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#1a1a2e" />
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
                         <XAxis dataKey="project" tick={{ fill: "#64748b", fontSize: 10 }} axisLine={false} tickLine={false} />
-                        <YAxis domain={[0, 10]} tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} />
+                        <YAxis domain={[0, 10]} tick={{ fill: "#64748b", fontSize: 10 }} axisLine={false} tickLine={false} />
                         <Tooltip contentStyle={tooltipStyle} />
                         <Bar dataKey="score" radius={[4, 4, 0, 0]}>
                             {csatByProject.map((entry, index) => (
@@ -169,6 +183,21 @@ export function DashboardCharts({
                             ))}
                         </Bar>
                     </BarChart>
+                </ResponsiveContainer>
+            </div>
+
+            {/* ESAT Trend */}
+            <div className="glass-card p-5 lg:col-span-1">
+                <h2 className="text-sm font-semibold text-slate-900 mb-1">ESAT Trend</h2>
+                <p className="text-xs text-slate-500 mb-4">Quarterly employee satisfaction</p>
+                <ResponsiveContainer width="100%" height={200}>
+                    <LineChart data={esatByQuarter}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                        <XAxis dataKey="quarter" tick={{ fill: "#64748b", fontSize: 10 }} axisLine={false} tickLine={false} />
+                        <YAxis domain={[6, 10]} tick={{ fill: "#64748b", fontSize: 10 }} axisLine={false} tickLine={false} />
+                        <Tooltip contentStyle={tooltipStyle} />
+                        <Line type="monotone" dataKey="score" stroke="#8b5cf6" strokeWidth={2} dot={{ fill: "#8b5cf6", r: 3 }} />
+                    </LineChart>
                 </ResponsiveContainer>
             </div>
         </div>

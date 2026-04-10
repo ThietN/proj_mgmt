@@ -3,7 +3,10 @@ import {
     getProjects,
     getESAT,
     getCSAT,
-    getInnovations
+    getInnovations,
+    getAttendanceTrend,
+    getInternMetrics,
+    getHiring
 } from "@/lib/database";
 import { KpiCard } from "@/components/ui/KpiCard";
 import { DashboardChartsDynamic } from "@/components/dashboard/DashboardChartsDynamic";
@@ -16,6 +19,8 @@ import {
     Smile,
     Star,
     Lightbulb,
+    Briefcase,
+    ShieldCheck
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -31,12 +36,14 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     const { month, quarter } = sp;
 
     try {
-
         resources = await getResources();
         projects = await getProjects();
         esatRecords = await getESAT();
         csatRecords = await getCSAT();
         innovations = await getInnovations();
+        const attendanceTrend = await getAttendanceTrend(14); // Last 14 days
+        const internMetrics = await getInternMetrics();
+        const candidates = await getHiring();
 
         // Filter by Month (if provided)
         if (month) {
@@ -64,10 +71,15 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
             innovations = innovations.filter(i => qMonths.includes(new Date(i.start_date).getMonth() + 1));
         }
 
+        // Sync consistency metrics from Projects
+        const projTotalHC = projects.reduce((s, p) => s + (p.headcount || 0), 0);
+        const projTotalEffort = projects.reduce((s, p) => s + (p.effort || 0), 0);
+        const projTotalBillable = projects.reduce((s, p) => s + (p.billable || 0), 0);
+        const projBillableRate = projTotalEffort > 0 ? Math.round((projTotalBillable / projTotalEffort) * 100) : 0;
+
         const billable = resources.filter((r) => r.status === "Billable");
         const backup = resources.filter((r) => r.status === "Backup");
         const available = resources.filter((r) => r.status === "Available");
-        const billableRate = Math.round((billable.length / resources.length) * 100);
 
         const atRisk = projects.filter(
             (p) => p.delivery_status === "At Risk" || p.delivery_status === "Critical"
@@ -75,7 +87,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
         // ESAT: latest quarter average
         const quarters = Array.from(new Set(esatRecords.map((e) => e.quarter))).sort();
-        const latestQ = quarters[quarters.length - 1];
+        const latestQ = quarters[quarters.length - 1] || "Current";
         const latestESAT = esatRecords.filter((e) => e.quarter === latestQ);
         const avgESAT =
             latestESAT.length > 0
@@ -146,7 +158,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                     <div>
                         <h1 className="text-2xl font-bold text-slate-900">Executive Dashboard</h1>
                         <p className="text-sm text-slate-500 mt-0.5">
-                            {latestQ} · {resources.length} engineers · {projects.filter(p => p.delivery_status !== "Completed").length} active projects
+                            {latestQ} · {projTotalHC} total capacity · {projects.filter(p => p.delivery_status !== "Completed").length} active projects
                         </p>
                     </div>
                     <div className="flex items-center gap-2">
@@ -156,15 +168,14 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                     </div>
                 </div>
 
-                {/* KPI Grid */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div className="animate-fadeInUp animate-fadeInUp-delay-1">
                         <KpiCard
-                            title="Total Headcount"
-                            value={resources.length}
-                            subValue={`+2 this quarter`}
+                            title="Actual Headcount"
+                            value={projTotalHC.toFixed(1)}
+                            subValue={`Synced from projects`}
                             trend="up"
-                            trendValue="20%"
+                            trendValue="Active"
                             icon={Users}
                             iconColor="text-blue-600"
                             iconBg="bg-blue-600/10"
@@ -172,36 +183,33 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                     </div>
                     <div className="animate-fadeInUp animate-fadeInUp-delay-2">
                         <KpiCard
-                            title="Billable Rate"
-                            value={`${billableRate}%`}
-                            subValue={`${billable.length} of ${resources.length} engineers`}
-                            trend="up"
-                            trendValue="5%"
-                            icon={TrendingUp}
-                            iconColor="text-emerald-600"
-                            iconBg="bg-emerald-50"
+                            title="Total Effort"
+                            value={projTotalEffort.toFixed(1)}
+                            subValue="Total FTE Allocation"
+                            icon={Briefcase}
+                            iconColor="text-indigo-600"
+                            iconBg="bg-indigo-50"
                         />
                     </div>
                     <div className="animate-fadeInUp animate-fadeInUp-delay-3">
                         <KpiCard
-                            title="Available Pool"
-                            value={available.length}
-                            subValue="Ready for new projects"
-                            trend="neutral"
-                            icon={UserCheck}
-                            iconColor="text-cyan-600"
-                            iconBg="bg-cyan-50"
+                            title="Billable"
+                            value={projTotalBillable.toFixed(1)}
+                            subValue="Revenue-generating FTE"
+                            icon={ShieldCheck}
+                            iconColor="text-emerald-600"
+                            iconBg="bg-emerald-50"
                         />
                     </div>
                     <div className="animate-fadeInUp animate-fadeInUp-delay-4">
                         <KpiCard
-                            title="Backup Engineers"
-                            value={backup.length}
-                            subValue="Partially allocated"
+                            title="NBR (%)"
+                            value={`${(projTotalEffort > 0 ? ((projTotalEffort - projTotalBillable) / projTotalEffort) * 100 : 0).toFixed(1)}%`}
+                            subValue="Non-Billable Rate"
                             trend="neutral"
-                            icon={Shield}
-                            iconColor="text-amber-600"
-                            iconBg="bg-amber-50"
+                            icon={TrendingUp}
+                            iconColor="text-pink-500"
+                            iconBg="bg-pink-50"
                         />
                     </div>
                     <div className="animate-fadeInUp animate-fadeInUp-delay-5">
@@ -262,6 +270,9 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                     esatByQuarter={esatByQuarter}
                     csatByProject={csatByProject}
                     topSkills={topSkills}
+                    attendanceTrend={attendanceTrend}
+                    internMetrics={internMetrics}
+                    candidates={candidates}
                 />
 
                 {/* Quick risk table */}

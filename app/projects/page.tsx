@@ -1,7 +1,7 @@
-import { getProjects } from "@/lib/database";
+import { getProjects, getResources } from "@/lib/database";
 import { ProjectsClient } from "@/components/projects/ProjectsClient";
 import { KpiCard } from "@/components/ui/KpiCard";
-import { Briefcase, Rocket, AlertTriangle, ShieldCheck, Users, TrendingUp, Calendar, Zap, PieChart } from "lucide-react";
+import { Briefcase, Rocket, AlertTriangle, ShieldCheck, Users, TrendingUp, Calendar, Zap, PieChart, Shield, UserCheck } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -9,6 +9,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
     const sp = await searchParams;
     const { month, quarter } = sp;
     let projects = await getProjects();
+    const resources = await getResources();
 
     // Filter by Month (if provided)
     if (month) {
@@ -46,48 +47,41 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
 
     return (
         <div className="space-y-6">
-            {/* Top Summary Panel */}
-            <div className="bg-white/40 backdrop-blur-md border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.05)] rounded-2xl p-1 overflow-hidden">
-                <div className="grid grid-cols-2 md:grid-cols-7 gap-1">
-                    {/* Time Info */}
-                    <div className="bg-white p-4 rounded-xl flex flex-col items-center justify-center border border-slate-50">
-                        <Calendar className="w-4 h-4 text-blue-500 mb-1.5 opacity-60" />
-                        <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Year</span>
-                        <span className="text-xl font-black text-slate-800 leading-tight">{currentYear}</span>
-                    </div>
-                    <div className="bg-white p-4 rounded-xl flex flex-col items-center justify-center border border-slate-50 font-mono">
-                        <Zap className="w-4 h-4 text-amber-500 mb-1.5 opacity-60" />
-                        <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Week</span>
-                        <span className="text-xl font-black text-slate-800 leading-tight">{currentWeek}</span>
-                    </div>
-
-                    {/* Resource Totals */}
-                    <div className="bg-white p-4 rounded-xl flex flex-col items-center justify-center border border-slate-50">
-                        <Users className="w-4 h-4 text-emerald-500 mb-1.5 opacity-60" />
-                        <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Total HC</span>
-                        <span className="text-xl font-black text-slate-800 leading-tight">{totalHC.toFixed(1)}</span>
-                    </div>
-                    <div className="bg-white p-4 rounded-xl flex flex-col items-center justify-center border border-slate-50">
-                        <Briefcase className="w-4 h-4 text-indigo-500 mb-1.5 opacity-60" />
-                        <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Total Effort</span>
-                        <span className="text-xl font-black text-slate-800 leading-tight">{totalEffort.toFixed(1)}</span>
-                    </div>
-                    <div className="bg-white p-4 rounded-xl flex flex-col items-center justify-center border border-slate-50">
-                        <ShieldCheck className="w-4 h-4 text-cyan-500 mb-1.5 opacity-60" />
-                        <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Billable</span>
-                        <span className="text-xl font-black text-slate-800 leading-tight">{totalBillable.toFixed(1)}</span>
-                    </div>
-                    <div className="bg-white p-4 rounded-xl flex flex-col items-center justify-center border border-slate-50">
-                        <TrendingUp className="w-4 h-4 text-pink-500 mb-1.5 opacity-60" />
-                        <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Non-Bill</span>
-                        <span className="text-xl font-black text-slate-800 leading-tight">{totalNonBillable.toFixed(1)}</span>
-                    </div>
-                    <div className="bg-white p-4 rounded-xl flex flex-col items-center justify-center border border-slate-50">
-                        <PieChart className="w-4 h-4 text-rose-500 mb-1.5 opacity-60" />
-                        <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">NBR (%)</span>
-                        <span className="text-xl font-black text-slate-800 leading-tight">{nbrRate.toFixed(1)}%</span>
-                    </div>
-                </div>
+            {/* Executive KPIs */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <KpiCard
+                    title="Actual Headcount"
+                    value={totalHC.toFixed(1)}
+                    subValue="Synced from projects"
+                    icon={Users}
+                    iconColor="text-blue-600"
+                    iconBg="bg-blue-600/10"
+                />
+                <KpiCard
+                    title="Billable Rate"
+                    value={`${(100 - nbrRate).toFixed(0)}%`}
+                    subValue={`${totalBillable.toFixed(1)} / ${totalEffort.toFixed(1)} FTE`}
+                    icon={TrendingUp}
+                    iconColor="text-emerald-600"
+                    iconBg="bg-emerald-50"
+                />
+                <KpiCard
+                    title="Available Pool"
+                    value={resources.filter(r => r.status === "Available" || r.status === "Backup").length}
+                    subValue="Across Lab 3 & 6"
+                    icon={UserCheck}
+                    iconColor="text-cyan-600"
+                    iconBg="bg-cyan-50"
+                />
+                <KpiCard
+                    title="Projects at Risk"
+                    value={atRisk}
+                    subValue={`of ${active} active projects`}
+                    icon={AlertTriangle}
+                    iconColor="text-red-600"
+                    iconBg="bg-red-50"
+                    highlight={atRisk > 0}
+                />
             </div>
 
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
@@ -104,14 +98,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <KpiCard title="Active Projects" value={active} icon={Rocket} iconColor="text-blue-600" iconBg="bg-blue-50" />
-                <KpiCard title="Avg progress" value={`${avgProgress}%`} icon={Briefcase} iconColor="text-emerald-600" iconBg="bg-emerald-50" />
-                <KpiCard title="At Risk" value={atRisk} icon={AlertTriangle} iconColor="text-red-600" iconBg="bg-red-50" />
-                <KpiCard title="Completed" value={completed} icon={ShieldCheck} iconColor="text-slate-600" iconBg="bg-slate-50" />
-            </div>
-
-            <ProjectsClient initialData={projects} />
+            <ProjectsClient initialData={projects} resources={resources} />
         </div>
     );
 }

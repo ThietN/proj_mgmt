@@ -75,15 +75,15 @@ export function ReportClient({
     }, [currentWeekNum, currentYear]);
 
     // Data Extraction
-    const totalHC = resources.length;
-    const billableHC = resources.filter(r => r.status === "Billable").length;
-    const autoTotalEffort = projects.reduce((s, p) => s + p.effort, 0);
-    const totalNBR = projects.reduce((s, p) => s + p.nbr, 0);
+    // Data Extraction (Synchronized with Projects)
+    const totalHC = projects.reduce((s, p) => s + (p.headcount || 0), 0);
+    const totalEffort = projects.reduce((s, p) => s + (p.effort || 0), 0);
+    const totalBillable = projects.reduce((s, p) => s + (p.billable || 0), 0);
+    const totalNonBillable = totalEffort - totalBillable;
+    const nbrPercentage = totalEffort > 0 ? (totalNonBillable / totalEffort) * 100 : 0;
+
     const available = resources.filter(r => r.status === "Available").length;
     const backup = resources.filter(r => r.status === "Backup").length;
-
-    const [effortOverride, setEffortOverride] = useState<string>("");
-    const displayTotalEffort = effortOverride ? parseFloat(effortOverride) : autoTotalEffort;
 
     const resigning = resources.filter(r => r.status === "Resigning");
     const riskResources = resources.filter(r => r.risk_flag);
@@ -131,17 +131,14 @@ export function ReportClient({
                 hiringExtra: "",
                 otherUpdates: saved.other_notes || "",
             });
-            setEffortOverride(saved.effort_override ? saved.effort_override.toString() : "");
         } else {
             setCustomNotes({ resourceExtra: "", programExtra: "", innovationExtra: "", activitiesExtra: "", hiringExtra: "", otherUpdates: "" });
-            setEffortOverride("");
         }
     }, [selectedWeek, selectedYear, pastReports]);
 
-    async function saveAllData(updates?: Partial<typeof customNotes>, newEffort?: string) {
+    async function saveAllData(updates?: Partial<typeof customNotes>) {
         setIsSaving(true);
         const notesToSave = updates || customNotes;
-        const effortToSave = newEffort !== undefined ? newEffort : effortOverride;
 
         try {
             const res = await fetch("/api/report", {
@@ -155,7 +152,7 @@ export function ReportClient({
                     innovation_notes: notesToSave.innovationExtra,
                     activities_notes: notesToSave.activitiesExtra,
                     other_notes: notesToSave.otherUpdates,
-                    effort_override: effortToSave ? parseFloat(effortToSave) : null,
+                    effort_override: null,
                 })
             });
             if (res.ok) {
@@ -184,7 +181,7 @@ export function ReportClient({
         text += `Date: ${formatDate(now)}\n\n`;
 
         text += `1. Resource Update\n`;
-        text += `   • Headcount: ${totalHC} | Total Effort: ${displayTotalEffort.toFixed(1)} | Billable HC: ${billableHC} | Total NBR: ${totalNBR.toFixed(1)} | Available (non-bill): ${available + backup}\n`;
+        text += `   • Headcount: ${totalHC} | Total Effort: ${totalEffort.toFixed(1)} | Billable: ${totalBillable.toFixed(1)} | Non-Billable: ${totalNonBillable.toFixed(1)} | NBR: ${nbrPercentage.toFixed(2)}%\n`;
         if (recentJoiners.length > 0) {
             text += `   • Ramp-up:\n`;
             recentJoiners.forEach(r => {
@@ -195,7 +192,7 @@ export function ReportClient({
         if (customNotes.resourceExtra) text += `   ${stripHtml(customNotes.resourceExtra).replace(/\n/g, '\n   ')}\n`;
 
         text += `\n2. Program Status\n`;
-        text += `   • Overall: ${activeProjects.length} active projects | Effort: ${displayTotalEffort.toFixed(1)} | Billable: ${totalBillableEffort.toFixed(1)}\n`;
+        text += `   • Overall: ${activeProjects.length} active projects | Effort: ${totalEffort.toFixed(1)} | Billable: ${totalBillableEffort.toFixed(1)}\n`;
         activeProjects.forEach(p => { text += `   • ${p.project_name} (${p.customer}): ${p.delivery_status}, Progress: ${p.milestone_progress}%\n`; });
         if (customNotes.programExtra) text += `   ${stripHtml(customNotes.programExtra).replace(/\n/g, '\n   ')}\n`;
 
@@ -317,31 +314,15 @@ export function ReportClient({
                     <SectionHeader num={1} title="Resource Update" icon={Users} color="bg-blue-600" />
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
                         {[
-                            { label: "Headcount", value: totalHC.toString(), color: "text-slate-800", type: "text" },
-                            {
-                                label: "Total Effort",
-                                value: displayTotalEffort.toString(),
-                                color: "text-indigo-600",
-                                type: "input",
-                                field: "effort"
-                            },
-                            { label: "Billable HC", value: billableHC.toString(), color: "text-emerald-600", type: "text" },
-                            { label: "Total NBR", value: totalNBR.toFixed(1), color: "text-rose-600", type: "text" },
-                            { label: "Available (Non-bill)", value: (available + backup).toString(), color: "text-blue-600", type: "text" },
+                            { label: "Headcount", value: totalHC.toString(), color: "text-slate-800" },
+                            { label: "Total Effort", value: totalEffort.toFixed(1), color: "text-indigo-600" },
+                            { label: "Billable", value: totalBillable.toFixed(1), color: "text-emerald-600" },
+                            { label: "Non-Billable", value: totalNonBillable.toFixed(1), color: "text-amber-600" },
+                            { label: "NBR (%)", value: `${nbrPercentage.toFixed(2)}%`, color: "text-rose-600" },
                         ].map(item => (
                             <div key={item.label} className="bg-slate-50/70 rounded-xl p-3 border border-slate-100 flex flex-col justify-between">
                                 <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{item.label}</span>
-                                {item.type === "input" ? (
-                                    <input
-                                        type="text"
-                                        value={effortOverride !== "" ? effortOverride : autoTotalEffort.toFixed(1)}
-                                        onChange={(e) => setEffortOverride(e.target.value)}
-                                        onKeyDown={(e) => e.key === 'Enter' && saveAllData(undefined, effortOverride)}
-                                        className={cn("text-lg font-black mt-1 bg-white border-b-2 border-indigo-400 outline-none w-full", item.color)}
-                                    />
-                                ) : (
-                                    <div className={cn("text-lg font-black mt-1", item.color)}>{item.value}</div>
-                                )}
+                                <div className={cn("text-lg font-black mt-1", item.color)}>{item.value}</div>
                             </div>
                         ))}
                     </div>
@@ -370,9 +351,36 @@ export function ReportClient({
                     <SectionHeader num={2} title="Program Status" icon={Briefcase} color="bg-violet-600" />
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
                         {activeProjects.map(p => (
-                            <div key={p.project_id} className="bg-slate-50/60 rounded-xl p-4 border border-slate-100 flex items-center justify-between">
-                                <div><div className="text-xs font-bold text-slate-800">{p.project_name}</div><div className="text-[10px] text-slate-400 font-bold">{p.customer} • HC: {p.headcount}</div></div>
-                                <div className="text-right"><div className={cn("text-xs font-black", p.delivery_status === "On Track" ? "text-emerald-600" : "text-amber-600")}>{p.delivery_status}</div></div>
+                            <div key={p.project_id} className="bg-slate-50/60 rounded-xl p-4 border border-slate-100 shadow-sm">
+                                <div className="flex items-center justify-between mb-3">
+                                    <div>
+                                        <div className="text-xs font-bold text-slate-800">{p.project_name}</div>
+                                        <div className="text-[10px] text-slate-400 font-bold">{p.customer} • HC: {p.headcount}</div>
+                                    </div>
+                                    <div className="text-right">
+                                        <div className={cn("text-[10px] font-black px-2 py-0.5 rounded-full border",
+                                            p.delivery_status === "On Track" ? "bg-emerald-50 text-emerald-600 border-emerald-100" :
+                                                p.delivery_status === "At Risk" ? "bg-amber-50 text-amber-600 border-amber-100" :
+                                                    "bg-red-50 text-red-600 border-red-100")}>
+                                            {p.delivery_status}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="space-y-1">
+                                    <div className="flex justify-between text-[9px] font-black text-slate-400">
+                                        <span>PROGRESS</span>
+                                        <span>{p.milestone_progress}%</span>
+                                    </div>
+                                    <div className="w-full bg-slate-200 rounded-full h-1 overflow-hidden">
+                                        <div
+                                            className={cn("h-full transition-all duration-1000",
+                                                p.milestone_progress >= 80 ? "bg-emerald-500" :
+                                                    p.milestone_progress >= 50 ? "bg-blue-600" :
+                                                        p.milestone_progress >= 30 ? "bg-amber-500" : "bg-red-500")}
+                                            style={{ width: `${p.milestone_progress}%` }}
+                                        />
+                                    </div>
+                                </div>
                             </div>
                         ))}
                     </div>
@@ -412,6 +420,16 @@ export function ReportClient({
                 {/* ═══ 5. WORK TRACKER ═══ */}
                 <div className="glass-card p-6 bg-white/60 border-slate-200">
                     <SectionHeader num={5} title="Work Tracker" icon={Clock} color="bg-amber-500" />
+                    <div className="flex items-center gap-6 mb-4 px-1">
+                        <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Global Lateness:</span>
+                            <span className="text-sm font-black text-red-600">{attendanceStats.late || 0}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Not Access:</span>
+                            <span className="text-sm font-black text-orange-600">{attendanceStats.notAccess || 0}</span>
+                        </div>
+                    </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div className="p-4 bg-red-50/50 rounded-xl border border-red-100">
                             <span className="text-[10px] font-black text-red-600 uppercase tracking-widest mb-2 block">Top Lateness</span>
@@ -451,14 +469,14 @@ export function ReportClient({
 
                 {/* ═══ 7. ACTIVITIES & BEST PRACTICES ═══ */}
                 <div className="glass-card p-6 bg-white/60 border-slate-200">
-                    <SectionHeader num={8} title="Activities & Best Practices" icon={Clock} color="bg-cyan-600" />
+                    <SectionHeader num={7} title="Activities & Best Practices" icon={Clock} color="bg-cyan-600" />
                     {doneTasks.length > 0 && <Bullet>Completed: <strong>{doneTasks.length} tasks</strong> finished this period.</Bullet>}
                     {renderEditableNote("activitiesExtra", "✏️ Training, CI/CD, specific task updates...")}
                 </div>
 
                 {/* ═══ 8. OTHER UPDATES ═══ */}
                 <div className="glass-card p-6 bg-white/60 border-slate-200">
-                    <SectionHeader num={7} title="Other Updates (Notes)" icon={Layout} color="bg-slate-800" />
+                    <SectionHeader num={8} title="Other Updates (Notes)" icon={Layout} color="bg-slate-800" />
                     {renderEditableNote("otherUpdates", "✏️ Lead updates, proposals, risks, cybersecurity...")}
                 </div>
 
