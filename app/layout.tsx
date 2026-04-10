@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { LayoutWrapper } from "@/components/layout/LayoutWrapper";
+import { Toaster } from 'react-hot-toast';
 
 export const metadata: Metadata = {
     title: "TMA- DC12_PG3 – Executive Dashboard",
@@ -15,6 +16,7 @@ export default function RootLayout({
     return (
         <html lang="en" className="light">
             <body className="font-sans bg-slate-50 text-slate-900 antialiased">
+                <Toaster position="top-right" reverseOrder={false} />
                 <LayoutWrapper>{children}</LayoutWrapper>
             </body>
         </html>

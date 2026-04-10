@@ -8,6 +8,8 @@ import {
     StickyNote, Timer, User, Pencil, FolderPlus, MoreHorizontal
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+
 import dynamic from "next/dynamic";
 import 'react-quill-new/dist/quill.snow.css';
 
@@ -54,7 +56,7 @@ const quillModules = {
         ["link", "code-block", "clean"],
     ],
 };
-const quillFormats = ["header", "bold", "italic", "underline", "strike", "blockquote", "list", "bullet", "link", "code-block"];
+const quillFormats = ["header", "bold", "italic", "underline", "strike", "blockquote", "list", "link", "code-block"];
 
 interface TrackingClientProps {
     tasks: TrackingTask[];
@@ -126,6 +128,7 @@ export function TrackingClient({ tasks: initialTasks, projects, resources, innov
         setWsAdding(true);
     };
 
+
     async function handleWsSubmit() {
         if (!wsForm.name.trim()) return;
         try {
@@ -135,6 +138,7 @@ export function TrackingClient({ tasks: initialTasks, projects, resources, innov
                     body: JSON.stringify({ id: wsEditingId, name: wsForm.name, icon: wsForm.icon, color: wsForm.color }),
                 });
                 setWsItems(prev => prev.map(w => w.id === wsEditingId ? { ...w, name: wsForm.name, icon: wsForm.icon, color: wsForm.color } : w));
+                toast.success("Workspace updated");
             } else {
                 const res = await fetch("/api/tracking/workspaces", {
                     method: "POST", headers: { "Content-Type": "application/json" },
@@ -144,9 +148,10 @@ export function TrackingClient({ tasks: initialTasks, projects, resources, innov
                 if (data.workspace) {
                     setWsItems(prev => [...prev, data.workspace]);
                     setSelectedWs(data.workspace.id);
+                    toast.success("New workspace created");
                 }
             }
-        } catch (err) { }
+        } catch (err) { toast.error("Failed to save workspace"); }
         setWsAdding(false);
         setWsEditingId(null);
         router.refresh();
@@ -160,8 +165,9 @@ export function TrackingClient({ tasks: initialTasks, projects, resources, innov
             setTasks(prev => prev.filter(t => t.project_id !== id));
             setNotes(prev => prev.filter(n => n.project_id !== id));
             if (selectedWs === id) setSelectedWs(wsItems.filter(w => w.id !== id)[0]?.id || "");
+            toast.success("Workspace deleted");
             router.refresh();
-        } catch (err) { }
+        } catch (err) { toast.error("Failed to delete workspace"); }
     }
 
     // ─── Task handlers ──────────────────────────
@@ -197,15 +203,21 @@ export function TrackingClient({ tasks: initialTasks, projects, resources, innov
                 const data = await res.json();
                 if (editingId) {
                     setTasks(tasks.map(t => t.id === editingId ? { ...t, ...payload, updated_at: new Date().toISOString() } as TrackingTask : t));
+                    toast.success("Task updated");
                 } else {
-                    if (data.task) setTasks([...tasks, data.task]);
+                    if (data.task) {
+                        setTasks([...tasks, data.task]);
+                        toast.success("Task created");
+                    }
                 }
                 setIsAdding(false);
                 setFormData(DEFAULT_TASK);
                 setEditingId(null);
                 router.refresh();
+            } else {
+                toast.error("Failed to save task");
             }
-        } catch (err) { }
+        } catch (err) { toast.error("Network error saving task"); }
         setIsLoading(false);
     }
 
@@ -213,16 +225,19 @@ export function TrackingClient({ tasks: initialTasks, projects, resources, innov
         if (!confirm(`Delete "${title}"?`)) return;
         try {
             const res = await fetch(`/api/tracking?id=${id}`, { method: "DELETE" });
-            if (res.ok) { setTasks(tasks.filter(t => t.id !== id)); router.refresh(); }
-        } catch (err) { }
+            if (res.ok) { 
+                setTasks(tasks.filter(t => t.id !== id)); 
+                toast.success("Task deleted");
+                router.refresh(); 
+            } else {
+                toast.error("Failed to delete task");
+            }
+        } catch (err) { toast.error("Error deleting task"); }
     }
 
     async function handleDrop(taskId: string, newStatus: TrackingTask["status"]) {
         const task = tasks.find(t => t.id === taskId);
         if (!task || task.status === newStatus) return;
-
-        const previousStatus = task.status;
-        console.log(`[DragDrop] Moving task ${taskId} from ${previousStatus} to ${newStatus}`);
 
         try {
             const res = await fetch("/api/tracking", {
@@ -231,21 +246,14 @@ export function TrackingClient({ tasks: initialTasks, projects, resources, innov
                 body: JSON.stringify({ id: taskId, status: newStatus }),
             });
 
-            console.log(`[DragDrop] API Response status: ${res.status}`);
-
             if (res.ok) {
-                // Task 6: Update state only after successful API response
                 setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: newStatus, updated_at: new Date().toISOString() } : t));
+                toast.success(`Moved to ${newStatus}`);
                 router.refresh();
             } else {
-                const error = await res.json();
-                console.error(`[DragDrop] Failed to update task status:`, error);
-                alert(`Failed to update status: ${error.error || "Unknown error"}`);
+                toast.error("Failed to move task");
             }
-        } catch (err) {
-            console.error(`[DragDrop] Network error:`, err);
-            alert("Network error. Please try again.");
-        }
+        } catch (err) { toast.error("Error updating status"); }
     }
 
     // ─── Notes handler ──────────────────────────
@@ -262,8 +270,9 @@ export function TrackingClient({ tasks: initialTasks, projects, resources, innov
                 if (exists) return prev.map(n => n.project_id === selectedWs ? { ...n, content: noteContent, updated_at: new Date().toISOString() } : n);
                 return [...prev, { id: noteId, project_id: selectedWs, content: noteContent, updated_at: new Date().toISOString() }];
             });
+            toast.success("Notes saved");
             setNoteEditing(false);
-        } catch (err) { }
+        } catch (err) { toast.error("Failed to save notes"); }
         setNoteSaving(false);
     }
 

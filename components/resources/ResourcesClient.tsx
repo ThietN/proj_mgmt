@@ -5,6 +5,8 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Search, Filter, AlertTriangle, Plus, Trash2, X, Check, Edit2, Briefcase, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+
 
 interface ResourcesClientProps {
     initialData: Resource[];
@@ -74,6 +76,7 @@ export function ResourcesClient({ initialData, projects }: ResourcesClientProps)
         setIsAdding(true);
     };
 
+
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
         setIsLoading(true);
@@ -88,17 +91,23 @@ export function ResourcesClient({ initialData, projects }: ResourcesClientProps)
                 const data = await res.json();
                 if (editingId) {
                     setResources(resources.map(r => r.employee_id === editingId ? { ...r, ...formData, skills: typeof formData.skills === 'string' ? formData.skills.split(',').map(s=>s.trim()).filter(Boolean) : formData.skills } as Resource : r));
+                    toast.success("Resource updated successfully!");
                 } else {
                     if (data.resource) {
                         setResources([...resources, data.resource]);
+                        toast.success("New resource added!");
                     }
                 }
                 setIsAdding(false);
                 setFormData(DEFAULT_FORM);
                 setEditingId(null);
                 router.refresh();
+            } else {
+                toast.error("Failed to save resource.");
             }
-        } catch (err) { }
+        } catch (err: any) {
+            toast.error(err.message || "An error occurred");
+        }
         setIsLoading(false);
     }
 
@@ -110,9 +119,14 @@ export function ResourcesClient({ initialData, projects }: ResourcesClientProps)
             });
             if (res.ok) {
                 setResources(resources.filter(r => r.employee_id !== id));
+                toast.success("Resource deleted successfully.");
                 router.refresh();
+            } else {
+                toast.error("Failed to delete resource.");
             }
-        } catch (err) { }
+        } catch (err: any) {
+            toast.error(err.message || "An error occurred");
+        }
     }
 
     return (

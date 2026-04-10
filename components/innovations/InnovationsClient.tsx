@@ -5,6 +5,8 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Bot, Zap, Code2, FlaskConical, Plus, X, Check, Trash2, Edit2, Lightbulb, Star } from "lucide-react";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+
 import dynamic from "next/dynamic";
 import 'react-quill-new/dist/quill.snow.css';
 
@@ -22,7 +24,7 @@ const quillModules = {
 const quillFormats = [
     'header',
     'bold', 'italic', 'underline', 'strike', 'blockquote',
-    'list', 'bullet',
+    'list',
     'link'
 ];
 
@@ -95,6 +97,7 @@ export function InnovationsClient({ innovations: initialData }: InnovationsClien
         setIsAdding(true);
     };
 
+
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
         setIsLoading(true);
@@ -109,17 +112,23 @@ export function InnovationsClient({ innovations: initialData }: InnovationsClien
                 const data = await res.json();
                 if (editingId) {
                     setInnovations(innovations.map(i => i.initiative_id === editingId ? { ...i, ...formData } as Innovation : i));
+                    toast.success("Initiative updated");
                 } else {
                     if (data.innovation) {
                         setInnovations([...innovations, data.innovation]);
+                        toast.success("New initiative launched!");
                     }
                 }
                 setIsAdding(false);
                 setFormData(DEFAULT_FORM);
                 setEditingId(null);
                 router.refresh();
+            } else {
+                toast.error("Failed to save initiative");
             }
-        } catch (err) { }
+        } catch (err: any) {
+            toast.error(err?.message || "An error occurred");
+        }
         setIsLoading(false);
     }
 
@@ -131,9 +140,14 @@ export function InnovationsClient({ innovations: initialData }: InnovationsClien
             });
             if (res.ok) {
                 setInnovations(innovations.filter(i => i.initiative_id !== id));
+                toast.success("Initiative archived");
                 router.refresh();
+            } else {
+                toast.error("Failed to archive");
             }
-        } catch (err) { }
+        } catch (err: any) {
+            toast.error(err?.message || "An error occurred");
+        }
     }
 
     return (

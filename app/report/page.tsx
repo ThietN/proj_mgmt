@@ -1,10 +1,18 @@
-import { getResources, getProjects, getInnovations, getCSAT, getESAT, getHiring, getTrackingTasks, getTrackingWorkspaces, getWeeklyReports } from "@/lib/database";
+import { 
+    getResources, getProjects, getInnovations, getCSAT, getESAT, getHiring, 
+    getTrackingTasks, getTrackingWorkspaces, getWeeklyReports,
+    getAttendanceStats, getTopLateMembers, getTopNotAccessMembers 
+} from "@/lib/database";
 import { ReportClient } from "@/components/report/ReportClient";
 
 export const dynamic = "force-dynamic";
 
 export default async function ReportPage() {
-    const [resources, projects, innovations, csat, esat, hiring, trackingTasks, workspaces, pastReports] = await Promise.all([
+    const [
+        resources, projects, innovations, csat, esat, 
+        hiring, trackingTasks, workspaces, pastReports,
+        attendanceStats, lateRankings, notAccessRankings
+    ] = await Promise.all([
         getResources(),
         getProjects(),
         getInnovations(),
@@ -14,6 +22,9 @@ export default async function ReportPage() {
         getTrackingTasks(),
         getTrackingWorkspaces(),
         getWeeklyReports(),
+        getAttendanceStats(),
+        getTopLateMembers(15),
+        getTopNotAccessMembers(15),
     ]);
 
     return (
@@ -32,6 +43,9 @@ export default async function ReportPage() {
                 trackingTasks={trackingTasks}
                 workspaces={workspaces}
                 pastReports={pastReports}
+                attendanceStats={attendanceStats}
+                lateRankings={lateRankings}
+                notAccessRankings={notAccessRankings}
             />
         </div>
     );

@@ -6,6 +6,8 @@ import {
     Loader2, X, ChevronRight, Table, Database
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import toast from "react-hot-toast";
+
 
 interface RowData {
     employee_name: string;
@@ -72,6 +74,7 @@ export default function AttendanceUpload() {
         setLoading(true);
         setError(null);
 
+
         const reader = new FileReader();
         reader.onload = async (e) => {
             try {
@@ -127,11 +130,14 @@ export default function AttendanceUpload() {
                     setResult(jsonRes);
                     setPreviewData([]);
                     setFile(null);
+                    toast.success("Attendance report uploaded successfully!");
                 } else {
                     setError(jsonRes.error || "Upload failed");
+                    toast.error(jsonRes.error || "Upload failed");
                 }
             } catch (err: any) {
                 setError("Error parsing file: " + err.message);
+                toast.error("Error parsing file");
             } finally {
                 setLoading(false);
             }

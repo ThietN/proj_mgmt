@@ -17,7 +17,12 @@ import {
     Poll,
     Survey,
     OrgEvent,
-    Feedback
+    Feedback,
+    Intern,
+    InternEvaluation,
+    InternStatusHistory,
+    InternMetrics,
+    BillableResource
 } from "@/types";
 
 // ==========================================
@@ -792,4 +797,144 @@ export async function getAttendanceTrend(days: number = 7) {
     });
 
     return Object.values(trend).sort((a, b) => a.date.localeCompare(b.date));
+}
+
+// ==========================================
+// INTERN MANAGEMENT
+// ==========================================
+
+export async function getInterns(filters: any = {}): Promise<Intern[]> {
+    noStore();
+    let query = supabase.from('interns').select('*, evaluation:intern_evaluations(*)');
+
+    if (filters.status) query = query.eq('status', filters.status);
+    if (filters.project) query = query.eq('project', filters.project);
+    if (filters.mentor) query = query.eq('mentor', filters.mentor);
+    if (filters.is_billable !== undefined) query = query.eq('is_billable', filters.is_billable);
+    
+    const { data, error } = await query.order('created_at', { ascending: false });
+    if (error) throw error;
+    
+    let results = (data || []) as Intern[];
+    
+    if (filters.final_grade) {
+        results = results.filter((i: Intern) => i.evaluation?.final_grade === filters.final_grade);
+    }
+    
+    return results;
+}
+
+export async function getInternMetrics(): Promise<InternMetrics> {
+    noStore();
+    const { data, error } = await supabase.from('interns').select('status, is_billable');
+    if (error) throw error;
+
+    const total = data.length;
+    const completed = data.filter((i: any) => i.status === 'Completed').length;
+    const inProgress = data.filter((i: any) => i.status === 'In Progress').length;
+    const billable = data.filter((i: any) => i.is_billable).length;
+
+    return {
+        totalInterns: total,
+        inProgress,
+        completed,
+        convertedToBillable: billable,
+        completionRate: total > 0 ? (completed / total) * 100 : 0
+    };
+}
+
+export async function createIntern(intern: Partial<Intern>) {
+    const { error } = await supabase.from('interns').insert([intern]);
+    if (error) throw error;
+}
+
+export async function updateIntern(id: string, updates: Partial<Intern>) {
+    const { error } = await supabase.from('interns').update(updates).eq('id', id);
+    if (error) throw error;
+}
+
+export async function evaluateIntern(evaluation: Partial<InternEvaluation>) {
+    const { error } = await supabase.from('intern_evaluations').upsert([evaluation], { onConflict: 'intern_id' });
+    if (error) throw error;
+}
+
+export async function convertToBillable(internId: string, project: string, billingRate: number, note?: string): Promise<void> {
+    const now = new Date().toISOString();
+    
+    try {
+        // 1. Get Intern Info
+        const { data: intern, error: fetchErr } = await supabase.from('interns').select('*').eq('id', internId).single();
+        if (fetchErr || !intern) throw new Error(`Intern not found: ${fetchErr?.message}`);
+
+        // 2. Update Intern
+        const { error: internErr } = await supabase.from('interns').update({
+            is_billable: true,
+            billable_date: now
+        }).eq('id', internId);
+        if (internErr) throw new Error(`Failed to update intern: ${internErr.message}`);
+
+        // 3. Create Billable Tracking Record (Exclude 'notes' column as it doesn't exist in this table)
+        const { error: billableErr } = await supabase.from('billable_resources').insert({
+            intern_id: internId,
+            project: project || "Internal",
+            billing_rate: billingRate || 500,
+            start_billable_date: now
+        });
+        if (billableErr) throw new Error(`Failed to create billable tracking: ${billableErr.message}`);
+
+        // 4. Automatically create record in core Resource table
+        const randomSuffix = Math.floor(Math.random() * 900) + 100; // 100-999
+        const badgeId = `Intern0${randomSuffix}`;
+        
+        const { error: resourceErr } = await supabase.from('resources').insert({
+            employee_id: badgeId,
+            name: intern.full_name,
+            role: "E",
+            team: "mac dinh",
+            grade: "L1",
+            skills: [],
+            english_level: "Intermediate",
+            status: "Billable",
+            allocation_percentage: 100,
+            join_date: now.split('T')[0],
+            location: "lab6",
+            notes: note || `Converted from intern on ${now.split('T')[0]}`,
+            is_ramp_up: true
+        });
+        
+        if (resourceErr) throw new Error(`Failed to create resource entry: ${resourceErr.message}`);
+    } catch (error: any) {
+        console.error("Conversion Error:", error);
+        throw error;
+    }
+}
+
+export async function deleteIntern(id: string): Promise<void> {
+    const { error } = await supabase.from('interns').delete().eq('id', id);
+    if (error) throw error;
+}
+
+export async function getInternHistory(intern_id: string): Promise<InternStatusHistory[]> {
+    noStore();
+    const { data, error } = await supabase
+        .from('intern_status_history')
+        .select('*')
+        .eq('intern_id', intern_id)
+        .order('changed_at', { ascending: false });
+    if (error) throw error;
+    return data as InternStatusHistory[];
+}
+
+export async function autoApproveInterns() {
+    // This function will be called by a cron/api job
+    const today = new Date().toISOString().split('T')[0];
+    const { data, error } = await supabase
+        .from('interns')
+        .update({ status: 'Completed', completed_date: today })
+        .lte('end_date', today)
+        .neq('status', 'Completed')
+        .select();
+    
+    if (error) throw error;
+    return data;
 }

@@ -164,6 +164,7 @@ export interface WeeklyReportData {
     innovation_notes: string;
     activities_notes: string;
     other_notes: string;
+    effort_override?: number;
     updated_at: string;
 }
 
@@ -350,4 +351,70 @@ export interface AttendanceRankingMember {
     name: string;
     count: number;
     details: { date: string; time: string }[];
+}
+
+// ============================================================
+// INTERN MANAGEMENT TYPES
+// ============================================================
+
+export type InternStatus = "Scheduled" | "Interview" | "Joined" | "In Progress" | "Completed";
+export type FinalGrade = "Excellent" | "Good" | "Fair" | "Average" | "Poor";
+
+export interface Intern {
+    id: string;
+    full_name: string;
+    email: string;
+    role?: string;
+    project?: string;
+    mentor?: string;
+    start_date?: string;
+    end_date?: string;
+    status: InternStatus;
+    completed_date?: string;
+    is_billable: boolean;
+    billable_date?: string;
+    created_at: string;
+    updated_at: string;
+    evaluation?: InternEvaluation;
+}
+
+export interface InternEvaluation {
+    id: string;
+    intern_id: string;
+    technical_score: number;
+    technical_note?: string;
+    soft_skill_score: number;
+    soft_skill_note?: string;
+    attitude_score: number;
+    attitude_note?: string;
+    english_score: number;
+    final_grade: FinalGrade;
+    evaluated_by: string;
+    evaluated_at: string;
+}
+
+export interface InternStatusHistory {
+    id: string;
+    intern_id: string;
+    old_status?: string;
+    new_status: string;
+    changed_by?: string;
+    changed_at: string;
+}
+
+export interface BillableResource {
+    id: string;
+    intern_id: string;
+    project?: string;
+    billing_rate?: number;
+    start_billable_date: string;
+    created_at: string;
+}
+
+export interface InternMetrics {
+    totalInterns: number;
+    inProgress: number;
+    completed: number;
+    convertedToBillable: number;
+    completionRate: number;
 }

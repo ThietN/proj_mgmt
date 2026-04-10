@@ -21,6 +21,7 @@ export async function PUT(req: Request) {
             innovation_notes: body.innovation_notes || "",
             activities_notes: body.activities_notes || "",
             other_notes: body.other_notes || "",
+            effort_override: body.effort_override ? Number(body.effort_override) : null,
             updated_at: new Date().toISOString(),
         };
         await upsertWeeklyReport(report as any);

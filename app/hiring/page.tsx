@@ -1,53 +1,34 @@
-import { getHiring } from "@/lib/database";
-import { HiringClient } from "@/components/hiring/HiringClient";
-import { KpiCard } from "@/components/ui/KpiCard";
-import { UserPlus, CheckCircle, Clock, Users } from "lucide-react";
+import { getInterns, getInternMetrics } from "@/lib/database";
+import { InternTracker } from "@/components/hiring/InternTracker";
+import { InternSummaryCards } from "@/components/hiring/InternSummaryCards";
+import { GraduationCap, ArrowRight, UserCheck } from "lucide-react";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
-export default async function HiringPage({ searchParams }: { searchParams: Promise<{ month?: string, quarter?: string }> }) {
+export default async function HiringPage({ searchParams }: { searchParams: Promise<any> }) {
     const sp = await searchParams;
-    const { month, quarter } = sp;
-    let candidates = await getHiring();
-
-    // Filter by Month (if provided)
-    if (month) {
-        const m = parseInt(month);
-        candidates = candidates.filter(c => new Date(c.expected_join_date).getMonth() + 1 === m);
-    }
-
-    // Filter by Quarter (if provided)
-    if (quarter) {
-        const q = parseInt(quarter);
-        const qMonths = [
-            [1, 2, 3],
-            [4, 5, 6],
-            [7, 8, 9],
-            [10, 11, 12]
-        ][q - 1];
-        candidates = candidates.filter(c => qMonths.includes(new Date(c.expected_join_date).getMonth() + 1));
-    }
-
-    const activeInterns = candidates.filter((c) => c.type === "Intern" && c.interview_status === "Joined");
-    const activeCandidates = candidates.filter((c) => c.type === "Candidate" && !["Joined", "Rejected"].includes(c.interview_status));
-    const offers = candidates.filter((c) => c.interview_status === "Offer");
-    const joined = candidates.filter((c) => c.interview_status === "Joined");
+    // Fetch all interns for unified management
+    const allInterns = await getInterns(sp);
+    const metrics = await getInternMetrics();
 
     return (
         <div className="space-y-6">
-            <div>
-                <h1 className="text-2xl font-bold text-slate-900">Hiring & Intern Management</h1>
-                <p className="text-sm text-slate-500 mt-0.5">Pipeline tracking and intern progress</p>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-200">
+                        <UserCheck className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                        <h1 className="text-2xl font-black text-slate-900 tracking-tight">Hiring & Intern Management</h1>
+                        <p className="text-sm text-slate-500 font-medium">Unified pipeline from recruitment to project conversion</p>
+                    </div>
+                </div>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <KpiCard title="Active Pipeline" value={activeCandidates.length} icon={UserPlus} iconColor="text-blue-600" iconBg="bg-blue-600/10" subValue="Candidates in process" />
-                <KpiCard title="Offers Sent" value={offers.length} icon={CheckCircle} iconColor="text-amber-600" iconBg="bg-amber-50" />
-                <KpiCard title="Active Interns" value={activeInterns.length} icon={Users} iconColor="text-sky-600" iconBg="bg-sky-50" />
-                <KpiCard title="Joined This Quarter" value={joined.length} icon={Clock} iconColor="text-emerald-600" iconBg="bg-emerald-50" />
-            </div>
+            <InternSummaryCards metrics={metrics} />
 
-            <HiringClient initialData={candidates} />
+            <InternTracker initialData={allInterns} />
         </div>
     );
 }

@@ -22,6 +22,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+
 
 interface ProjectsClientProps {
     initialData: Project[];
@@ -118,13 +120,13 @@ export function ProjectsClient({ initialData }: ProjectsClientProps) {
         setIsAdding(true);
     };
 
+
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
         setIsLoading(true);
         setErrorMsg(null);
         try {
             const method = editingId ? "PUT" : "POST";
-            // Convert tech_stack string to array for Supabase jsonb
             const techStackArray = formData.tech_stack
                 .split(",")
                 .map(t => t.trim())
@@ -142,7 +144,6 @@ export function ProjectsClient({ initialData }: ProjectsClientProps) {
             const data = await res.json();
             if (res.ok) {
                 if (editingId) {
-                    // Build updated project from formData (PUT returns { success: true }, not the project)
                     const updatedProject: Project = {
                         project_id: formData.project_id,
                         project_name: formData.project_name,
@@ -160,24 +161,27 @@ export function ProjectsClient({ initialData }: ProjectsClientProps) {
                         parent_id: formData.parent_id || undefined
                     };
                     setProjects(prev => prev.map(p => p.project_id === editingId ? updatedProject : p));
+                    toast.success("Project updated successfully!");
                 } else {
-                    // POST returns { success: true, project: newProject }
                     const newProject: Project = {
                         ...data.project,
                         tech_stack: normalizeTechStack(data.project?.tech_stack),
                         nbr: (data.project?.effort || 0) - (data.project?.billable || 0)
                     };
                     setProjects(prev => [...prev, newProject]);
+                    toast.success("New project registered!");
                 }
                 setIsAdding(false);
                 setFormData(DEFAULT_FORM);
                 setEditingId(null);
                 router.refresh();
             } else {
-                setErrorMsg(data?.error || "Failed to save project. Please try again.");
+                setErrorMsg(data?.error || "Failed to save project.");
+                toast.error(data?.error || "Failed to save project.");
             }
         } catch (err: any) {
-            setErrorMsg(err?.message || "Network error. Please try again.");
+            setErrorMsg(err?.message || "Network error.");
+            toast.error(err?.message || "An error occurred");
         }
         setIsLoading(false);
     }
@@ -190,9 +194,14 @@ export function ProjectsClient({ initialData }: ProjectsClientProps) {
             });
             if (res.ok) {
                 setProjects(projects.filter(p => p.project_id !== id));
+                toast.success("Project deleted.");
                 router.refresh();
+            } else {
+                toast.error("Failed to delete project.");
             }
-        } catch (err) { }
+        } catch (err: any) {
+            toast.error(err?.message || "An error occurred");
+        }
     }
     // All blocks are closed before return
     return (
