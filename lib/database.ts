@@ -677,6 +677,17 @@ export async function batchInsertAttendance(records: any[]) {
     return data;
 }
 
+export async function clearAttendanceRecords() {
+    const { error } = await supabase
+        .from('attendance_records')
+        .delete()
+        .neq('username', 'DUMMY_NEVER_MATCH'); // use text column to avoid enum error
+    if (error) {
+        console.error("Error clearing attendance records:", error);
+        throw error;
+    }
+}
+
 export async function logAttendanceUpload(log: any) {
     const { error } = await supabase
         .from('attendance_uploads')

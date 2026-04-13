@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { batchInsertAttendance, logAttendanceUpload } from "@/lib/database";
+import { batchInsertAttendance, logAttendanceUpload, clearAttendanceRecords } from "@/lib/database";
 import { verifyToken } from "@/lib/auth";
 import { cookies } from "next/headers";
 
@@ -58,7 +58,10 @@ export async function POST(req: Request) {
             };
         });
 
-        // Batch insert
+        // 1. Clear existing dataset in memory / state store (db)
+        await clearAttendanceRecords();
+
+        // 2. Batch insert new records
         await batchInsertAttendance(normalizedRecords);
 
         const duration = Date.now() - startTime;
