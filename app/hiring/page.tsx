@@ -1,4 +1,4 @@
-import { getInterns, getInternMetrics } from "@/lib/database";
+import { getInterns, getInternMetrics, getResources } from "@/lib/database";
 import { InternTracker } from "@/components/hiring/InternTracker";
 import { InternSummaryCards } from "@/components/hiring/InternSummaryCards";
 import { GraduationCap, ArrowRight, UserCheck } from "lucide-react";
@@ -11,6 +11,7 @@ export default async function HiringPage({ searchParams }: { searchParams: Promi
     // Fetch all interns for unified management
     const allInterns = await getInterns(sp);
     const metrics = await getInternMetrics();
+    const resources = await getResources();
 
     return (
         <div className="space-y-6">
@@ -28,7 +29,7 @@ export default async function HiringPage({ searchParams }: { searchParams: Promi
 
             <InternSummaryCards metrics={metrics} />
 
-            <InternTracker initialData={allInterns} />
+            <InternTracker initialData={allInterns} resources={resources} />
         </div>
     );
 }

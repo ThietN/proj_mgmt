@@ -14,6 +14,7 @@ import toast from "react-hot-toast";
 
 interface InternTrackerProps {
     initialData: Intern[];
+    resources?: any[];
 }
 
 const statusConfig: Record<InternStatus, { color: string, colorHex: string, icon: any, bg: string, text: string }> = {
@@ -24,7 +25,7 @@ const statusConfig: Record<InternStatus, { color: string, colorHex: string, icon
     Completed: { color: "red", icon: CheckCircle2, colorHex: "#ef4444", bg: "bg-red-50", text: "text-red-600" }
 };
 
-export function InternTracker({ initialData }: InternTrackerProps) {
+export function InternTracker({ initialData, resources = [] }: InternTrackerProps) {
     const router = useRouter();
     const [interns, setInterns] = useState<Intern[]>(initialData);
     const [search, setSearch] = useState("");
@@ -385,24 +386,29 @@ export function InternTracker({ initialData }: InternTrackerProps) {
                                     <input required value={formData.full_name} onChange={e => setFormData({ ...formData, full_name: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none focus:border-indigo-400 font-bold" />
                                 </div>
                                 <div className="col-span-2">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block">Email Address</label>
-                                    <input required type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none focus:border-indigo-400" />
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block">Email Address (Optional)</label>
+                                    <input type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none focus:border-indigo-400" />
                                 </div>
                                 <div>
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block">Project Allocation</label>
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block">Project Allocation (Optional)</label>
                                     <input value={formData.project} onChange={e => setFormData({ ...formData, project: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none focus:border-indigo-400" />
                                 </div>
                                 <div>
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block">Assigned Mentor</label>
-                                    <input value={formData.mentor} onChange={e => setFormData({ ...formData, mentor: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none focus:border-indigo-400" />
+                                    <select value={formData.mentor} onChange={e => setFormData({ ...formData, mentor: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none focus:border-indigo-400 font-bold">
+                                        <option value="">No Mentor Assigned</option>
+                                        {resources.map(res => (
+                                            <option key={res.employee_id || res.id || res.name} value={res.name}>{res.name}</option>
+                                        ))}
+                                    </select>
                                 </div>
                                 <div>
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block">Start Date</label>
-                                    <input type="date" value={formData.start_date} onChange={e => setFormData({ ...formData, start_date: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none focus:border-indigo-400" />
+                                    <input required type="date" value={formData.start_date} onChange={e => setFormData({ ...formData, start_date: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none focus:border-indigo-400" />
                                 </div>
                                 <div>
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block">End Date (Target)</label>
-                                    <input type="date" value={formData.end_date} onChange={e => setFormData({ ...formData, end_date: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none focus:border-indigo-400" />
+                                    <input required type="date" value={formData.end_date} onChange={e => setFormData({ ...formData, end_date: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none focus:border-indigo-400" />
                                 </div>
                                 <div className="col-span-2">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block">State</label>
