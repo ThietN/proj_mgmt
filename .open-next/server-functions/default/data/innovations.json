@@ -1,0 +1,62 @@
+[
+    {
+        "initiative_id": "IN001",
+        "initiative_name": "LLM Internal Assistant",
+        "owner": "Vu Thanh Tung",
+        "type": "AI",
+        "status": "In Progress",
+        "impact_score": 9,
+        "description": "Build an internal AI assistant using GPT-4 and LangGraph to help engineers with code generation, PR review, and documentation",
+        "start_date": "2024-01-15"
+    },
+    {
+        "initiative_id": "IN002",
+        "initiative_name": "CI/CD Pipeline Automation",
+        "owner": "Pham Thi Lan",
+        "type": "Automation",
+        "status": "Completed",
+        "impact_score": 8,
+        "description": "Automated the entire deployment pipeline reducing deployment time from 2 hours to 10 minutes using GitHub Actions and ArgoCD",
+        "start_date": "2023-10-01"
+    },
+    {
+        "initiative_id": "IN003",
+        "initiative_name": "Micro-Frontend Framework",
+        "owner": "Tran Thi Bich",
+        "type": "Framework",
+        "status": "In Progress",
+        "impact_score": 7,
+        "description": "Developing a shared micro-frontend framework to enable independent deployment of UI modules across all product teams",
+        "start_date": "2024-02-01"
+    },
+    {
+        "initiative_id": "IN004",
+        "initiative_name": "AI Code Review Bot",
+        "owner": "Bui Thi Thu",
+        "type": "AI",
+        "status": "Planning",
+        "impact_score": 8,
+        "description": "Implement an AI-powered code review bot that automatically checks PRs for security vulnerabilities, performance issues and best practices",
+        "start_date": "2024-05-01"
+    },
+    {
+        "initiative_id": "IN005",
+        "initiative_name": "Data Quality Framework",
+        "owner": "Hoang Van Cuong",
+        "type": "Framework",
+        "status": "In Progress",
+        "impact_score": 7,
+        "description": "Building a data quality monitoring framework with automated alerts for data pipeline anomalies using Great Expectations and dbt tests",
+        "start_date": "2024-03-01"
+    },
+    {
+        "initiative_id": "IN006",
+        "initiative_name": "Cost Optimization Research",
+        "owner": "Dinh Quoc Hung",
+        "type": "Research",
+        "status": "On Hold",
+        "impact_score": 6,
+        "description": "Research into cloud cost optimization strategies including spot instances, reserved capacity planning, and workload right-sizing",
+        "start_date": "2024-02-15"
+    }
+]

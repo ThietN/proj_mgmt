@@ -1,0 +1,40 @@
+{
+  "components\\dashboard\\DashboardChartsDynamic.tsx -> ./DashboardCharts": {
+    "id": 70548,
+    "files": [
+      "static/chunks/3449-15a7ed819f056ed6.js",
+      "static/chunks/3309.aba53f940bcb3226.js",
+      "static/chunks/548.8bcf773b0b2f5807.js"
+    ]
+  },
+  "components\\innovations\\InnovationsClient.tsx -> react-quill-new": {
+    "id": 73977,
+    "files": [
+      "static/chunks/3977.94ef6f0aae42bc12.js"
+    ]
+  },
+  "components\\report\\ReportClient.tsx -> react-quill-new": {
+    "id": 73977,
+    "files": [
+      "static/chunks/3977.94ef6f0aae42bc12.js"
+    ]
+  },
+  "components\\tracking\\TrackingClient.tsx -> react-quill-new": {
+    "id": 73977,
+    "files": [
+      "static/chunks/3977.94ef6f0aae42bc12.js"
+    ]
+  },
+  "node_modules\\next\\dist\\client\\index.js -> ../pages/_app": {
+    "id": 45139,
+    "files": [
+      "static/chunks/5139.e4ff9cc3669129ed.js"
+    ]
+  },
+  "node_modules\\next\\dist\\client\\index.js -> ../pages/_error": {
+    "id": 31646,
+    "files": [
+      "static/chunks/1646.a93085a0445ba909.js"
+    ]
+  }
+}

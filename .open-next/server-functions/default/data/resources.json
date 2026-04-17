@@ -1,0 +1,75 @@
+[
+  {
+    "employee_id": "122952",
+    "name": "Nguyễn Mạnh Thiết",
+    "role": "PM",
+    "team": "Testing Team",
+    "grade": "L11",
+    "skills": [
+      "Python",
+      "Java",
+      "LLM",
+      "ML",
+      "Automation Testing",
+      "Networking...."
+    ],
+    "english_level": "Intermediate",
+    "status": "Billable",
+    "allocation_percentage": 100,
+    "join_date": "2026-03-09",
+    "location": "lab3",
+    "notes": "Bill for ICON & AoS PAL",
+    "project_id": "P1001"
+  },
+  {
+    "employee_id": "122972",
+    "name": "Nguyễn Thị Huỳnh Trâm",
+    "role": "PM",
+    "team": "Testing Team",
+    "grade": "L10",
+    "skills": [],
+    "english_level": "Intermediate",
+    "status": "Billable",
+    "allocation_percentage": 100,
+    "join_date": "2026-03-09",
+    "location": "lab3",
+    "notes": "",
+    "project_id": "P1002"
+  },
+  {
+    "employee_id": "231829",
+    "name": "Dương Minh Quang",
+    "role": "E",
+    "team": "Testing Team",
+    "grade": "L2",
+    "skills": [
+      "JavaScript",
+      "Python"
+    ],
+    "english_level": "Intermediate",
+    "status": "Resigning",
+    "allocation_percentage": 100,
+    "join_date": "2026-03-09",
+    "location": "lab6",
+    "notes": "Resigned. Last day: 15th Apr",
+    "project_id": "P1009"
+  },
+  {
+    "employee_id": "231717",
+    "name": "Nguyễn Huỳnh Quỳnh Thoa",
+    "role": "SE",
+    "team": "Testing Team",
+    "grade": "L5",
+    "skills": [
+      "JavaScript",
+      "Python"
+    ],
+    "english_level": "Intermediate",
+    "status": "Maternity Leave",
+    "allocation_percentage": 100,
+    "join_date": "2026-03-09",
+    "location": "lab6",
+    "notes": "Nghỉ thai sản từ 6/2025. Dự kiến back lại 2/2026",
+    "project_id": "P1008"
+  }
+]

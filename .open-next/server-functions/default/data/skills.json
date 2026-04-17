@@ -1,0 +1,206 @@
+[
+  {
+    "id": "S1000",
+    "employee_id": "E001",
+    "skill_name": "Python",
+    "skill_level": "Expert"
+  },
+  {
+    "id": "S1001",
+    "employee_id": "E001",
+    "skill_name": "LLM",
+    "skill_level": "Advanced"
+  },
+  {
+    "id": "S1002",
+    "employee_id": "E001",
+    "skill_name": "LangGraph",
+    "skill_level": "Intermediate"
+  },
+  {
+    "id": "S1003",
+    "employee_id": "E001",
+    "skill_name": "FastAPI",
+    "skill_level": "Advanced"
+  },
+  {
+    "id": "S1004",
+    "employee_id": "E001",
+    "skill_name": "Docker",
+    "skill_level": "Intermediate"
+  },
+  {
+    "id": "S1005",
+    "employee_id": "E002",
+    "skill_name": "React",
+    "skill_level": "Expert"
+  },
+  {
+    "id": "S1006",
+    "employee_id": "E002",
+    "skill_name": "TypeScript",
+    "skill_level": "Advanced"
+  },
+  {
+    "id": "S1007",
+    "employee_id": "E002",
+    "skill_name": "Next.js",
+    "skill_level": "Advanced"
+  },
+  {
+    "id": "S1008",
+    "employee_id": "E002",
+    "skill_name": "Python",
+    "skill_level": "Beginner"
+  },
+  {
+    "id": "S1009",
+    "employee_id": "E003",
+    "skill_name": "Java",
+    "skill_level": "Expert"
+  },
+  {
+    "id": "S1010",
+    "employee_id": "E003",
+    "skill_name": "Spring Boot",
+    "skill_level": "Expert"
+  },
+  {
+    "id": "S1011",
+    "employee_id": "E003",
+    "skill_name": "PostgreSQL",
+    "skill_level": "Advanced"
+  },
+  {
+    "id": "S1012",
+    "employee_id": "E003",
+    "skill_name": "Kafka",
+    "skill_level": "Intermediate"
+  },
+  {
+    "id": "S1013",
+    "employee_id": "E003",
+    "skill_name": "Docker",
+    "skill_level": "Advanced"
+  },
+  {
+    "id": "S1014",
+    "employee_id": "E004",
+    "skill_name": "Kubernetes",
+    "skill_level": "Expert"
+  },
+  {
+    "id": "S1015",
+    "employee_id": "E004",
+    "skill_name": "Terraform",
+    "skill_level": "Expert"
+  },
+  {
+    "id": "S1016",
+    "employee_id": "E004",
+    "skill_name": "AWS",
+    "skill_level": "Advanced"
+  },
+  {
+    "id": "S1017",
+    "employee_id": "E004",
+    "skill_name": "Docker",
+    "skill_level": "Expert"
+  },
+  {
+    "id": "S1018",
+    "employee_id": "E005",
+    "skill_name": "Spark",
+    "skill_level": "Advanced"
+  },
+  {
+    "id": "S1019",
+    "employee_id": "E005",
+    "skill_name": "Airflow",
+    "skill_level": "Intermediate"
+  },
+  {
+    "id": "S1020",
+    "employee_id": "E005",
+    "skill_name": "Python",
+    "skill_level": "Advanced"
+  },
+  {
+    "id": "S1021",
+    "employee_id": "E005",
+    "skill_name": "dbt",
+    "skill_level": "Intermediate"
+  },
+  {
+    "id": "S1022",
+    "employee_id": "E007",
+    "skill_name": "Python",
+    "skill_level": "Expert"
+  },
+  {
+    "id": "S1023",
+    "employee_id": "E007",
+    "skill_name": "ML",
+    "skill_level": "Expert"
+  },
+  {
+    "id": "S1024",
+    "employee_id": "E007",
+    "skill_name": "System Design",
+    "skill_level": "Expert"
+  },
+  {
+    "id": "S1025",
+    "employee_id": "E007",
+    "skill_name": "LLM",
+    "skill_level": "Advanced"
+  },
+  {
+    "id": "S1026",
+    "employee_id": "E009",
+    "skill_name": "Go",
+    "skill_level": "Advanced"
+  },
+  {
+    "id": "S1027",
+    "employee_id": "E009",
+    "skill_name": "Docker",
+    "skill_level": "Advanced"
+  },
+  {
+    "id": "S1028",
+    "employee_id": "E009",
+    "skill_name": "AWS",
+    "skill_level": "Intermediate"
+  },
+  {
+    "id": "S1029",
+    "employee_id": "E009",
+    "skill_name": "Kubernetes",
+    "skill_level": "Intermediate"
+  },
+  {
+    "id": "S1030",
+    "employee_id": "E010",
+    "skill_name": "Python",
+    "skill_level": "Advanced"
+  },
+  {
+    "id": "S1031",
+    "employee_id": "E010",
+    "skill_name": "PyTorch",
+    "skill_level": "Advanced"
+  },
+  {
+    "id": "S1032",
+    "employee_id": "E010",
+    "skill_name": "MLOps",
+    "skill_level": "Intermediate"
+  },
+  {
+    "id": "S1033",
+    "employee_id": "E010",
+    "skill_name": "HuggingFace",
+    "skill_level": "Advanced"
+  }
+]

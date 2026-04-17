@@ -1,0 +1,90 @@
+[
+    {
+        "candidate_id": "C001",
+        "candidate_name": "Phan Thi Kim Anh",
+        "source": "LinkedIn",
+        "role_applied": "Frontend Engineer",
+        "interview_status": "Interview",
+        "expected_join_date": "2024-08-01",
+        "mentor": "Tran Thi Bich",
+        "internship_progress": 0,
+        "type": "Candidate"
+    },
+    {
+        "candidate_id": "C002",
+        "candidate_name": "Truong Van Long",
+        "source": "University HCM",
+        "role_applied": "Backend Engineer",
+        "interview_status": "Offer",
+        "expected_join_date": "2024-07-15",
+        "mentor": "Le Minh Duc",
+        "internship_progress": 0,
+        "type": "Candidate"
+    },
+    {
+        "candidate_id": "C003",
+        "candidate_name": "Ly Thi Nhu Quynh",
+        "source": "Referral",
+        "role_applied": "Data Engineer",
+        "interview_status": "Screening",
+        "expected_join_date": "2024-09-01",
+        "mentor": null,
+        "internship_progress": 0,
+        "type": "Candidate"
+    },
+    {
+        "candidate_id": "C004",
+        "candidate_name": "Nguyen Huu Phuc",
+        "source": "JobStreet",
+        "role_applied": "DevOps Engineer",
+        "interview_status": "Applied",
+        "expected_join_date": "2024-09-15",
+        "mentor": null,
+        "internship_progress": 0,
+        "type": "Candidate"
+    },
+    {
+        "candidate_id": "I001",
+        "candidate_name": "Mai Phuong Linh",
+        "source": "University HCM",
+        "role_applied": "AI Intern",
+        "interview_status": "Joined",
+        "expected_join_date": "2024-06-01",
+        "mentor": "Vu Thanh Tung",
+        "internship_progress": 65,
+        "type": "Intern"
+    },
+    {
+        "candidate_id": "I002",
+        "candidate_name": "Le Van Binh",
+        "source": "University HUST",
+        "role_applied": "Backend Intern",
+        "interview_status": "Joined",
+        "expected_join_date": "2024-06-01",
+        "mentor": "Le Minh Duc",
+        "internship_progress": 80,
+        "type": "Intern"
+    },
+    {
+        "candidate_id": "I003",
+        "candidate_name": "Vo Thi Thuy",
+        "source": "University Danang",
+        "role_applied": "Frontend Intern",
+        "interview_status": "Joined",
+        "expected_join_date": "2024-05-15",
+        "mentor": "Tran Thi Bich",
+        "internship_progress": 90,
+        "type": "Intern"
+    },
+    {
+        "candidate_id": "C005",
+        "candidate_name": "Nguyen Duc Thanh",
+        "source": "LinkedIn",
+        "role_applied": "ML Engineer",
+        "interview_status": "Rejected",
+        "expected_join_date": null,
+        "mentor": null,
+        "internship_progress": 0,
+        "type": "Candidate"
+    }
+]
