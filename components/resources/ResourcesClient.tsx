@@ -37,6 +37,22 @@ export function ResourcesClient({ initialData, projects }: ResourcesClientProps)
     const [editingId, setEditingId] = useState<string | null>(null);
     const [formData, setFormData] = useState<typeof DEFAULT_FORM>(DEFAULT_FORM);
     const [isLoading, setIsLoading] = useState(false);
+    
+    // Pagination
+    const [currentPage, setCurrentPage] = useState(1);
+    const PAGE_SIZE = 20;
+
+    // Column Filters
+    const [colFilters, setColFilters] = useState({
+        employee_id: "",
+        name: "",
+        role: "",
+        project: "",
+        grade: "",
+        skills: "",
+        status: "",
+        location: ""
+    });
 
     // Sync consistency metrics from Projects & Resources
     const projTotalHC = projects.reduce((s, p) => s + (p.headcount || 0), 0);
@@ -51,20 +67,48 @@ export function ResourcesClient({ initialData, projects }: ResourcesClientProps)
 
     const filtered = (resources || []).filter((r) => {
         if (!r || typeof r.name === 'undefined') return false;
-        const matchesSearch =
+        
+        // Global Search
+        const matchesGlobal =
             r.name.toLowerCase().includes(search.toLowerCase()) ||
             r.role.toLowerCase().includes(search.toLowerCase()) ||
             r.employee_id.toLowerCase().includes(search.toLowerCase()) ||
             (Array.isArray(r.skills) && r.skills.some((s) => s.toLowerCase().includes(search.toLowerCase())));
-        const matchesStatus = statusFilter === "all" || r.status === statusFilter;
-        const matchesTeam = teamFilter === "all" || r.team === teamFilter;
-        return matchesSearch && matchesStatus && matchesTeam;
+            
+        // Top filters
+        const matchesStatusTop = statusFilter === "all" || r.status === statusFilter;
+        const matchesTeamTop = teamFilter === "all" || r.team === teamFilter;
+        
+        // Column Filters
+        const matchesID = r.employee_id.toLowerCase().includes(colFilters.employee_id.toLowerCase());
+        const matchesName = r.name.toLowerCase().includes(colFilters.name.toLowerCase());
+        const matchesRole = r.role.toLowerCase().includes(colFilters.role.toLowerCase());
+        const matchesGrade = r.grade.toLowerCase().includes(colFilters.grade.toLowerCase());
+        const matchesSkills = colFilters.skills === "" || (Array.isArray(r.skills) && r.skills.some(s => s.toLowerCase().includes(colFilters.skills.toLowerCase())));
+        const matchesStatus = r.status.toLowerCase().includes(colFilters.status.toLowerCase());
+        const matchesLocation = r.location.toLowerCase().includes(colFilters.location.toLowerCase());
+        
+        const projectName = projects.find(p => p.project_id === r.project_id)?.project_name || r.project_id || "";
+        const matchesProject = projectName.toLowerCase().includes(colFilters.project.toLowerCase());
+
+        return matchesGlobal && matchesStatusTop && matchesTeamTop && 
+               matchesID && matchesName && matchesRole && matchesGrade && 
+               matchesSkills && matchesStatus && matchesLocation && matchesProject;
     });
+
+    const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+    const paginatedData = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+    const handleColFilterChange = (key: string, value: string) => {
+        setColFilters(prev => ({ ...prev, [key]: value }));
+        setCurrentPage(1); // Reset to page 1 on filter change
+    };
 
     const startAdding = () => {
         setFormData({ ...DEFAULT_FORM, employee_id: "" });
         setEditingId(null);
         setIsAdding(true);
+        window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
     const startEditing = (r: Resource) => {
@@ -83,6 +127,7 @@ export function ResourcesClient({ initialData, projects }: ResourcesClientProps)
         });
         setEditingId(r.employee_id);
         setIsAdding(true);
+        window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
 
@@ -387,17 +432,39 @@ export function ResourcesClient({ initialData, projects }: ResourcesClientProps)
                     <table className="w-full text-sm">
                         <thead>
                             <tr className="bg-slate-50/50 border-b border-slate-200">
-                                {[
-                                    "Badge_ID", "Fullname", "Project", "Role", "Grade", "Skills", "Status", "Location", "Notes", "Actions"
-                                ].map((h) => (
-                                    <th key={h} className="text-left text-[10px] font-bold text-slate-500 uppercase tracking-widest px-4 py-3 whitespace-nowrap">
-                                        {h}
+                                {([
+                                    { label: "Badge_ID", key: "employee_id" },
+                                    { label: "Fullname", key: "name" },
+                                    { label: "Project", key: "project" },
+                                    { label: "Role", key: "role" },
+                                    { label: "Grade", key: "grade" },
+                                    { label: "Skills", key: "skills" },
+                                    { label: "Status", key: "status" },
+                                    { label: "Location", key: "location" },
+                                    { label: "Notes", key: null },
+                                    { label: "Actions", key: null }
+                                ] as { label: string, key: keyof typeof colFilters | null }[]).map((col) => (
+                                    <th key={col.label} className="text-left px-4 py-3 whitespace-nowrap">
+                                        <div className="flex flex-col gap-1.5">
+                                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                                                {col.label}
+                                            </span>
+                                            {col.key && (
+                                                <input
+                                                    type="text"
+                                                    value={colFilters[col.key]}
+                                                    onChange={(e) => handleColFilterChange(col.key!, e.target.value)}
+                                                    className="w-full bg-white border border-slate-200 rounded px-1.5 py-0.5 text-[10px] outline-none focus:border-blue-400 font-medium"
+                                                    placeholder={`Filter ${col.label}...`}
+                                                />
+                                            )}
+                                        </div>
                                     </th>
                                 ))}
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 bg-white">
-                            {filtered.map((r) => (
+                            {paginatedData.map((r) => (
                                 <tr key={r.employee_id} className={cn(
                                     "hover:bg-blue-50/30 transition-colors group",
                                     r.status === "Maternity Leave" && "text-emerald-700 bg-emerald-50 font-medium",
@@ -527,6 +594,43 @@ export function ResourcesClient({ initialData, projects }: ResourcesClientProps)
                         </div>
                     )}
                 </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                    <div className="p-4 border-t border-slate-100 flex items-center justify-between bg-white/50">
+                        <div className="text-[11px] font-medium text-slate-500">
+                            Showing <span className="font-bold text-slate-900">{((currentPage - 1) * PAGE_SIZE) + 1}</span> to <span className="font-bold text-slate-900">{Math.min(currentPage * PAGE_SIZE, filtered.length)}</span> of <span className="font-bold text-slate-900">{filtered.length}</span> resources
+                        </div>
+                        <div className="flex items-center gap-1">
+                            <button
+                                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                                disabled={currentPage === 1}
+                                className="px-3 py-1 text-xs font-bold border border-slate-200 rounded-md hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                            >
+                                Prev
+                            </button>
+                            {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                                <button
+                                    key={p}
+                                    onClick={() => setCurrentPage(p)}
+                                    className={cn(
+                                        "w-8 h-8 flex items-center justify-center text-xs font-bold rounded-md transition-all",
+                                        currentPage === p ? "bg-blue-600 text-white shadow-md shadow-blue-200" : "text-slate-600 hover:bg-slate-100 border border-transparent hover:border-slate-200"
+                                    )}
+                                >
+                                    {p}
+                                </button>
+                            ))}
+                            <button
+                                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                                disabled={currentPage === totalPages}
+                                className="px-3 py-1 text-xs font-bold border border-slate-200 rounded-md hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                            >
+                                Next
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

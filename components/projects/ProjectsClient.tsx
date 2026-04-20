@@ -101,6 +101,7 @@ export function ProjectsClient({ initialData, resources = [] }: ProjectsClientPr
         setFormData({ ...DEFAULT_FORM, project_id: `P${1000 + projects.length + 1}` });
         setEditingId(null);
         setIsAdding(true);
+        window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
     const startEditing = (p: Project) => {
@@ -122,6 +123,7 @@ export function ProjectsClient({ initialData, resources = [] }: ProjectsClientPr
         });
         setEditingId(p.project_id);
         setIsAdding(true);
+        window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
 
