@@ -6,10 +6,12 @@ import {
     getInnovations,
     getAttendanceTrend,
     getInternMetrics,
-    getHiring
+    getHiring,
+    getSkills
 } from "@/lib/database";
 import { KpiCard } from "@/components/ui/KpiCard";
 import { DashboardChartsDynamic } from "@/components/dashboard/DashboardChartsDynamic";
+import { SpanOfControlDynamic } from "@/components/dashboard/SpanOfControlDynamic";
 import {
     Users,
     TrendingUp,
@@ -31,6 +33,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     let esatRecords: any[] = [];
     let csatRecords: any[] = [];
     let innovations: any[] = [];
+    let skills: any[] = [];
 
     const sp = await searchParams;
     const { month, quarter } = sp;
@@ -44,6 +47,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         const attendanceTrend = await getAttendanceTrend(14); // Last 14 days
         const internMetrics = await getInternMetrics();
         const candidates = await getHiring();
+        skills = await getSkills();
 
         // Filter by Month (if provided)
         if (month) {
@@ -273,6 +277,12 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                     attendanceTrend={attendanceTrend}
                     internMetrics={internMetrics}
                     candidates={candidates}
+                />
+
+                {/* Span of Control Section */}
+                <SpanOfControlDynamic 
+                    resources={resources}
+                    skills={skills}
                 />
 
                 {/* Quick risk table */}

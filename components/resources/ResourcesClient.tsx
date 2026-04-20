@@ -37,7 +37,7 @@ export function ResourcesClient({ initialData, projects }: ResourcesClientProps)
     const [editingId, setEditingId] = useState<string | null>(null);
     const [formData, setFormData] = useState<typeof DEFAULT_FORM>(DEFAULT_FORM);
     const [isLoading, setIsLoading] = useState(false);
-    
+
     // Pagination
     const [currentPage, setCurrentPage] = useState(1);
     const PAGE_SIZE = 20;
@@ -67,18 +67,18 @@ export function ResourcesClient({ initialData, projects }: ResourcesClientProps)
 
     const filtered = (resources || []).filter((r) => {
         if (!r || typeof r.name === 'undefined') return false;
-        
+
         // Global Search
         const matchesGlobal =
             r.name.toLowerCase().includes(search.toLowerCase()) ||
             r.role.toLowerCase().includes(search.toLowerCase()) ||
             r.employee_id.toLowerCase().includes(search.toLowerCase()) ||
             (Array.isArray(r.skills) && r.skills.some((s) => s.toLowerCase().includes(search.toLowerCase())));
-            
+
         // Top filters
         const matchesStatusTop = statusFilter === "all" || r.status === statusFilter;
         const matchesTeamTop = teamFilter === "all" || r.team === teamFilter;
-        
+
         // Column Filters
         const matchesID = r.employee_id.toLowerCase().includes(colFilters.employee_id.toLowerCase());
         const matchesName = r.name.toLowerCase().includes(colFilters.name.toLowerCase());
@@ -87,13 +87,13 @@ export function ResourcesClient({ initialData, projects }: ResourcesClientProps)
         const matchesSkills = colFilters.skills === "" || (Array.isArray(r.skills) && r.skills.some(s => s.toLowerCase().includes(colFilters.skills.toLowerCase())));
         const matchesStatus = r.status.toLowerCase().includes(colFilters.status.toLowerCase());
         const matchesLocation = r.location.toLowerCase().includes(colFilters.location.toLowerCase());
-        
+
         const projectName = projects.find(p => p.project_id === r.project_id)?.project_name || r.project_id || "";
         const matchesProject = projectName.toLowerCase().includes(colFilters.project.toLowerCase());
 
-        return matchesGlobal && matchesStatusTop && matchesTeamTop && 
-               matchesID && matchesName && matchesRole && matchesGrade && 
-               matchesSkills && matchesStatus && matchesLocation && matchesProject;
+        return matchesGlobal && matchesStatusTop && matchesTeamTop &&
+            matchesID && matchesName && matchesRole && matchesGrade &&
+            matchesSkills && matchesStatus && matchesLocation && matchesProject;
     });
 
     const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
@@ -274,8 +274,10 @@ export function ResourcesClient({ initialData, projects }: ResourcesClientProps)
                                         <option value="SM">SM</option>
                                         <option value="PM">PM</option>
                                         <option value="TL">TL</option>
+                                        <option value="SME">SME</option>
                                         <option value="SE">SE</option>
                                         <option value="E">E</option>
+                                        <option value="BA">BA</option>
                                     </select>
                                 </div>
                                 <div>
