@@ -5,7 +5,11 @@ import { cookies } from "next/headers";
 
 export async function GET() {
     try {
-        const workspaces = await getTrackingWorkspaces();
+        const cookieStore = await cookies();
+        const token = cookieStore.get("auth_token")?.value;
+        const decoded = token ? await verifyToken(token) : null;
+        
+        const workspaces = await getTrackingWorkspaces(decoded?.id as string, decoded?.role as string);
         return NextResponse.json({ workspaces });
     } catch (e: any) {
         return NextResponse.json({ error: e?.message || "Server error" }, { status: 500 });
@@ -26,6 +30,7 @@ export async function POST(req: Request) {
             name: body.name || "Untitled",
             icon: body.icon || "📁",
             color: body.color || "blue",
+            created_by: decoded.id, // Set the owner
             created_at: new Date().toISOString(),
         };
         await createTrackingWorkspace(ws as any);
