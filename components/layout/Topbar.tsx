@@ -9,8 +9,8 @@ export function Topbar() {
     const searchParams = useSearchParams();
     const pathname = usePathname();
 
-    const currentMonth = searchParams.get("month") || "";
-    const currentQuarter = searchParams.get("quarter") || "";
+    const currentMonth = searchParams?.get("month") || "";
+    const currentQuarter = searchParams?.get("quarter") || "";
 
     const [user, setUser] = useState<{ name: string; email: string; role: string } | null>(null);
     const now = new Date();
@@ -22,7 +22,7 @@ export function Topbar() {
     });
 
     const updateFilter = (key: string, value: string) => {
-        const params = new URLSearchParams(searchParams.toString());
+        const params = new URLSearchParams(searchParams?.toString() || "");
         if (value) {
             params.set(key, value);
             // If setting one, maybe clear the other for clarity? 

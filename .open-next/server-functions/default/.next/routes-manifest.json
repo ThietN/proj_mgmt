@@ -27,6 +27,12 @@
       "namedRegex": "^/(?:/)?$"
     },
     {
+      "page": "/_dummy",
+      "regex": "^/_dummy(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_dummy(?:/)?$"
+    },
+    {
       "page": "/_not-found",
       "regex": "^/_not\\-found(?:/)?$",
       "routeKeys": {},
@@ -153,7 +159,12 @@
       "namedRegex": "^/tracking(?:/)?$"
     }
   ],
-  "dataRoutes": [],
+  "dataRoutes": [
+    {
+      "page": "/_dummy",
+      "dataRouteRegex": "^/_next/data/6wd2\\-k7Aqe1kwXsNcenSN/_dummy\\.json$"
+    }
+  ],
   "rsc": {
     "header": "rsc",
     "varyHeader": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch",
