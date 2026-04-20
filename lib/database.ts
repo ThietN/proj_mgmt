@@ -873,9 +873,14 @@ export async function convertToBillable(internId: string, project: string, billi
     const now = new Date().toISOString();
     
     try {
-        // 1. Get Intern Info
-        const { data: intern, error: fetchErr } = await supabase.from('interns').select('*').eq('id', internId).single();
+        // 1. Get Intern Info & Evaluation
+        const { data: intern, error: fetchErr } = await supabase.from('interns').select('*, evaluation:intern_evaluations(*)').eq('id', internId).single();
         if (fetchErr || !intern) throw new Error(`Intern not found: ${fetchErr?.message}`);
+
+        // Check if evaluation exists
+        if (!intern.evaluation || (Array.isArray(intern.evaluation) && intern.evaluation.length === 0)) {
+            throw new Error("Should evaluate before converting to billable");
+        }
 
         // 2. Update Intern
         const { error: internErr } = await supabase.from('interns').update({

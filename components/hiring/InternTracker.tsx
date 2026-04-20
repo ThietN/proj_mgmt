@@ -104,6 +104,13 @@ export function InternTracker({ initialData, resources = [] }: InternTrackerProp
 
     const handleConvertToBillable = async () => {
         if (!convertingIntern) return;
+        
+        // Frontend defensive check: Ensure evaluation exists
+        if (!convertingIntern.evaluation) {
+            toast.error("Should evaluate before converting to billable");
+            return;
+        }
+
         setLoading(true);
         try {
             const res = await fetch("/api/interns/billable", {
@@ -461,7 +468,7 @@ export function InternTracker({ initialData, resources = [] }: InternTrackerProp
                         </div>
                         <div className="p-6 space-y-4">
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Handover / Conversion Notes</label>
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Notes</label>
                                 <textarea
                                     value={conversionNote}
                                     onChange={e => setConversionNote(e.target.value)}
@@ -482,7 +489,7 @@ export function InternTracker({ initialData, resources = [] }: InternTrackerProp
                                     disabled={loading || !conversionNote}
                                     className="flex-1 py-3 bg-indigo-600 text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-indigo-700 shadow-xl shadow-indigo-200 transition-all active:scale-95 disabled:opacity-50"
                                 >
-                                    {loading ? "Generating Badge ID..." : "Confirm Conversion"}
+                                    {loading ? "Generating Badge ID..." : "Confirm"}
                                 </button>
                             </div>
                         </div>

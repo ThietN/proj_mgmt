@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS intern_evaluations (
     soft_skill_note TEXT,
     attitude_score INTEGER CHECK (attitude_score >= 1 AND attitude_score <= 10),
     attitude_note TEXT,
-    english_score INTEGER CHECK (english_score >= 1 AND english_score <= 10),
+    english_score INTEGER CHECK (english_score >= 0 AND english_score <= 990),
     final_grade TEXT, -- Excellent, Good, Fair, Average, Poor
     evaluated_by TEXT,
     evaluated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,

@@ -24,7 +24,7 @@ export function InternEvaluationForm({ intern, onClose, onSuccess }: InternEvalu
             soft_skill_note: "",
             attitude_score: 5,
             attitude_note: "",
-            english_score: 5,
+            english_score: 0,
             final_grade: "Average",
         }
     );
@@ -129,15 +129,14 @@ export function InternEvaluationForm({ intern, onClose, onSuccess }: InternEvalu
                     <div className="grid grid-cols-2 gap-6">
                         {/* English */}
                         <div className="space-y-3">
-                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">English Score (1-10)</label>
-                            <div className="flex items-center gap-2">
-                                <input
-                                    type="number" min="1" max="10"
-                                    value={formData.english_score}
-                                    onChange={(e) => setFormData({ ...formData, english_score: parseInt(e.target.value) })}
-                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs outline-none focus:border-indigo-400"
-                                />
-                            </div>
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">English Score (TOEIC)</label>
+                            <input
+                                type="number"
+                                value={formData.english_score}
+                                onChange={(e) => setFormData({ ...formData, english_score: parseInt(e.target.value) || 0 })}
+                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs outline-none focus:border-indigo-400 font-bold"
+                                placeholder="e.g. 750"
+                            />
                         </div>
 
                         {/* Final Grade */}
