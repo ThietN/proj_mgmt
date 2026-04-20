@@ -455,17 +455,25 @@ export async function upsertWorkspaceNote(note: WorkspaceNote): Promise<void> {
 // ==========================================
 // TRACKING WORKSPACES
 // ==========================================
-export async function getTrackingWorkspaces(): Promise<TrackingWorkspace[]> {
+export async function getTrackingWorkspaces(userId?: string, role?: string): Promise<TrackingWorkspace[]> {
     noStore();
-    const { data, error } = await supabase
+    let query = supabase
         .from('tracking_workspaces')
-        .select('*')
-        .order('created_at', { ascending: true });
+        .select('*');
+    
+    // Visibility logic:
+    // 1. SuperAdmin sees all
+    // 2. Others see only what they created or what is shared with them
+    if (userId && role !== 'SuperAdmin') {
+        query = query.or(`created_by.eq.${userId},shared_with.cs.{${userId}}`);
+    }
+
+    const { data, error } = await query.order('created_at', { ascending: true });
     if (error) throw new Error(error.message);
     return (data || []) as TrackingWorkspace[];
 }
 
-export async function createTrackingWorkspace(ws: TrackingWorkspace): Promise<void> {
+export async function createTrackingWorkspace(ws: Partial<TrackingWorkspace>): Promise<void> {
     const { error } = await supabase.from('tracking_workspaces').insert([ws]);
     if (error) throw new Error(error.message);
 }

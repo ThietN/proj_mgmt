@@ -153,6 +153,8 @@ export interface TrackingWorkspace {
     icon?: string; // emoji
     color?: string;
     created_at: string;
+    created_by?: string;
+    shared_with?: string[];
 }
 
 export interface WeeklyReportData {

@@ -2,17 +2,24 @@ import { getTrackingTasks, getProjects, getResources, getInnovations, getWorkspa
 import { TrackingClient } from "@/components/tracking/TrackingClient";
 import { KpiCard } from "@/components/ui/KpiCard";
 import { CheckSquare, Clock, AlertCircle, ListChecks } from "lucide-react";
+import { cookies } from "next/headers";
+import { verifyToken } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 export default async function TrackingPage() {
-    const [tasks, projects, resources, innovations, workspaceNotes, workspaces] = await Promise.all([
+    const cookieStore = await cookies();
+    const token = cookieStore.get("auth_token")?.value;
+    const user = token ? await verifyToken(token) : null;
+
+    const [tasks, projects, resources, innovations, workspaceNotes, workspaces, systemUsers] = await Promise.all([
         getTrackingTasks(),
         getProjects(),
         getResources(),
         getInnovations(),
         getWorkspaceNotes(),
-        getTrackingWorkspaces(),
+        getTrackingWorkspaces(user?.id as string, user?.role as string),
+        import("@/lib/database").then(m => m.getUsers()),
     ]);
 
     const inProgress = tasks.filter(t => t.status === "In Progress").length;
@@ -40,6 +47,8 @@ export default async function TrackingPage() {
                 innovations={innovations}
                 workspaceNotes={workspaceNotes}
                 workspaces={workspaces}
+                currentUser={user}
+                systemUsers={systemUsers}
             />
         </div>
     );

@@ -1,11 +1,11 @@
 "use client";
-import { TrackingTask, Project, Resource, Innovation, WorkspaceNote, TrackingWorkspace } from "@/types";
+import { TrackingTask, Project, Resource, Innovation, WorkspaceNote, TrackingWorkspace, User } from "@/types";
 import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import {
     Plus, X, Check, Trash2, Edit2,
     Calendar, Tag, Clock,
-    StickyNote, Timer, User, Pencil, FolderPlus, MoreHorizontal
+    StickyNote, Timer, User as UserIcon, Pencil, FolderPlus, MoreHorizontal
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
@@ -65,6 +65,8 @@ interface TrackingClientProps {
     innovations: Innovation[];
     workspaceNotes: WorkspaceNote[];
     workspaces: TrackingWorkspace[];
+    currentUser: any;
+    systemUsers: User[];
 }
 
 const DEFAULT_TASK = {
@@ -77,7 +79,16 @@ function getWsColor(color?: string) {
     return WS_COLORS.find(c => c.value === color) || WS_COLORS[0];
 }
 
-export function TrackingClient({ tasks: initialTasks, projects, resources, innovations, workspaceNotes: initialNotes, workspaces: initialWorkspaces }: TrackingClientProps) {
+export function TrackingClient({ 
+    tasks: initialTasks, 
+    projects, 
+    resources, 
+    innovations, 
+    workspaceNotes: initialNotes, 
+    workspaces: initialWorkspaces,
+    currentUser,
+    systemUsers
+}: TrackingClientProps) {
     const router = useRouter();
 
     const [wsItems, setWsItems] = useState<TrackingWorkspace[]>(initialWorkspaces);
@@ -103,6 +114,9 @@ export function TrackingClient({ tasks: initialTasks, projects, resources, innov
     const [noteEditing, setNoteEditing] = useState(false);
     const [noteSaving, setNoteSaving] = useState(false);
     const [noteContent, setNoteContent] = useState("");
+
+    // Sharing state
+    const [sharingWsId, setSharingWsId] = useState<string | null>(null);
 
     const currentWs = wsItems.find(w => w.id === selectedWs);
     const filteredTasks = tasks.filter(t => t.project_id === selectedWs);
@@ -142,7 +156,7 @@ export function TrackingClient({ tasks: initialTasks, projects, resources, innov
             } else {
                 const res = await fetch("/api/tracking/workspaces", {
                     method: "POST", headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(wsForm),
+                    body: JSON.stringify({ ...wsForm, created_by: currentUser?.id }),
                 });
                 const data = await res.json();
                 if (data.workspace) {
@@ -168,6 +182,30 @@ export function TrackingClient({ tasks: initialTasks, projects, resources, innov
             toast.success("Workspace deleted");
             router.refresh();
         } catch (err) { toast.error("Failed to delete workspace"); }
+    }
+
+    async function handleShareToggle(userId: string) {
+        if (!sharingWsId) return;
+        const ws = wsItems.find(w => w.id === sharingWsId);
+        if (!ws) return;
+
+        const currentShared = ws.shared_with || [];
+        const isShared = currentShared.includes(userId);
+        const newShared = isShared 
+            ? currentShared.filter(id => id !== userId)
+            : [...currentShared, userId];
+
+        try {
+            await fetch("/api/tracking/workspaces", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id: sharingWsId, shared_with: newShared }),
+            });
+            setWsItems(prev => prev.map(w => w.id === sharingWsId ? { ...w, shared_with: newShared } : w));
+            toast.success(isShared ? "Access removed" : "Workspace shared");
+        } catch (err) {
+            toast.error("Failed to update sharing");
+        }
     }
 
     // ─── Task handlers ──────────────────────────
@@ -337,6 +375,9 @@ export function TrackingClient({ tasks: initialTasks, projects, resources, innov
                     {wsItems.map(w => {
                         const c = getWsColor(w.color);
                         const taskCount = tasks.filter(t => t.project_id === w.id).length;
+                        const isOwner = w.created_by === currentUser?.id;
+                        const isSharedWithMe = w.shared_with?.includes(currentUser?.id);
+
                         return (
                             <div key={w.id}
                                 className={cn("group w-full text-left px-3 py-2.5 rounded-lg flex items-center gap-2.5 transition-all cursor-pointer relative",
@@ -347,13 +388,25 @@ export function TrackingClient({ tasks: initialTasks, projects, resources, innov
                                     {w.icon || "📁"}
                                 </div>
                                 <div className="min-w-0 flex-1">
-                                    <div className="text-xs font-bold truncate">{w.name}</div>
-                                    <div className="text-[8px] font-bold text-slate-400">{taskCount} tasks</div>
+                                    <div className="flex items-center gap-1.5">
+                                        <div className="text-xs font-bold truncate">{w.name}</div>
+                                        {isSharedWithMe && !isOwner && <div className="w-1.5 h-1.5 rounded-full bg-blue-400" title="Shared with you" />}
+                                    </div>
+                                    <div className="text-[8px] font-bold text-slate-400">
+                                        {taskCount} tasks {isOwner ? "• Owner" : ""}
+                                    </div>
                                 </div>
                                 {/* Actions on hover */}
                                 <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <button onClick={e => { e.stopPropagation(); startWsEdit(w); }} className="p-1 rounded text-slate-400 hover:text-indigo-600 hover:bg-white/80"><Edit2 className="w-3 h-3" /></button>
-                                    <button onClick={e => { e.stopPropagation(); handleWsDelete(w.id); }} className="p-1 rounded text-slate-400 hover:text-red-500 hover:bg-white/80"><Trash2 className="w-3 h-3" /></button>
+                                    {isOwner && (
+                                        <>
+                                            <button onClick={e => { e.stopPropagation(); setSharingWsId(w.id); }} className="p-1 rounded text-slate-400 hover:text-emerald-600 hover:bg-white/80" title="Share"><UserIcon className="w-3 h-3" /></button>
+                                            <button onClick={e => { e.stopPropagation(); startWsEdit(w); }} className="p-1 rounded text-slate-400 hover:text-indigo-600 hover:bg-white/80"><Edit2 className="w-3 h-3" /></button>
+                                        </>
+                                    )}
+                                    {(isOwner || currentUser?.role === 'SuperAdmin') && (
+                                        <button onClick={e => { e.stopPropagation(); handleWsDelete(w.id); }} className="p-1 rounded text-slate-400 hover:text-red-500 hover:bg-white/80"><Trash2 className="w-3 h-3" /></button>
+                                    )}
                                 </div>
                             </div>
                         );
@@ -472,7 +525,7 @@ export function TrackingClient({ tasks: initialTasks, projects, resources, innov
                                             </select>
                                         </div>
                                         <div>
-                                            <label className="block text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-1.5 flex items-center gap-1"><User className="w-3 h-3" /> Assignee</label>
+                                            <label className="block text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-1.5 flex items-center gap-1"><UserIcon className="w-3 h-3" /> Assignee</label>
                                             <select value={formData.assignee} onChange={e => setFormData({ ...formData, assignee: e.target.value })}
                                                 className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm font-bold text-slate-900 outline-none focus:border-indigo-500 shadow-sm">
                                                 <option value="">-- Unassigned --</option>
@@ -626,6 +679,51 @@ export function TrackingClient({ tasks: initialTasks, projects, resources, innov
                     </div>
                 )}
             </div>
+
+            {/* Sharing Modal */}
+            {sharingWsId && (
+                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-springIn">
+                        <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-emerald-50/50">
+                            <div>
+                                <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest">Share Workspace</h3>
+                                <p className="text-[10px] text-slate-400 font-bold">Workspace: {wsItems.find(w => w.id === sharingWsId)?.name}</p>
+                            </div>
+                            <button onClick={() => setSharingWsId(null)} className="p-2 text-slate-400 hover:text-slate-900 rounded-xl transition-all">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+                        <div className="p-4 max-h-[60vh] overflow-y-auto space-y-1">
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2 mb-2">Members</p>
+                            {systemUsers.filter(u => u.id !== currentUser?.id).map(user => {
+                                const isShared = wsItems.find(w => w.id === sharingWsId)?.shared_with?.includes(user.id);
+                                return (
+                                    <div key={user.id} 
+                                        onClick={() => handleShareToggle(user.id)}
+                                        className={cn("flex items-center justify-between p-2.5 rounded-xl transition-all cursor-pointer",
+                                            isShared ? "bg-emerald-50 text-emerald-700" : "hover:bg-slate-50 text-slate-600")}>
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-black">
+                                                {user.name.split(" ").map(n => n[0]).join("")}
+                                            </div>
+                                            <div>
+                                                <div className="text-xs font-black">{user.name}</div>
+                                                <div className="text-[9px] font-bold opacity-60 text-slate-400">{user.role}</div>
+                                            </div>
+                                        </div>
+                                        {isShared ? <Check className="w-4 h-4 text-emerald-500" /> : <div className="w-4 h-4 rounded-full border-2 border-slate-200" />}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        <div className="p-4 bg-slate-50 border-t border-slate-100">
+                            <button onClick={() => setSharingWsId(null)} className="w-full py-2.5 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-slate-800 transition-all">
+                                Done
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
