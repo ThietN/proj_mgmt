@@ -505,12 +505,12 @@ export function InternTracker({ initialData, resources = [] }: InternTrackerProp
                                     <input value={formData.university} onChange={e => setFormData({ ...formData, university: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none focus:border-indigo-400" placeholder="e.g. HUST, UEH..." />
                                 </div>
                                 <div>
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block">GPA (Optional)</label>
-                                    <input type="number" step="0.01" min="0" max="10" value={formData.gpa || ""} onChange={e => setFormData({ ...formData, gpa: parseFloat(e.target.value) || undefined })} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none focus:border-indigo-400" placeholder="e.g. 3.5" />
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block">GPA</label>
+                                    <input type="number" step="0.01" min="0" max="10" value={formData.gpa || ""} onChange={e => setFormData({ ...formData, gpa: e.target.value ? parseFloat(e.target.value) : null })} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none focus:border-indigo-400" placeholder="e.g. 3.5" />
                                 </div>
                                 <div>
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block">English Score (TOEIC)</label>
-                                    <input type="number" min="0" max="990" value={formData.english_score || ""} onChange={e => setFormData({ ...formData, english_score: parseInt(e.target.value) || undefined })} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none focus:border-indigo-400" placeholder="e.g. 750" />
+                                    <input type="number" min="0" max="990" value={formData.english_score || ""} onChange={e => setFormData({ ...formData, english_score: e.target.value ? parseInt(e.target.value) : null })} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none focus:border-indigo-400" placeholder="e.g. 750" />
                                 </div>
                                 <div className="col-span-2">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block">State</label>
