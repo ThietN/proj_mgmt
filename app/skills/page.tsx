@@ -1,33 +1,22 @@
-import { getSkills, getResources } from "@/lib/database";
-import { SkillsClient } from "@/components/skills/SkillsClient";
-import { KpiCard } from "@/components/ui/KpiCard";
-import { Brain, Star, Users, Zap } from "lucide-react";
+import { getResources, getProjects, getSkillDefinitions, getSkillMatrix } from "@/lib/database";
+import { SkillMatrixClient } from "@/components/skills/SkillMatrixClient";
 
 export const dynamic = "force-dynamic";
 
-export default async function SkillsPage() {
-    const skills = await getSkills();
+export default async function SkillMatrixPage() {
     const resources = await getResources();
-
-    const uniqueSkills = Array.from(new Set(skills.map((s) => s.skill_name)));
-    const experts = skills.filter((s) => s.skill_level === "Expert").length;
-    const teams = Array.from(new Set(resources.map((r) => r.team)));
+    const projects = await getProjects();
+    const skills = await getSkillDefinitions();
+    const matrix = await getSkillMatrix();
 
     return (
-        <div className="space-y-6">
-            <div>
-                <h1 className="text-2xl font-bold text-slate-900">Skills & Capability Matrix</h1>
-                <p className="text-sm text-slate-500 mt-0.5">Team skill coverage, levels, and gap analysis</p>
-            </div>
-
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <KpiCard title="Unique Skills" value={uniqueSkills.length} icon={Brain} iconColor="text-blue-600" iconBg="bg-blue-600/10" />
-                <KpiCard title="Expert Engineers" value={experts} icon={Star} iconColor="text-amber-600" iconBg="bg-amber-50" subValue="Expert-level entries" />
-                <KpiCard title="Teams Tracked" value={teams.length} icon={Users} iconColor="text-sky-600" iconBg="bg-sky-50" />
-                <KpiCard title="Skill Entries" value={skills.length} icon={Zap} iconColor="text-cyan-600" iconBg="bg-cyan-50" />
-            </div>
-
-            <SkillsClient skills={skills} resources={resources} />
+        <div className="container mx-auto py-8">
+            <SkillMatrixClient 
+                resources={resources} 
+                projects={projects}
+                initialSkills={skills} 
+                initialMatrix={matrix} 
+            />
         </div>
     );
 }

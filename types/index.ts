@@ -14,6 +14,7 @@ export interface Resource {
     allocation_percentage: number;
     join_date: string;
     risk_flag?: "Low performance" | "Resign risk" | null;
+    at_risk_notes?: string;
     location: "lab3" | "lab6";
     notes?: string;
     project_id?: string;
@@ -49,6 +50,20 @@ export interface Candidate {
     start_date?: string;
     end_date?: string;
     type: "Candidate" | "Intern";
+}
+
+export interface SkillDefinition {
+    id: string;
+    name: string;
+    category?: string;
+}
+
+export interface SkillMatrixEntry {
+    id: string;
+    employee_id: string;
+    skill_id: string;
+    level: "Beginner" | "Intermediate" | "Advanced" | "Expert";
+    updated_at: string;
 }
 
 export interface SkillEntry {

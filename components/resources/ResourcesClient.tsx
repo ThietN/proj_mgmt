@@ -1,8 +1,8 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Resource, Project } from "@/types";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { Search, Filter, AlertTriangle, Plus, Trash2, X, Check, Edit2, Briefcase, TrendingUp, Users, UserCheck, Shield } from "lucide-react";
+import { Search, Filter, AlertTriangle, Plus, Trash2, X, Check, Edit2, Briefcase, TrendingUp, Users, UserCheck, Shield, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
@@ -29,6 +29,7 @@ const DEFAULT_FORM = {
 
 export function ResourcesClient({ initialData, projects }: ResourcesClientProps) {
     const router = useRouter();
+    const formRef = useRef<HTMLDivElement>(null);
     const [resources, setResources] = useState<Resource[]>(initialData);
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -37,6 +38,11 @@ export function ResourcesClient({ initialData, projects }: ResourcesClientProps)
     const [editingId, setEditingId] = useState<string | null>(null);
     const [formData, setFormData] = useState<typeof DEFAULT_FORM>(DEFAULT_FORM);
     const [isLoading, setIsLoading] = useState(false);
+
+    // At Risk Modal
+    const [riskModalId, setRiskModalId] = useState<string | null>(null);
+    const [riskNotes, setRiskNotes] = useState("");
+    const [isRiskLoading, setIsRiskLoading] = useState(false);
 
     // Pagination
     const [currentPage, setCurrentPage] = useState(1);
@@ -108,7 +114,9 @@ export function ResourcesClient({ initialData, projects }: ResourcesClientProps)
         setFormData({ ...DEFAULT_FORM, employee_id: "" });
         setEditingId(null);
         setIsAdding(true);
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        setTimeout(() => {
+            formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 100);
     };
 
     const startEditing = (r: Resource) => {
@@ -127,7 +135,9 @@ export function ResourcesClient({ initialData, projects }: ResourcesClientProps)
         });
         setEditingId(r.employee_id);
         setIsAdding(true);
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        setTimeout(() => {
+            formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 100);
     };
 
 
@@ -163,6 +173,56 @@ export function ResourcesClient({ initialData, projects }: ResourcesClientProps)
             toast.error(err.message || "An error occurred");
         }
         setIsLoading(false);
+    }
+
+    async function handleMarkAtRisk() {
+        if (!riskModalId) return;
+        setIsRiskLoading(true);
+        try {
+            const res = await fetch("/api/resources", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    employee_id: riskModalId,
+                    risk_flag: "Resign risk",
+                    notes: riskNotes
+                })
+            });
+            if (res.ok) {
+                setResources(resources.map(r => r.employee_id === riskModalId ? { ...r, risk_flag: "Resign risk" as any, notes: riskNotes } : r));
+                toast.success("Resource marked as At Risk");
+                setRiskModalId(null);
+                setRiskNotes("");
+                router.refresh();
+            } else {
+                toast.error("Failed to update status.");
+            }
+        } catch (err: any) {
+            toast.error(err.message || "An error occurred");
+        }
+        setIsRiskLoading(false);
+    }
+
+    async function handleMarkNormal(id: string) {
+        try {
+            const res = await fetch("/api/resources", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    employee_id: id,
+                    risk_flag: null
+                })
+            });
+            if (res.ok) {
+                setResources(resources.map(r => r.employee_id === id ? { ...r, risk_flag: null } : r));
+                toast.success("Resource restored to Normal status");
+                router.refresh();
+            } else {
+                toast.error("Failed to update status.");
+            }
+        } catch (err: any) {
+            toast.error(err.message || "An error occurred");
+        }
     }
 
     async function handleDeleteResource(id: string, name: string) {
@@ -235,7 +295,7 @@ export function ResourcesClient({ initialData, projects }: ResourcesClientProps)
                 </div>
 
                 {isAdding && (
-                    <div className="p-6 bg-slate-50 border-b border-slate-200 animate-fadeInUp">
+                    <div ref={formRef} className="p-6 bg-slate-50 border-b border-slate-200 animate-fadeInUp">
                         <form onSubmit={handleSubmit} className="space-y-4 max-w-4xl mx-auto">
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
@@ -470,7 +530,8 @@ export function ResourcesClient({ initialData, projects }: ResourcesClientProps)
                                 <tr key={r.employee_id} className={cn(
                                     "hover:bg-blue-50/30 transition-colors group",
                                     r.status === "Maternity Leave" && "text-emerald-700 bg-emerald-50 font-medium",
-                                    r.status === "Resigning" && "text-orange-700 bg-orange-50 font-medium"
+                                    r.status === "Resigning" && "text-orange-700 bg-orange-50 font-medium",
+                                    r.risk_flag && "bg-orange-100/50"
                                 )}>
                                     <td className="px-4 py-3 whitespace-nowrap font-mono text-[11px] opacity-70">
                                         {r.employee_id}
@@ -563,10 +624,27 @@ export function ResourcesClient({ initialData, projects }: ResourcesClientProps)
                                         </span>
                                     </td>
                                     <td className="px-4 py-3 italic text-[11px] max-w-[150px] truncate opacity-80" title={r.notes}>
-                                        {r.notes || "-"}
+                                        {r.risk_flag ? <span className="text-orange-600 font-bold">⚠️ {r.notes || "At Risk"}</span> : (r.notes || "-")}
                                     </td>
                                     <td className="px-4 py-3">
                                         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            {r.risk_flag ? (
+                                                <button
+                                                    onClick={() => handleMarkNormal(r.employee_id)}
+                                                    className="p-1.5 rounded-lg text-emerald-400 hover:text-emerald-600 hover:bg-emerald-50 transition-all"
+                                                    title="Set to Normal"
+                                                >
+                                                    <Check className="w-3.5 h-3.5" />
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    onClick={() => setRiskModalId(r.employee_id)}
+                                                    className="p-1.5 rounded-lg text-orange-400 hover:text-orange-600 hover:bg-orange-50 transition-all"
+                                                    title="Mark as At Risk"
+                                                >
+                                                    <AlertCircle className="w-3.5 h-3.5" />
+                                                </button>
+                                            )}
                                             <button
                                                 onClick={() => startEditing(r)}
                                                 className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all"
@@ -634,6 +712,54 @@ export function ResourcesClient({ initialData, projects }: ResourcesClientProps)
                     </div>
                 )}
             </div>
+
+            {/* At Risk Modal */}
+            {riskModalId && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in duration-300">
+                        <div className="p-4 bg-orange-600 flex items-center justify-between">
+                            <h3 className="text-white text-sm font-black uppercase tracking-widest flex items-center gap-2">
+                                <AlertCircle className="w-4 h-4" /> Mark as At Risk
+                            </h3>
+                            <button onClick={() => setRiskModalId(null)} className="text-orange-200 hover:text-white transition-colors">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+                        <div className="p-6 space-y-4">
+                            <div className="p-3 bg-orange-50 border border-orange-100 rounded-xl">
+                                <p className="text-[11px] text-orange-700 font-medium">
+                                    Please provide a reason or action required for this resource. This will highlight the resource in the overview.
+                                </p>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block">Reason / Mitigation Plan</label>
+                                <textarea
+                                    autoFocus
+                                    value={riskNotes}
+                                    onChange={(e) => setRiskNotes(e.target.value)}
+                                    placeholder="e.g. Planning to resign, performance issues, current workload too high..."
+                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-orange-400 focus:bg-white transition-all min-h-[120px]"
+                                />
+                            </div>
+                            <div className="flex gap-3 pt-2">
+                                <button
+                                    onClick={() => setRiskModalId(null)}
+                                    className="flex-1 py-3 text-xs font-black text-slate-400 uppercase tracking-widest hover:bg-slate-100 rounded-xl transition-all"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleMarkAtRisk}
+                                    disabled={isRiskLoading || !riskNotes.trim()}
+                                    className="flex-1 py-3 bg-orange-600 text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-orange-700 shadow-xl shadow-orange-100 transition-all active:scale-95 disabled:opacity-50"
+                                >
+                                    {isRiskLoading ? "Saving..." : "Mark as Risk"}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

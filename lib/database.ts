@@ -22,7 +22,9 @@ import {
     InternEvaluation,
     InternStatusHistory,
     InternMetrics,
-    BillableResource
+    BillableResource,
+    SkillDefinition,
+    SkillMatrixEntry
 } from "@/types";
 
 // ==========================================
@@ -460,7 +462,7 @@ export async function getTrackingWorkspaces(userId?: string, role?: string): Pro
     let query = supabase
         .from('tracking_workspaces')
         .select('*');
-    
+
     // Visibility logic:
     // 1. SuperAdmin sees all
     // 2. Others see only what they created or what is shared with them
@@ -754,9 +756,9 @@ export async function getTopLateMembers(limit: number = 10, filters: any = {}) {
     });
 
     return Object.entries(map)
-        .map(([username, val]) => ({ 
-            username, 
-            name: val.name, 
+        .map(([username, val]) => ({
+            username,
+            name: val.name,
             count: val.details.length,
             details: val.details.sort((a, b) => b.date.localeCompare(a.date))
         }))
@@ -785,9 +787,9 @@ export async function getTopNotAccessMembers(limit: number = 10, filters: any = 
     });
 
     return Object.entries(map)
-        .map(([username, val]) => ({ 
-            username, 
-            name: val.name, 
+        .map(([username, val]) => ({
+            username,
+            name: val.name,
             count: val.details.length,
             details: val.details.sort((a, b) => b.date.localeCompare(a.date))
         }))
@@ -799,12 +801,12 @@ export async function getAttendanceTrend(days: number = 7) {
     noStore();
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
-    
+
     const { data, error } = await supabase
         .from('attendance_records')
         .select('tracking_date, status')
         .gte('tracking_date', startDate.toISOString().split('T')[0]);
-    
+
     if (error) throw error;
 
     const trend: Record<string, { date: string, late: number, notAccess: number }> = {};
@@ -830,16 +832,16 @@ export async function getInterns(filters: any = {}): Promise<Intern[]> {
     if (filters.project) query = query.eq('project', filters.project);
     if (filters.mentor) query = query.eq('mentor', filters.mentor);
     if (filters.is_billable !== undefined) query = query.eq('is_billable', filters.is_billable);
-    
+
     const { data, error } = await query.order('created_at', { ascending: false });
     if (error) throw error;
-    
+
     let results = (data || []) as Intern[];
-    
+
     if (filters.final_grade) {
         results = results.filter((i: Intern) => i.evaluation?.final_grade === filters.final_grade);
     }
-    
+
     return results;
 }
 
@@ -879,7 +881,7 @@ export async function evaluateIntern(evaluation: Partial<InternEvaluation>) {
 
 export async function convertToBillable(internId: string, project: string, billingRate: number, note?: string): Promise<void> {
     const now = new Date().toISOString();
-    
+
     try {
         // 1. Get Intern Info & Evaluation
         const { data: intern, error: fetchErr } = await supabase.from('interns').select('*, evaluation:intern_evaluations(*)').eq('id', internId).single();
@@ -911,7 +913,7 @@ export async function convertToBillable(internId: string, project: string, billi
         // 4. Automatically create record in core Resource table
         const randomSuffix = Math.floor(Math.random() * 900) + 100; // 100-999
         const badgeId = `Intern0${randomSuffix}`;
-        
+
         const { error: resourceErr } = await supabase.from('resources').insert({
             employee_id: badgeId,
             name: intern.full_name,
@@ -927,7 +929,7 @@ export async function convertToBillable(internId: string, project: string, billi
             notes: note || `Converted from intern on ${now.split('T')[0]}`,
             is_ramp_up: true
         });
-        
+
         if (resourceErr) throw new Error(`Failed to create resource entry: ${resourceErr.message}`);
     } catch (error: any) {
         console.error("Conversion Error:", error);
@@ -960,7 +962,65 @@ export async function autoApproveInterns() {
         .lte('end_date', today)
         .neq('status', 'Completed')
         .select();
-    
+
     if (error) throw error;
     return data;
+}
+
+// ==========================================
+// SKILL MATRIX
+// ==========================================
+
+export async function getSkillDefinitions(): Promise<SkillDefinition[]> {
+    noStore();
+    const { data, error } = await supabase
+        .from('skill_definitions')
+        .select('*')
+        .order('name', { ascending: true });
+    if (error) throw error;
+    return data || [];
+}
+
+export async function createSkillDefinition(name: string, category?: string): Promise<void> {
+    const { error } = await supabase.from('skill_definitions').insert([{ name, category }]);
+    if (error) throw error;
+}
+
+export async function deleteSkillDefinition(id: string): Promise<void> {
+    const { error } = await supabase.from('skill_definitions').delete().eq('id', id);
+    if (error) throw error;
+}
+
+export async function getSkillMatrix(): Promise<SkillMatrixEntry[]> {
+    noStore();
+    const { data, error } = await supabase.from('skill_matrix').select('*');
+    if (error) throw error;
+    return data || [];
+}
+
+export async function updateSkillLevel(employeeId: string, skillId: string, level: string): Promise<void> {
+    const { error } = await supabase
+        .from('skill_matrix')
+        .upsert([{
+            employee_id: employeeId,
+            skill_id: skillId,
+            level,
+            updated_at: new Date().toISOString()
+        }], { onConflict: 'employee_id,skill_id' });
+    if (error) throw error;
+}
+
+export async function upsertSkillMatrixBatch(entries: any[]): Promise<void> {
+    const { error } = await supabase
+        .from('skill_matrix')
+        .upsert(entries, { onConflict: 'employee_id,skill_id' });
+    if (error) throw error;
+}
+
+export async function deleteSkillMatrixEntry(employeeId: string, skillId: string): Promise<void> {
+    const { error } = await supabase
+        .from('skill_matrix')
+        .delete()
+        .match({ employee_id: employeeId, skill_id: skillId });
+    if (error) throw error;
 }
