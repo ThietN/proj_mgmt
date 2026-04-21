@@ -10,10 +10,7 @@ import {
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 
-import dynamic from "next/dynamic";
-import 'react-quill-new/dist/quill.snow.css';
-
-const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false });
+import { RichTextEditor } from "@/components/ui/RichTextEditor";
 
 const COLUMNS = ["Backlog", "To Do", "In Progress", "Review", "Done"] as const;
 
@@ -48,15 +45,7 @@ const WS_COLORS = [
 
 const EMOJI_OPTIONS = ["📁", "🚀", "💡", "🎯", "🛠️", "📊", "🔬", "🤖", "🎨", "📋", "⚡", "🌐"];
 
-const quillModules = {
-    toolbar: [
-        [{ header: [1, 2, 3, false] }],
-        ["bold", "italic", "underline", "strike", "blockquote"],
-        [{ list: "ordered" }, { list: "bullet" }],
-        ["link", "code-block", "clean"],
-    ],
-};
-const quillFormats = ["header", "bold", "italic", "underline", "strike", "blockquote", "list", "link", "code-block"];
+// quillModules and quillFormats removed as they are now internal to RichTextEditor
 
 interface TrackingClientProps {
     tasks: TrackingTask[];
@@ -464,10 +453,13 @@ export function TrackingClient({
                                             </button>
                                         </div>
                                     </div>
-                                    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                                        <ReactQuill theme="snow" value={noteContent} onChange={setNoteContent}
-                                            modules={quillModules} formats={quillFormats} className="min-h-[30vh]"
-                                            placeholder="📝 Project description, architecture notes, meeting notes..." />
+                                    <div className="bg-white rounded-xl overflow-hidden">
+                                        <RichTextEditor 
+                                            value={noteContent} 
+                                            onChange={setNoteContent}
+                                            placeholder="📝 Project description, architecture notes, meeting notes..." 
+                                            height={400}
+                                        />
                                     </div>
                                 </div>
                             ) : (
@@ -563,10 +555,12 @@ export function TrackingClient({
                                     </div>
                                     <div>
                                         <label className="block text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-1.5">Description / Notes</label>
-                                        <div className="bg-white rounded-lg overflow-hidden border border-slate-200 focus-within:border-indigo-500 shadow-sm">
-                                            <ReactQuill theme="snow" value={formData.description} onChange={content => setFormData({ ...formData, description: content })}
-                                                modules={quillModules} formats={quillFormats} className="h-56" placeholder="Details, acceptance criteria, notes..." />
-                                        </div>
+                                        <RichTextEditor 
+                                            value={formData.description} 
+                                            onChange={content => setFormData({ ...formData, description: content })}
+                                            placeholder="Detailed task instructions, acceptance criteria, notes..."
+                                            height={250}
+                                        />
                                     </div>
                                     <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
                                         <button type="button" onClick={() => setIsAdding(false)} className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-200 rounded-lg">Cancel</button>

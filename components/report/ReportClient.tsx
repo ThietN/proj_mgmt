@@ -1,6 +1,6 @@
 "use client";
 import { Resource, Project, Innovation, CSATRecord, ESATRecord, Candidate, TrackingTask, TrackingWorkspace, WeeklyReportData } from "@/types";
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useRef, useEffect, ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import {
     Users, Briefcase, Lightbulb, Star, Smile, UserCheck,
@@ -8,20 +8,8 @@ import {
     ChevronDown, ChevronRight, Edit2, RefreshCw, Clock, Pencil,
     FileText, GraduationCap, Layout
 } from "lucide-react";
-import dynamic from "next/dynamic";
-import 'react-quill-new/dist/quill.snow.css';
+import { RichTextEditor } from "@/components/ui/RichTextEditor";
 import toast from "react-hot-toast";
-
-const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false });
-
-const quillModules = {
-    toolbar: [
-        ["bold", "italic", "underline", "strike", "blockquote"],
-        [{ list: "ordered" }, { list: "bullet" }],
-        ["link", "clean"],
-    ],
-};
-const quillFormats = ["bold", "italic", "underline", "strike", "blockquote", "list", "link"];
 
 interface ReportClientProps {
     resources: Resource[];
@@ -241,9 +229,13 @@ export function ReportClient({
     const renderEditableNote = (field: keyof typeof customNotes, placeholder: string) => (
         <div className="mt-3">
             {editingSection === field ? (
-                <div className="bg-white rounded-lg border border-indigo-200 shadow-sm overflow-hidden mb-2">
-                    <ReactQuill theme="snow" value={customNotes[field]} onChange={val => setCustomNotes({ ...customNotes, [field]: val })}
-                        modules={quillModules} formats={quillFormats} className="min-h-[100px]" placeholder={placeholder} />
+                <div className="bg-white rounded-xl overflow-hidden mb-2">
+                    <RichTextEditor
+                        value={customNotes[field]}
+                        onChange={val => setCustomNotes({ ...customNotes, [field]: val })}
+                        placeholder={placeholder}
+                        height={120}
+                    />
                     <div className="flex justify-end p-2 border-t border-slate-100 bg-slate-50 gap-2">
                         <button onClick={() => setEditingSection(null)} className="px-4 py-1.5 text-xs font-bold text-slate-500 hover:bg-slate-200 rounded-lg">Cancel</button>
                         <button onClick={() => { saveAllData({ ...customNotes, [field]: customNotes[field] }); setEditingSection(null); }} disabled={isSaving}
@@ -268,7 +260,7 @@ export function ReportClient({
         </div>
     );
 
-    const Bullet = ({ children, indent, warn }: { children: React.ReactNode; indent?: boolean; warn?: boolean }) => (
+    const Bullet = ({ children, indent, warn }: { children: ReactNode; indent?: boolean; warn?: boolean }) => (
         <div className={cn("flex items-start gap-2 py-0.5", indent && "ml-5")}>
             <span className={cn("w-1.5 h-1.5 rounded-full shrink-0 mt-1.5", warn ? "bg-red-400" : "bg-slate-300")} />
             <span className="text-xs text-slate-600 leading-relaxed">{children}</span>

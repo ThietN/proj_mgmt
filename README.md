@@ -1,159 +1,94 @@
 # DC12_PG3_MGMT – Web Management System
 
-A clean, production-ready management dashboard for Senior Delivery Managers built with **Next.js 14**, **TypeScript**, **TailwindCSS**, and **JSON file storage**.
+A premium, production-ready management dashboard for Senior Delivery Managers built with **Next.js 15**, **TypeScript**, **TailwindCSS**, and **Supabase (PostgreSQL)**.
 
 ---
 
-## Features
+## 🌟 Key Features
 
-| Module | Description |
+| Module | Latest Enhancements |
 |---|---|
-| 📊 Dashboard | Executive KPI overview with 5 charts |
-| 👥 Resources | Engineer tracking, allocation, risk flags |
-| 🚀 Hiring | Pipeline board + intern progress tracker |
-| 🧠 Skills | Capability matrix heatmap + gap detection |
-| 📦 Delivery | Project health cards with milestone progress |
-| 😊 ESAT | Employee satisfaction trend + team comparison |
-| ⭐ CSAT | Customer satisfaction scores + risk alerts |
-| 💡 Innovations | Internal initiative tracker with impact scores |
+| 🧠 **Skill Matrix** | Heatmap matrix with **Horizontal Drag-to-Scroll**, **Excel Import/Export**, and **Insight Dashboard** (Gaps, Strengths, Advanced Ratios). |
+| 👥 **Resources** | Engineer tracking with **At-Risk Marking System** (Orange highlighting + mitigation notes), real-time allocation metrics, and project assignment. |
+| 📊 **Dashboard** | Executive KPI overview with real-time synchronization from Projects & Resources. |
+| 🚀 **Hiring** | Candidate pipeline board + Intern progress tracker with automated metrics. |
+| 📦 **Delivery** | Project health cards with milestone progress and billable headcount tracking. |
+| 😊 **Feedback** | ESAT (Satisfactory) and CSAT (Customer) trend tracking with risk alerts. |
 
 ---
 
-## Tech Stack
+## 🛠️ Tech Stack
 
-- **Frontend + Backend**: Next.js 14 (App Router)
-- **Language**: TypeScript
-- **Styling**: TailwindCSS + custom CSS variables
-- **Charts**: Recharts
-- **Storage**: JSON files in `/data` folder
-- **Hosting**: Vercel-ready
+- **Framework**: Next.js 15 (App Router / Edge Runtime ready)
+- **Database**: Supabase (PostgreSQL) with integrated Migration System
+- **Styling**: TailwindCSS + Premium Glassmorphism UI
+- **Components**: Radix UI + Lucide Icons
+- **Data Handling**: `xlsx` for Excel processing, `react-hot-toast` for notifications
+- **Charts**: Recharts for dynamic multi-module analytics
 
 ---
 
-## Getting Started
+## 🚀 Getting Started
 
-### 1. Install dependencies
+### 1. Configure Environment
+Create a `.env.local` or set Environment Variables in your hosting provider:
+```bash
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_KEY=your_supabase_anon_key
+DATABASE_URL=your_direct_postgres_url
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+```
 
+### 2. Database Migration
+This project uses a custom migration system located in `/migrations`.
+- **Manual**: Run the SQL scripts in `/migrations` directly in the Supabase SQL Editor.
+- **CLI**: Run `npm run migrate` to apply pending changes locally.
+
+### 3. Installation & Start
 ```bash
 npm install
-```
-
-### 2. Run development server
-
-```bash
 npm run dev
 ```
-
 Open [http://localhost:3000](http://localhost:3000)
 
 ---
 
-## Project Structure
+## 📦 Project Structure
 
 ```
 ProjectMgmt/
-├── app/                    # Next.js App Router
-│   ├── page.tsx            # Executive Dashboard
-│   ├── resources/page.tsx  # Resource Management
-│   ├── hiring/page.tsx     # Hiring & Interns
-│   ├── skills/page.tsx     # Skills Matrix
-│   ├── delivery/page.tsx   # Delivery Tracking
-│   ├── esat/page.tsx       # ESAT
-│   ├── csat/page.tsx       # CSAT
-│   ├── innovations/page.tsx# Innovation Initiatives
-│   └── api/                # API Routes (GET + POST)
-│       ├── resources/
-│       ├── projects/
-│       ├── hiring/
-│       ├── skills/
-│       ├── esat/
-│       ├── csat/
-│       └── innovations/
-├── components/             # React Components
-│   ├── layout/             # Sidebar, Topbar
-│   ├── ui/                 # KpiCard, StatusBadge
-│   ├── dashboard/          # DashboardCharts
-│   ├── resources/          # ResourcesClient
-│   ├── hiring/             # HiringClient
-│   ├── skills/             # SkillsClient
-│   ├── delivery/           # DeliveryClient
-│   ├── esat/               # ESATClient
-│   ├── csat/               # CSATClient
-│   └── innovations/        # InnovationsClient
-├── data/                   # JSON data files
-│   ├── resources.json      # 12 employees
-│   ├── projects.json       # 6 projects
-│   ├── hiring.json         # 8 candidates/interns
-│   ├── skills.json         # Skill matrix
-│   ├── esat.json           # ESAT records
-│   ├── csat.json           # CSAT records
-│   └── innovations.json    # Innovation initiatives
-├── lib/
-│   ├── data.ts             # JSON read/write utilities
-│   └── utils.ts            # cn() utility
-└── types/index.ts          # TypeScript interfaces
+├── app/                    # Next.js App Router & API Handlers
+├── components/             # Reusable React Components
+│   ├── skills/             # Advanced Matrix & Dashboards
+│   ├── resources/          # Resource Management & Risk System
+│   └── dashboard/          # Analytics & Visualizations
+├── lib/                    # Supabase Client & Database Helpers
+├── migrations/             # SQL Schema Versioning
+├── types/                  # TypeScript Interfaces (Resource, Project, etc.)
+└── scripts/                # Database Utilities (Migrate, Seed)
 ```
 
 ---
 
-## API Endpoints
+## 📊 Skill Matrix Workflow
+1. **Define Skills**: Add skill columns in the dashboard.
+2. **Import Data**: Bulk upload engineer levels via Excel (supports clearing skills via empty cells).
+3. **Analyze**: Use the Insight Dashboard to identify critical team gaps and competency ratios.
+4. **Maintenance**: Direct UI updates with immediate database persistence.
 
-| Method | Endpoint | Description |
-|---|---|---|
-| GET | `/api/resources` | List all resources |
-| POST | `/api/resources` | Add a resource |
-| GET | `/api/projects` | List all projects |
-| POST | `/api/projects` | Add a project |
-| GET | `/api/hiring` | List candidates/interns |
-| POST | `/api/hiring` | Add a candidate |
-| GET | `/api/skills` | Skill matrix entries |
-| POST | `/api/skills` | Add skill entry |
-| GET | `/api/esat` | ESAT records |
-| POST | `/api/esat` | Add ESAT record |
-| GET | `/api/csat` | CSAT records |
-| POST | `/api/csat` | Add CSAT record |
-| GET | `/api/innovations` | Innovation initiatives |
-| POST | `/api/innovations` | Add initiative |
+## ⚠️ Resource Risk Management
+- **Mark as At Risk**: Open Actions -> Alert Icon to add mitigation notes.
+- **Visual Feedback**: Risk resources are highlighted in **Orange** for immediate executive attention.
+- **Resolution**: Mark back to "Normal" once the risk is addressed.
 
 ---
 
-## Deploy to Vercel
-
-1. Push to GitHub
-2. Go to [vercel.com](https://vercel.com) → New Project
-3. Import your repository
-4. Framework: **Next.js** (auto-detected)
-5. Click **Deploy**
-
-> ⚠️ Note: JSON file writes are not persistent on Vercel's serverless functions. For production writes, upgrade to **Vercel KV** or **Vercel Blob** storage. For a read-only dashboard (common use case), JSON files work perfectly.
-
----
-
-## Customizing Data
-
-Edit the JSON files in `/data/`:
-
-```json
-// data/resources.json
-[
-  {
-    "employee_id": "E013",
-    "name": "Your Engineer Name",
-    "role": "Senior Engineer",
-    "team": "Your Team",
-    "grade": "L4",
-    "skills": ["React", "Node.js"],
-    "english_level": "B2",
-    "status": "Billable",
-    "allocation_percentage": 100,
-    "join_date": "2024-06-01",
-    "risk_flag": null
-  }
-]
-```
+## ☁️ Deploying to Cloudflare Pages
+1. Install `@opennextjs/cloudflare`.
+2. Configure **Build Variables** in Cloudflare Dashboard (ensure `DATABASE_URL` is set for migrations).
+3. Build command: `next build && opennextjs-cloudflare build --skipNextBuild`.
 
 ---
 
 ## License
-
 MIT

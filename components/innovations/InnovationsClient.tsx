@@ -7,26 +7,7 @@ import { Bot, Zap, Code2, FlaskConical, Plus, X, Check, Trash2, Edit2, Lightbulb
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 
-import dynamic from "next/dynamic";
-import 'react-quill-new/dist/quill.snow.css';
-
-const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false });
-
-const quillModules = {
-    toolbar: [
-        [{ 'header': [1, 2, false] }],
-        ['bold', 'italic', 'underline', 'strike', 'blockquote'],
-        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-        ['link', 'clean']
-    ],
-};
-
-const quillFormats = [
-    'header',
-    'bold', 'italic', 'underline', 'strike', 'blockquote',
-    'list',
-    'link'
-];
+import { RichTextEditor } from "@/components/ui/RichTextEditor";
 
 interface InnovationsClientProps {
     innovations: Innovation[];
@@ -281,17 +262,12 @@ export function InnovationsClient({ innovations: initialData }: InnovationsClien
                         </div>
                         <div className="md:col-span-2">
                             <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Description</label>
-                            <div className="bg-white rounded-lg overflow-hidden border border-slate-200 focus-within:border-rose-400 transition-all shadow-sm">
-                                <ReactQuill
-                                    theme="snow"
-                                    value={formData.description}
+                                <RichTextEditor 
+                                    value={formData.description} 
                                     onChange={(content) => setFormData({ ...formData, description: content })}
-                                    modules={quillModules}
-                                    formats={quillFormats}
-                                    className="h-48"
                                     placeholder="Explain the value and goals of this initiative..."
+                                    height={200}
                                 />
-                            </div>
                         </div>
                         <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
                             <button
