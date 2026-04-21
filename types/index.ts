@@ -375,6 +375,9 @@ export interface Intern {
     completed_date?: string;
     is_billable: boolean;
     billable_date?: string;
+    university?: string;
+    gpa?: number;
+    english_score?: number;
     created_at: string;
     updated_at: string;
     evaluation?: InternEvaluation;

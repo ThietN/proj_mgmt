@@ -893,7 +893,9 @@ export async function convertToBillable(internId: string, project: string, billi
         // 2. Update Intern
         const { error: internErr } = await supabase.from('interns').update({
             is_billable: true,
-            billable_date: now
+            billable_date: now,
+            status: 'Completed',     // Auto-complete the internship
+            project: project,        // Sync the final project assignment
         }).eq('id', internId);
         if (internErr) throw new Error(`Failed to update intern: ${internErr.message}`);
 
