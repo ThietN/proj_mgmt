@@ -4,9 +4,19 @@ import path from 'path';
 import dotenv from 'dotenv';
 
 dotenv.config({ path: '.env.local' });
+dotenv.config(); // Also try default .env
 
-const sql = postgres(process.env.DATABASE_URL || "", {
+const databaseUrl = process.env.DATABASE_URL;
+
+if (!databaseUrl) {
+    console.error('❌ Error: DATABASE_URL environment variable is not set.');
+    console.error('Please ensure it is configured in your environment variables.');
+    process.exit(1);
+}
+
+const sql = postgres(databaseUrl, {
     ssl: 'require',
+    connect_timeout: 10,
 });
 
 async function migrate() {
