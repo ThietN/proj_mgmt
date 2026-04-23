@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "migrate": "tsx scripts/migrate.ts",
     "build": "next build && opennextjs-cloudflare build --skipNextBuild",
     "start": "next start",
     "lint": "next lint"
@@ -26,6 +27,7 @@
     "jose": "^6.2.0",
     "lucide-react": "^0.400.0",
     "next": "^15.5.14",
+    "postgres": "^3.4.9",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-hot-toast": "^2.6.0",
@@ -45,6 +47,7 @@
     "eslint-config-next": "^16.2.1",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
+    "tsx": "^4.21.0",
     "typescript": "^5",
     "wrangler": "^4.76.0"
   }

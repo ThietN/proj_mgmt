@@ -21,7 +21,7 @@ interface SkillMatrixProps {
 }
 
 export function SkillMatrixClient({ resources, projects, initialSkills, initialMatrix }: SkillMatrixProps) {
-    const [view, setView] = useState<"table" | "dashboard">("table");
+    const [view, setView] = useState<"table" | "dashboard" | "analysis">("table");
     const [skills, setSkills] = useState<SkillDefinition[]>(initialSkills);
     const [matrix, setMatrix] = useState<SkillMatrixEntry[]>(initialMatrix);
     const [search, setSearch] = useState("");
@@ -157,6 +157,85 @@ export function SkillMatrixClient({ resources, projects, initialSkills, initialM
         }
         setLoading(false);
     };
+
+    const teamAnalysis = useMemo(() => {
+        const scoreValues: Record<string, number> = {
+            "Expert": 4,
+            "Advanced": 3,
+            "Intermediate": 2,
+            "Beginner": 1
+        };
+
+        const domains = {
+            Testing: ["AI Testing Tool", "API Testing", "Cypress", "Jmeter", "Katalon", "Manual Testing", "Mobile Testing", "Performance/Stress Test", "Playwright", "Robot Framework", "Selenium", "Window Testing"],
+            Development: ["BackEnd", "Cloud", "Database Skills", "DevOps", "FrontEnd", "FullStack Dev", "Git", "Java", "Jenkins", "Networking", "PenTest/Cyber", "TypeScripts"],
+            AI: ["LLM/AI", "ML/AI", "MLOps", "Python"]
+        };
+
+        return filteredResources.map(resource => {
+            const resourceLevels = matrixMap[resource.employee_id] || {};
+            
+            const calculateDomainStats = (categorySkills: string[]) => {
+                const categorySkillIds = skills.filter(s => categorySkills.includes(s.name)).map(s => s.id);
+                if (categorySkillIds.length === 0) return { avg: 0, count: 0 };
+                
+                let totalScore = 0;
+                categorySkillIds.forEach(id => {
+                    totalScore += scoreValues[resourceLevels[id] as string] || 0;
+                });
+                return { 
+                    avg: totalScore / categorySkillIds.length,
+                    score: totalScore
+                };
+            };
+
+            const testing = calculateDomainStats(domains.Testing);
+            const development = calculateDomainStats(domains.Development);
+            const ai = calculateDomainStats(domains.AI);
+
+            // Identify Strengths (Advanced/Expert)
+            const strengths = skills
+                .filter(s => resourceLevels[s.id] === "Advanced" || resourceLevels[s.id] === "Expert")
+                .map(s => s.name);
+
+            // Identify Weaknesses (-- / Beginner)
+            const weaknesses = skills
+                .filter(s => !resourceLevels[s.id] || resourceLevels[s.id] === "Beginner")
+                .map(s => s.name)
+                .slice(0, 5); // Limit to top 5 gaps
+
+            // Determine Domain Strength Level
+            const getStrengthLabel = (avg: number) => {
+                if (avg >= 3.5) return "Expert";
+                if (avg >= 2.5) return "Strong";
+                if (avg >= 1.5) return "Moderate";
+                return "Weak";
+            };
+
+            // Determine Dominant Domain
+            const scores = [
+                { name: "Testing", avg: testing.avg },
+                { name: "Development", avg: development.avg },
+                { name: "AI", avg: ai.avg }
+            ].sort((a, b) => b.avg - a.avg);
+
+            const dominantDomain = scores[0].avg > 0 ? scores[0].name : "Generalist";
+
+            return {
+                name: resource.name,
+                id: resource.employee_id,
+                testing: testing.avg,
+                development: development.avg,
+                ai: ai.avg,
+                strengths,
+                weaknesses,
+                testingLevel: getStrengthLabel(testing.avg),
+                devLevel: getStrengthLabel(development.avg),
+                aiLevel: getStrengthLabel(ai.avg),
+                dominantDomain
+            };
+        });
+    }, [filteredResources, skills, matrixMap]);
 
     const handleDeleteSkill = async (id: string, name: string) => {
         if (!confirm(`Are you sure you want to delete the skill column "${name}"? This removes all associated data.`)) return;
@@ -373,6 +452,15 @@ export function SkillMatrixClient({ resources, projects, initialSkills, initialM
                     >
                         <BarChart3 className="w-4 h-4" /> Insight Dashboard
                     </button>
+                    <button
+                        onClick={() => setView("analysis")}
+                        className={cn(
+                            "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all",
+                            view === "analysis" ? "bg-white text-indigo-600 shadow-md" : "text-slate-500 hover:text-slate-700"
+                        )}
+                    >
+                        <AlertCircle className="w-4 h-4" /> Team Analysis
+                    </button>
                 </div>
             </div>
 
@@ -512,7 +600,7 @@ export function SkillMatrixClient({ resources, projects, initialSkills, initialM
                     </div>
                     </div>
                 </div>
-            ) : (
+            ) : view === "dashboard" ? (
                 <div className="space-y-6">
                     {/* Summary Stats */}
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -565,7 +653,6 @@ export function SkillMatrixClient({ resources, projects, initialSkills, initialM
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {/* Dashboard Cards Example */}
                         {skills.map(skill => {
                             const skillEntries = matrix.filter(m => m.skill_id === skill.id);
                             const expertCount = skillEntries.filter(e => e.level === "Expert").length;
@@ -609,6 +696,110 @@ export function SkillMatrixClient({ resources, projects, initialSkills, initialM
                                 </div>
                             );
                         })}
+                    </div>
+                </div>
+            ) : (
+                <div className="space-y-6">
+                    <div className="bg-slate-900 p-8 rounded-3xl mb-8 relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl -mr-32 -mt-32 transition-all group-hover:bg-indigo-500/20" />
+                        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                            <div>
+                                <h2 className="text-2xl font-black text-white mb-2">Team Capability Analysis</h2>
+                                <p className="text-slate-400 text-sm max-w-xl font-medium">
+                                    Strategic evaluation of member strengths and domain-specific growth opportunities across Testing, Development, and AI.
+                                </p>
+                            </div>
+                            <div className="flex items-center gap-4">
+                                <div className="bg-white/5 border border-white/10 p-4 rounded-2xl backdrop-blur-md">
+                                    <div className="text-[10px] font-black text-slate-500 uppercase mb-1">Testing Strength</div>
+                                    <div className="text-xl font-black text-emerald-400">
+                                        {(teamAnalysis.reduce((acc, curr) => acc + curr.testing, 0) / Math.max(1, teamAnalysis.length)).toFixed(2)}
+                                    </div>
+                                </div>
+                                <div className="bg-white/5 border border-white/10 p-4 rounded-2xl backdrop-blur-md">
+                                    <div className="text-[10px] font-black text-slate-500 uppercase mb-1">AI Readiness</div>
+                                    <div className="text-xl font-black text-purple-400">
+                                        {(teamAnalysis.reduce((acc, curr) => acc + curr.ai, 0) / Math.max(1, teamAnalysis.length)).toFixed(2)}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {teamAnalysis.map(member => (
+                            <div key={member.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden hover:shadow-md transition-all">
+                                <div className="p-6 border-b border-slate-50 flex items-start justify-between bg-slate-50/50">
+                                    <div>
+                                        <h3 className="text-base font-black text-slate-900 tracking-tight">{member.name}</h3>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{member.id}</span>
+                                            <span className="w-1 h-1 rounded-full bg-slate-300" />
+                                            <span className={cn(
+                                                "text-[10px] font-black uppercase tracking-widest",
+                                                member.dominantDomain === "Testing" ? "text-emerald-600" :
+                                                member.dominantDomain === "Development" ? "text-indigo-600" :
+                                                member.dominantDomain === "AI" ? "text-purple-600" : "text-slate-500"
+                                            )}>
+                                                {member.dominantDomain} Focused
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        {member.testingLevel === "Expert" && <span className="bg-emerald-500 text-white text-[8px] font-black px-2 py-1 rounded-lg">TESTING EXPERT</span>}
+                                        {member.aiLevel === "Expert" && <span className="bg-purple-500 text-white text-[8px] font-black px-2 py-1 rounded-lg">AI SPECIALIST</span>}
+                                    </div>
+                                </div>
+
+                                <div className="p-6 grid grid-cols-3 gap-4 border-b border-slate-50">
+                                    <div className="space-y-1">
+                                        <div className="text-[10px] font-black text-slate-400 uppercase">Testing</div>
+                                        <div className="text-lg font-black text-slate-900">{member.testing.toFixed(1)}</div>
+                                        <div className={cn("text-[9px] font-black uppercase", member.testingLevel === "Expert" ? "text-emerald-500" : member.testingLevel === "Strong" ? "text-blue-500" : "text-slate-400")}>
+                                            {member.testingLevel}
+                                        </div>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <div className="text-[10px] font-black text-slate-400 uppercase">Dev</div>
+                                        <div className="text-lg font-black text-slate-900">{member.development.toFixed(1)}</div>
+                                        <div className={cn("text-[9px] font-black uppercase", member.devLevel === "Expert" ? "text-emerald-500" : member.devLevel === "Strong" ? "text-blue-500" : "text-slate-400")}>
+                                            {member.devLevel}
+                                        </div>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <div className="text-[10px] font-black text-slate-400 uppercase">AI</div>
+                                        <div className="text-lg font-black text-slate-900">{member.ai.toFixed(1)}</div>
+                                        <div className={cn("text-[9px] font-black uppercase", member.aiLevel === "Expert" ? "text-emerald-500" : member.aiLevel === "Strong" ? "text-blue-500" : "text-slate-400")}>
+                                            {member.aiLevel}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="p-6 space-y-4">
+                                    <div>
+                                        <div className="text-[10px] font-black text-emerald-600 uppercase mb-2">Key Strengths</div>
+                                        <div className="flex flex-wrap gap-1.5">
+                                            {member.strengths.length > 0 ? member.strengths.map(s => (
+                                                <span key={s} className="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2 py-1 rounded-md border border-emerald-100">{s}</span>
+                                            )) : <span className="text-[10px] font-bold text-slate-400 italic">No advanced skills identified</span>}
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                                        <div className="text-[10px] font-black text-indigo-600 uppercase mb-2">Development Focus</div>
+                                        <div className="space-y-2">
+                                            <p className="text-[11px] font-medium text-slate-600 leading-relaxed">
+                                                {member.dominantDomain === "Testing" ? 
+                                                    `Focus on mastering ${member.weaknesses[0] || 'Automation'} and ${member.weaknesses[1] || 'Performance'} to elevate Testing capability.` :
+                                                    member.dominantDomain === "Development" ?
+                                                    `Strengthen ${member.weaknesses[0] || 'Cloud'} and ${member.weaknesses[1] || 'DevOps'} skills to complement Development expertise.` :
+                                                    `Expand ${member.weaknesses[0] || 'Machine Learning'} knowledge to solidify AI readiness.`}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
             )}
