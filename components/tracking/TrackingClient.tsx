@@ -476,7 +476,7 @@ export function TrackingClient({
                                     </div>
                                     {(currentNote?.content && currentNote.content !== "<p><br></p>") ? (
                                         <div className="px-5 pb-4">
-                                            <div className="prose prose-slate prose-sm max-w-none text-xs leading-relaxed text-slate-600"
+                                            <div className="rich-content text-xs leading-relaxed"
                                                 dangerouslySetInnerHTML={{ __html: currentNote.content }} />
                                         </div>
                                     ) : (

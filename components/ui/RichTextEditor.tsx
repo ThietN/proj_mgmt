@@ -83,9 +83,9 @@ export function RichTextEditor({ value, onChange, placeholder, className, height
     const formats = [
         "header", "font", "size",
         "bold", "italic", "underline", "strike", "blockquote",
-        "list", "bullet", "indent",
+        "list", "indent",
         "link", "image", "video", "color", "background",
-        "align", "direction", "code-block", "script", "formula", "attachment"
+        "align", "direction", "code-block", "script", "formula"
     ];
 
     // Add CSS for icons of Undo/Redo since they might be missing in default theme
@@ -191,6 +191,72 @@ export function RichTextEditor({ value, onChange, placeholder, className, height
                 .rich-text-editor .ql-snow .ql-picker.ql-size .ql-picker-item:not([data-value])::before {
                     content: 'Normal';
                 }
+
+                /* ═══ Global Rich Content Display Styles ═══ */
+                .rich-content {
+                    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+                    line-height: 1.6;
+                    color: #1e293b;
+                }
+                .rich-content strong, .rich-content b { font-weight: 800; color: #000; }
+                .rich-content em, .rich-content i { font-style: italic; }
+                .rich-content p { margin-bottom: 0.5em; }
+                .rich-content h1 { font-size: 1.8em; font-weight: 800; margin-top: 1em; margin-bottom: 0.5em; }
+                .rich-content h2 { font-size: 1.5em; font-weight: 700; margin-top: 0.8em; margin-bottom: 0.4em; }
+                .rich-content h3 { font-size: 1.25em; font-weight: 600; margin-top: 0.6em; margin-bottom: 0.3em; }
+                .rich-content ul { list-style-type: disc; padding-left: 1.5em; margin-bottom: 1em; }
+                .rich-content ol { list-style-type: decimal; padding-left: 1.5em; margin-bottom: 1em; }
+                .rich-content li { margin-bottom: 0.25em; }
+                .rich-content blockquote {
+                    border-left: 4px solid #4f46e5;
+                    background: #f5f3ff;
+                    padding: 8px 16px;
+                    border-radius: 4px;
+                    color: #4338ca;
+                    font-style: italic;
+                    margin: 12px 0;
+                }
+                .rich-content pre {
+                    background-color: #1e293b;
+                    color: #f8fafc;
+                    border-radius: 8px;
+                    padding: 12px 16px;
+                    font-family: 'JetBrains Mono', monospace;
+                    overflow-x: auto;
+                    margin: 12px 0;
+                }
+                .rich-content img { max-width: 100%; border-radius: 8px; margin: 12px 0; }
+                .rich-content table {
+                    border-collapse: collapse;
+                    width: 100%;
+                    margin: 12px 0;
+                    border: 1px solid #e2e8f0;
+                }
+                .rich-content td, .rich-content th {
+                    border: 1px solid #e2e8f0;
+                    padding: 8px 12px;
+                }
+                .rich-content th { background-color: #f8fafc; }
+
+                /* Quill Alignment Classes */
+                .rich-content .ql-align-center { text-align: center; }
+                .rich-content .ql-align-right { text-align: right; }
+                .rich-content .ql-align-justify { text-align: justify; }
+                
+                .rich-content u { text-decoration: underline; }
+                .rich-content s { text-decoration: line-through; }
+                .rich-content sub { vertical-align: sub; font-size: smaller; }
+                .rich-content sup { vertical-align: super; font-size: smaller; }
+                
+                /* Quill Font Sizes */
+                .rich-content .ql-size-small { font-size: 0.75em; }
+                .rich-content .ql-size-large { font-size: 1.25em; }
+                .rich-content .ql-size-huge { font-size: 1.75em; }
+                
+                /* Quill Indents */
+                .rich-content .ql-indent-1 { padding-left: 3em; }
+                .rich-content .ql-indent-2 { padding-left: 6em; }
+                .rich-content .ql-indent-3 { padding-left: 9em; }
             `}</style>
         </div>
     );

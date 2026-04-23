@@ -251,7 +251,7 @@ export function ReportClient({
                 >
                     <Pencil className="w-3 h-3 text-slate-300 group-hover:text-indigo-400 mt-1 shrink-0" />
                     {customNotes[field] && customNotes[field] !== "<p><br></p>" ? (
-                        <div className="text-xs text-slate-600 prose prose-slate prose-xs max-w-none prose-p:my-1 prose-ul:my-1" dangerouslySetInnerHTML={{ __html: customNotes[field] }} />
+                        <div className="text-xs rich-content max-w-none" dangerouslySetInnerHTML={{ __html: customNotes[field] }} />
                     ) : (
                         <span className="text-xs text-slate-300 italic pt-0.5">{placeholder}</span>
                     )}

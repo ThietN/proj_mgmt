@@ -330,7 +330,7 @@ export function InnovationsClient({ innovations: initialData }: InnovationsClien
                             <div className="mt-4 bg-slate-50/50 p-4 rounded-xl border border-slate-100 italic relative overflow-hidden">
                                 <span className="text-[9px] font-black text-rose-300 uppercase absolute top-2 right-3">Initiative Brief</span>
                                 <div 
-                                    className="text-xs text-slate-600 leading-relaxed font-medium prose prose-slate prose-xs max-w-none"
+                                    className="text-xs rich-content"
                                     dangerouslySetInnerHTML={{ __html: init.description || "No description provided." }}
                                 />
                             </div>

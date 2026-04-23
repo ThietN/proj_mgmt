@@ -1,7 +1,7 @@
 "use client";
 
 import { Resource, SkillDefinition, SkillMatrixEntry, Project } from "@/types";
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import * as XLSX from "xlsx";
 import {
     Plus, Trash2, Download, Upload, Search, Filter,
@@ -36,6 +36,10 @@ export function SkillMatrixClient({ resources, projects, initialSkills, initialM
     const isDraggingRef = useRef(false);
     const startXRef = useRef(0);
     const scrollLeftRef = useRef(0);
+    const topScrollRef = useRef<HTMLDivElement>(null);
+    const [tableWidth, setTableWidth] = useState(0);
+
+
 
     const handleMouseDown = (e: React.MouseEvent) => {
         if (!scrollContainerRef.current) return;
@@ -81,6 +85,48 @@ export function SkillMatrixClient({ resources, projects, initialSkills, initialM
             return matchesSearch && matchesProject;
         });
     }, [resources, search, teamFilter]);
+
+    // Sync scroll between top dummy and table
+    useEffect(() => {
+        const tableContainer = scrollContainerRef.current;
+        const topScroll = topScrollRef.current;
+        if (!tableContainer || !topScroll) return;
+
+        const handleTableScroll = () => {
+            if (topScroll.scrollLeft !== tableContainer.scrollLeft) {
+                topScroll.scrollLeft = tableContainer.scrollLeft;
+            }
+        };
+
+        const handleTopScroll = () => {
+            if (tableContainer.scrollLeft !== topScroll.scrollLeft) {
+                tableContainer.scrollLeft = topScroll.scrollLeft;
+            }
+        };
+
+        tableContainer.addEventListener('scroll', handleTableScroll);
+        topScroll.addEventListener('scroll', handleTopScroll);
+
+        // Update width
+        const updateWidth = () => {
+            if (tableContainer.firstElementChild) {
+                setTableWidth((tableContainer.firstElementChild as HTMLElement).scrollWidth);
+            }
+        };
+
+        updateWidth();
+        const observer = new ResizeObserver(updateWidth);
+        observer.observe(tableContainer);
+        if (tableContainer.firstElementChild) {
+            observer.observe(tableContainer.firstElementChild);
+        }
+
+        return () => {
+            tableContainer.removeEventListener('scroll', handleTableScroll);
+            topScroll.removeEventListener('scroll', handleTopScroll);
+            observer.disconnect();
+        };
+    }, [skills, view, filteredResources]);
 
     const projectMap = useMemo(() => {
         const map: Record<string, string> = {};
@@ -384,20 +430,31 @@ export function SkillMatrixClient({ resources, projects, initialSkills, initialM
                     </div>
 
                     {/* Matrix Table */}
-                    <div
-                        ref={scrollContainerRef}
-                        onMouseDown={handleMouseDown}
-                        onMouseLeave={handleMouseLeave}
-                        onMouseUp={handleMouseUp}
-                        onMouseMove={handleMouseMove}
-                        className="overflow-x-auto select-none no-scrollbar active:cursor-grabbing"
-                    >
-                        <table className="w-full text-left border-collapse min-w-[800px]">
+                    <div className="flex flex-col relative">
+                        {/* Top Scrollbar (Visible only when overflowing) */}
+                        <div 
+                            ref={topScrollRef}
+                            className="overflow-x-auto w-full bg-slate-50/50 border-b border-slate-100"
+                            style={{ height: '10px' }}
+                        >
+                            <div style={{ width: `${tableWidth}px`, height: '1px' }} />
+                        </div>
+
+                        <div
+                            ref={scrollContainerRef}
+                            onMouseDown={handleMouseDown}
+                            onMouseLeave={handleMouseLeave}
+                            onMouseUp={handleMouseUp}
+                            onMouseMove={handleMouseMove}
+                            className="overflow-auto max-h-[calc(100vh-280px)] select-none active:cursor-grabbing custom-scrollbar"
+                        >
+
+                        <table className="w-full text-left border-separate border-spacing-0 min-w-[1200px]">
                             <thead>
-                                <tr className="bg-slate-50/80 border-b border-slate-100">
-                                    <th className="sticky left-0 z-20 bg-slate-50/95 backdrop-blur-sm p-4 text-[10px] font-black text-slate-400 uppercase tracking-widest min-w-[200px] border-r border-slate-100">Engineering Resource</th>
+                                <tr className="bg-slate-50 border-b border-slate-200">
+                                    <th className="sticky top-0 left-0 z-[50] bg-slate-50 p-6 text-[11px] font-black text-slate-400 uppercase tracking-widest min-w-[300px] border-r border-b border-slate-200 shadow-[2px_2px_5px_-2px_rgba(0,0,0,0.05)]">Engineering Resource</th>
                                     {skills.map(skill => (
-                                        <th key={skill.id} className="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest group border-r border-slate-100 min-w-[140px]">
+                                        <th key={skill.id} className="sticky top-0 z-[40] bg-slate-50 p-6 text-[11px] font-black text-slate-500 uppercase tracking-widest group border-r border-b border-slate-200 min-w-[180px]">
                                             <div className="flex items-center justify-between gap-2">
                                                 <span className="truncate">{skill.name}</span>
                                                 <button
@@ -413,13 +470,13 @@ export function SkillMatrixClient({ resources, projects, initialSkills, initialM
                             </thead>
                             <tbody className="divide-y divide-slate-50">
                                 {filteredResources.map(resource => (
-                                    <tr key={resource.employee_id} className="hover:bg-slate-50/50 transition-all">
-                                        <td className="sticky left-0 z-10 bg-white/95 backdrop-blur-sm p-4 border-r border-slate-100">
+                                    <tr key={resource.employee_id} className="hover:bg-slate-50/30 transition-all">
+                                        <td className="sticky left-0 z-20 bg-white p-6 border-r border-b border-slate-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">
                                             <div className="flex flex-col">
-                                                <span className="text-sm font-black text-slate-800 uppercase tracking-tight">{resource.name}</span>
-                                                <div className="flex items-center gap-2 mt-0.5">
-                                                    <span className="text-[10px] font-bold text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded uppercase">{resource.employee_id}</span>
-                                                    <span className="text-[10px] font-bold text-slate-300 uppercase truncate max-w-[100px]">{projectMap[resource.project_id || ""] || "Unassigned"}</span>
+                                                <span className="text-[13px] font-black text-slate-800 uppercase tracking-tight">{resource.name}</span>
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <span className="text-[10px] font-bold text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-md uppercase">{resource.employee_id}</span>
+                                                    <span className="text-[10px] font-bold text-slate-400 uppercase truncate max-w-[150px]">{projectMap[resource.project_id || ""] || "Unassigned"}</span>
                                                 </div>
                                             </div>
                                         </td>
@@ -428,12 +485,12 @@ export function SkillMatrixClient({ resources, projects, initialSkills, initialM
                                             const cfg = getLevelConfig(currentLevel);
 
                                             return (
-                                                <td key={skill.id} className="p-0 border-r border-slate-100 group relative">
+                                                <td key={skill.id} className="p-0 border-r border-b border-slate-100 group relative">
                                                     <select
                                                         value={currentLevel || ""}
                                                         onChange={(e) => handleUpdateLevel(resource.employee_id, skill.id, e.target.value as Level)}
                                                         className={cn(
-                                                            "w-full h-full p-4 text-xs font-black tracking-widest outline-none bg-transparent appearance-none cursor-pointer text-center",
+                                                            "w-full h-full p-6 text-[11px] font-black tracking-widest outline-none bg-transparent appearance-none cursor-pointer text-center transition-colors",
                                                             cfg.color,
                                                             currentLevel && cfg.bg
                                                         )}
@@ -444,7 +501,7 @@ export function SkillMatrixClient({ resources, projects, initialSkills, initialM
                                                         <option value="Advanced">Advanced</option>
                                                         <option value="Expert">Expert</option>
                                                     </select>
-                                                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-300 pointer-events-none opacity-0 group-hover:opacity-100 transition-all" />
+                                                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-300 pointer-events-none opacity-0 group-hover:opacity-100 transition-all" />
                                                 </td>
                                             );
                                         })}
@@ -452,6 +509,7 @@ export function SkillMatrixClient({ resources, projects, initialSkills, initialM
                                 ))}
                             </tbody>
                         </table>
+                    </div>
                     </div>
                 </div>
             ) : (
