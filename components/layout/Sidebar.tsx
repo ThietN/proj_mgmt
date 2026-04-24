@@ -21,7 +21,8 @@ import {
     MessageSquare,
     Gauge,
     Upload,
-    GraduationCap
+    GraduationCap,
+    Award
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
@@ -36,6 +37,7 @@ const navItems = [
     { href: "/innovations", label: "Innovations", icon: Lightbulb },
     { href: "/tracking", label: "Tracking Tool", icon: KanbanSquare },
     { href: "/report", label: "Weekly Report", icon: ClipboardList },
+    { href: "/certifications", label: "Certifications", icon: Award },
     { href: "/audit", label: "Audit Logs", icon: FileText },
 ];
 

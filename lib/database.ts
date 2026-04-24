@@ -24,7 +24,9 @@ import {
     InternMetrics,
     BillableResource,
     SkillDefinition,
-    SkillMatrixEntry
+    SkillMatrixEntry,
+    Certification,
+    MemberCertification
 } from "@/types";
 
 // ==========================================
@@ -1023,4 +1025,91 @@ export async function deleteSkillMatrixEntry(employeeId: string, skillId: string
         .delete()
         .match({ employee_id: employeeId, skill_id: skillId });
     if (error) throw error;
+}
+
+// ==========================================
+// CERTIFICATIONS
+// ==========================================
+
+export async function getCertifications(): Promise<Certification[]> {
+    noStore();
+    const { data, error } = await supabase
+        .from('certifications')
+        .select('*')
+        .eq('is_active', true)
+        .order('name', { ascending: true });
+    if (error) {
+        if (error.code === '42P01') return []; // Table doesn't exist yet
+        throw new Error(error.message);
+    }
+    return (data || []) as Certification[];
+}
+
+export async function createCertification(c: Certification): Promise<void> {
+    const { error } = await supabase.from('certifications').insert([c]);
+    if (error) throw new Error(error.message);
+}
+
+export async function updateCertification(id: string, updates: Partial<Certification>): Promise<void> {
+    const { error } = await supabase
+        .from('certifications')
+        .update(updates)
+        .eq('id', id);
+    if (error) throw new Error(error.message);
+}
+
+export async function deleteCertification(id: string): Promise<void> {
+    const { error } = await supabase
+        .from('certifications')
+        .update({ is_active: false })
+        .eq('id', id);
+    if (error) throw new Error(error.message);
+}
+
+// ==========================================
+// MEMBER CERTIFICATIONS
+// ==========================================
+
+export async function getMemberCertifications(filters: any = {}): Promise<MemberCertification[]> {
+    noStore();
+    let query = supabase
+        .from('member_certifications')
+        .select(`
+            *,
+            member:resources(employee_id, name, role, team),
+            certification:certifications(*)
+        `)
+        .eq('is_active', true);
+
+    if (filters.member_id) query = query.eq('member_id', filters.member_id);
+    if (filters.status) query = query.eq('status', filters.status);
+    if (filters.certification_id) query = query.eq('certification_id', filters.certification_id);
+
+    const { data, error } = await query.order('created_at', { ascending: false });
+    if (error) {
+        if (error.code === '42P01') return []; // Table doesn't exist yet
+        throw new Error(error.message);
+    }
+    return (data || []) as MemberCertification[];
+}
+
+export async function createMemberCertification(mc: MemberCertification): Promise<void> {
+    const { error } = await supabase.from('member_certifications').insert([mc]);
+    if (error) throw new Error(error.message);
+}
+
+export async function updateMemberCertification(id: string, updates: Partial<MemberCertification>): Promise<void> {
+    const { error } = await supabase
+        .from('member_certifications')
+        .update(updates)
+        .eq('id', id);
+    if (error) throw new Error(error.message);
+}
+
+export async function deleteMemberCertification(id: string): Promise<void> {
+    const { error } = await supabase
+        .from('member_certifications')
+        .update({ is_active: false })
+        .eq('id', id);
+    if (error) throw new Error(error.message);
 }

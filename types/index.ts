@@ -438,3 +438,98 @@ export interface InternMetrics {
     convertedToBillable: number;
     completionRate: number;
 }
+// ============================================================
+// CERTIFICATION MANAGEMENT TYPES
+// ============================================================
+
+export type CertificationCategory = 
+    | "TECHNICAL" 
+    | "TESTING" 
+    | "CLOUD" 
+    | "SECURITY" 
+    | "AI" 
+    | "DEVOPS" 
+    | "MANAGEMENT" 
+    | "SOFT_SKILL";
+
+export type CertificationLevel = 
+    | "FOUNDATION" 
+    | "ASSOCIATE" 
+    | "PROFESSIONAL" 
+    | "EXPERT";
+
+export type CertificateType = 
+    | "INTERNAL" 
+    | "EXTERNAL";
+
+export interface Certification {
+    id: string;
+    name: string;
+    code: string;
+    provider: string;
+    category: CertificationCategory;
+    level: CertificationLevel;
+    certificate_type: CertificateType;
+    validity_period_months?: number;
+    cost?: number;
+    currency?: string;
+    exam_url?: string;
+    description?: string;
+    is_active: boolean;
+    created_at?: string;
+    updated_at?: string;
+    created_by?: string;
+}
+
+export type MemberCertificationStatus = 
+    | "PLANNED" 
+    | "LEARNING" 
+    | "SCHEDULED" 
+    | "PASSED" 
+    | "FAILED" 
+    | "EXPIRED";
+
+export type LearningMethod = 
+    | "SELF_STUDY" 
+    | "COURSE" 
+    | "BOOTCAMP" 
+    | "MENTORING";
+
+export type CertificationPriority = 
+    | "LOW" 
+    | "MEDIUM" 
+    | "HIGH";
+
+export interface MemberCertification {
+    id: string;
+    member_id: string;
+    certification_id: string;
+    status: MemberCertificationStatus;
+    progress_percent: number;
+    start_date?: string;
+    target_exam_date?: string;
+    actual_exam_date?: string;
+    expiry_date?: string;
+    attempt_count: number;
+    score?: number;
+    certificate_number?: string;
+    certificate_file?: string;
+    study_provider?: string;
+    learning_method: LearningMethod;
+    priority: CertificationPriority;
+    manager_note?: string;
+    member_note?: string;
+    is_mandatory: boolean;
+    sponsor?: string;
+    estimated_cost?: number;
+    actual_cost?: number;
+    currency?: string;
+    is_active: boolean;
+    created_at?: string;
+    updated_at?: string;
+    created_by?: string;
+    
+    // Joined data (optional)
+    member?: Resource;
+    certification?: Certification;
+}
