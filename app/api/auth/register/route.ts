@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getUserByEmail, saveUser, logAudit } from "@/lib/database";
 import { createToken } from "@/lib/auth";
+import { sendNotificationEmail } from "@/lib/email";
 import bcrypt from "bcryptjs";
 
 export async function POST(req: Request) {
@@ -29,6 +30,17 @@ export async function POST(req: Request) {
         await saveUser(newUser as any);
 
         await logAudit(email, "CREATE", "User", newUser.id, `User registered: ${email}`);
+
+        // Notify admin about new registration
+        await sendNotificationEmail(
+            "New User Registered",
+            `<p>A new user has registered on the <b>Team Management System</b>:</p>
+             <ul>
+                <li><b>Name:</b> ${name}</li>
+                <li><b>Email:</b> ${email}</li>
+                <li><b>Time:</b> ${new Date().toLocaleString()}</li>
+             </ul>`
+        );
 
         const token = await createToken({ id: newUser.id, email, name, role: newUser.role as any });
 
