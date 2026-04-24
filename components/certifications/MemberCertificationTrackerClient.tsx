@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { MemberCertification, Resource, Certification } from "@/types";
+import { MemberCertification, Resource, Certification, Project } from "@/types";
 import { Search, Filter, Plus, Edit2, Trash2, Calendar, Target, CheckCircle2, AlertCircle, Clock, ChevronRight, FileText, User, MoreHorizontal, Layers, GraduationCap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MemberCertificationForm } from "./MemberCertificationForm";
@@ -9,10 +9,11 @@ import toast from "react-hot-toast";
 interface MemberCertificationTrackerClientProps {
     initialData: MemberCertification[];
     members: Resource[];
+    projects: Project[];
     certifications: Certification[];
 }
 
-export function MemberCertificationTrackerClient({ initialData, members, certifications }: MemberCertificationTrackerClientProps) {
+export function MemberCertificationTrackerClient({ initialData, members, projects, certifications }: MemberCertificationTrackerClientProps) {
     const [records, setRecords] = useState<MemberCertification[]>(initialData);
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
@@ -63,6 +64,12 @@ export function MemberCertificationTrackerClient({ initialData, members, certifi
             case 'EXPIRED': return "bg-slate-100 text-slate-600 border-slate-200";
             default: return "bg-slate-50 text-slate-500 border-slate-100";
         }
+    };
+
+    const getProjectName = (projectId?: string) => {
+        if (!projectId) return "No Project";
+        const proj = projects.find(p => p.project_id === projectId);
+        return proj ? proj.project_name : projectId;
     };
 
     return (
@@ -152,9 +159,11 @@ export function MemberCertificationTrackerClient({ initialData, members, certifi
                                             <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-500 text-xs border border-slate-200">
                                                 {record.member?.name?.split(" ").map(n => n[0]).slice(0, 2).join("") || "??"}
                                             </div>
-                                            <div>
+                                             <div>
                                                 <div className="font-bold text-slate-900 leading-tight">{record.member?.name || "Unknown"}</div>
-                                                <div className="text-[10px] text-slate-400 font-mono tracking-tighter uppercase">{record.member?.role} • {record.member?.team}</div>
+                                                <div className="text-[10px] text-slate-400 font-mono tracking-tighter uppercase">
+                                                    {record.member?.role} • {getProjectName((record.member as any)?.project_id)}
+                                                </div>
                                             </div>
                                         </div>
                                     </td>

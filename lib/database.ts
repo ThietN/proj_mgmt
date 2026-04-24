@@ -1076,7 +1076,7 @@ export async function getMemberCertifications(filters: any = {}): Promise<Member
         .from('member_certifications')
         .select(`
             *,
-            member:resources(employee_id, name, role, team),
+            member:resources(employee_id, name, role, team, project_id),
             certification:certifications(*)
         `)
         .eq('is_active', true);
