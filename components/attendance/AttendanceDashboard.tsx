@@ -29,6 +29,7 @@ export default function AttendanceDashboard() {
         endDate: "",
         project: ""
     });
+    const [selectedMember, setSelectedMember] = useState<{ member: any, type: string } | null>(null);
 
     useEffect(() => {
         fetchStats();
@@ -260,21 +261,13 @@ export default function AttendanceDashboard() {
                                             <span className="text-xs font-black text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">
                                                 {member.count} <span className="text-[10px] text-slate-400">times</span>
                                             </span>
-                                        </div>
-
-                                        {/* Tooltip */}
-                                        <div className="absolute left-full top-0 ml-4 w-64 bg-white rounded-2xl shadow-2xl border border-slate-200 z-[100] p-4 opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity before:content-[''] before:absolute before:right-full before:top-6 before:border-[8px] before:border-transparent before:border-r-white before:filter before:drop-shadow-[-2px_0_1px_rgba(0,0,0,0.05)]">
-                                            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 pb-2 border-b border-slate-100 flex items-center gap-2">
-                                                <History className="w-3 h-3" /> Lateness History
-                                            </h4>
-                                            <div className="space-y-2 max-h-60 overflow-y-auto pr-1 custom-scrollbar">
-                                                {member.details.map((d: any, i: number) => (
-                                                    <div key={i} className="flex items-center justify-between text-[11px]">
-                                                        <span className="font-bold text-slate-600">{new Date(d.date).toLocaleDateString()}</span>
-                                                        <span className="text-amber-600 font-black bg-amber-50 px-2 py-0.5 rounded-full">{d.time}</span>
-                                                    </div>
-                                                ))}
-                                            </div>
+                                            <button 
+                                                onClick={() => setSelectedMember({ member, type: 'Late' })}
+                                                className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors border border-transparent hover:border-indigo-100"
+                                                title="View details"
+                                            >
+                                                <History className="w-4 h-4" />
+                                            </button>
                                         </div>
                                     </div>
                                 );
@@ -312,21 +305,13 @@ export default function AttendanceDashboard() {
                                             <span className="text-xs font-black text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">
                                                 {member.count} <span className="text-[10px] text-slate-400">times</span>
                                             </span>
-                                        </div>
-
-                                        {/* Tooltip */}
-                                        <div className="absolute right-full top-0 mr-4 w-64 bg-white rounded-2xl shadow-2xl border border-slate-200 z-[100] p-4 opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity before:content-[''] before:absolute before:left-full before:top-6 before:border-[8px] before:border-transparent before:border-l-white before:filter before:drop-shadow-[2px_0_1px_rgba(0,0,0,0.05)]">
-                                            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 pb-2 border-b border-slate-100 flex items-center gap-2">
-                                                <History className="w-3 h-3" /> Missing Access History
-                                            </h4>
-                                            <div className="space-y-2 max-h-60 overflow-y-auto pr-1 custom-scrollbar">
-                                                {member.details.map((d: any, i: number) => (
-                                                    <div key={i} className="flex items-center justify-between text-[11px]">
-                                                        <span className="font-bold text-slate-600">{new Date(d.date).toLocaleDateString()}</span>
-                                                        <span className="text-red-600 font-black bg-red-50 px-2 py-0.5 rounded-full">{d.time}</span>
-                                                    </div>
-                                                ))}
-                                            </div>
+                                            <button 
+                                                onClick={() => setSelectedMember({ member, type: 'Not Access' })}
+                                                className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-100"
+                                                title="View details"
+                                            >
+                                                <History className="w-4 h-4" />
+                                            </button>
                                         </div>
                                     </div>
                                 );
@@ -337,6 +322,84 @@ export default function AttendanceDashboard() {
                     </div>
                 </div>
             </div>
+ 
+            {/* Detail Modal */}
+            {selectedMember && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col animate-springIn">
+                        <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                            <div className="flex items-center gap-4">
+                                <div className={cn(
+                                    "w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg ring-4 ring-white",
+                                    selectedMember.type === 'Late' ? "bg-amber-500 text-white" : "bg-red-500 text-white"
+                                )}>
+                                    <History className="w-6 h-6" />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-black text-slate-900 leading-none mb-1">{selectedMember.member.name}</h3>
+                                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
+                                        {selectedMember.type} History • {selectedMember.member.username}
+                                    </p>
+                                </div>
+                            </div>
+                            <button onClick={() => setSelectedMember(null)} className="p-2 text-slate-400 hover:text-slate-900 hover:bg-white rounded-xl transition-all shadow-sm border border-transparent hover:border-slate-200">
+                                <X className="w-6 h-6" />
+                            </button>
+                        </div>
+ 
+                        <div className="p-0 overflow-y-auto custom-scrollbar">
+                            <table className="w-full text-left">
+                                <thead className="sticky top-0 bg-white/80 backdrop-blur-md z-10">
+                                    <tr className="border-b border-slate-100">
+                                        <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Lab / Location</th>
+                                        <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Date</th>
+                                        <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Check-in Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-50">
+                                    {selectedMember.member.details.map((d: any, i: number) => (
+                                        <tr key={i} className="hover:bg-slate-50/50 transition-colors group">
+                                            <td className="px-6 py-4">
+                                                <span className="text-sm font-bold text-slate-700 group-hover:text-indigo-600 transition-colors">{d.lab || 'N/A'}</span>
+                                            </td>
+                                            <td className="px-6 py-4 text-center">
+                                                <span className="text-xs font-bold text-slate-500">{new Date(d.date).toLocaleDateString()}</span>
+                                            </td>
+                                            <td className="px-6 py-4 text-right">
+                                                <span className={cn(
+                                                    "text-xs font-black px-3 py-1 rounded-full border shadow-sm",
+                                                    selectedMember.type === 'Late' 
+                                                        ? "text-amber-600 bg-amber-50 border-amber-100" 
+                                                        : "text-red-600 bg-red-50 border-red-100"
+                                                )}>
+                                                    {d.time}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                            {selectedMember.member.details.length === 0 && (
+                                <div className="p-20 text-center text-slate-300 italic font-medium uppercase tracking-widest text-xs">
+                                    No details found for this member
+                                </div>
+                            )}
+                        </div>
+ 
+                        <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                                Total Issues: {selectedMember.member.count}
+                            </p>
+                            <button 
+                                onClick={() => setSelectedMember(null)}
+                                className="px-6 py-2 bg-slate-900 text-white rounded-xl text-xs font-black hover:opacity-90 transition-all shadow-md active:scale-95"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

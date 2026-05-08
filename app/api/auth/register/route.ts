@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getUserByEmail, saveUser, logAudit } from "@/lib/database";
 import { createToken } from "@/lib/auth";
-import { sendNotificationEmail } from "@/lib/email";
+import { sendEmail } from "@/lib/email";
 import bcrypt from "bcryptjs";
 
 export async function POST(req: Request) {
@@ -31,15 +31,23 @@ export async function POST(req: Request) {
 
         await logAudit(email, "CREATE", "User", newUser.id, `User registered: ${email}`);
 
-        // Notify admin about new registration
-        await sendNotificationEmail(
-            "New User Registered",
-            `<p>A new user has registered on the <b>Team Management System</b>:</p>
-             <ul>
-                <li><b>Name:</b> ${name}</li>
-                <li><b>Email:</b> ${email}</li>
-                <li><b>Time:</b> ${new Date().toLocaleString()}</li>
-             </ul>`
+        // 1. Notify Admin
+        const adminEmail = process.env.ADMIN_EMAIL || process.env.EMAIL_USER;
+        if (adminEmail) {
+            await sendEmail(
+                adminEmail,
+                "New User Registered",
+                `<p>A new user has registered: <b>${name}</b> (${email}) at ${new Date().toLocaleString()}</p>`
+            );
+        }
+
+        // 2. Send Welcome Email to User
+        await sendEmail(
+            email,
+            "Welcome to Team Management System",
+            `<h1>Hi ${name},</h1>
+             <p>Welcome to our platform! Your account has been successfully created.</p>
+             <p>You can now log in and start managing your certifications.</p>`
         );
 
         const token = await createToken({ id: newUser.id, email, name, role: newUser.role as any });

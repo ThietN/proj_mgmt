@@ -741,7 +741,7 @@ export async function getTopLateMembers(limit: number = 10, filters: any = {}) {
     noStore();
     let query = supabase
         .from('attendance_records')
-        .select('username, employee_name, status, tracking_date, check_in_time')
+        .select('username, badge_id, employee_name, status, tracking_date, check_in_time, dc_name')
         .eq('status', 'LATE');
 
     if (filters.startDate && filters.endDate) {
@@ -751,10 +751,23 @@ export async function getTopLateMembers(limit: number = 10, filters: any = {}) {
     const { data, error } = await query;
     if (error) throw error;
 
-    const map: Record<string, { name: string, details: { date: string, time: string }[] }> = {};
+    // Fetch resource locations for mapping
+    const { data: resources } = await supabase.from('resources').select('employee_id, location');
+    const locationMap: Record<string, string> = {};
+    resources?.forEach(r => {
+        if (r.employee_id && r.location) {
+            const cleanId = r.employee_id.toString().trim();
+            locationMap[cleanId] = r.location.toString().replace('lab', 'Lab ');
+        }
+    });
+
+    const map: Record<string, { name: string, details: { date: string, time: string, lab: string }[] }> = {};
     data?.forEach((r: any) => {
         if (!map[r.username]) map[r.username] = { name: r.employee_name, details: [] };
-        map[r.username].details.push({ date: r.tracking_date, time: r.check_in_time });
+        const bId = r.badge_id?.toString().trim();
+        const uName = r.username?.toString().trim();
+        const lab = (bId && locationMap[bId]) || (uName && locationMap[uName]) || r.dc_name || 'N/A';
+        map[r.username].details.push({ date: r.tracking_date, time: r.check_in_time, lab });
     });
 
     return Object.entries(map)
@@ -772,7 +785,7 @@ export async function getTopNotAccessMembers(limit: number = 10, filters: any = 
     noStore();
     let query = supabase
         .from('attendance_records')
-        .select('username, employee_name, status, tracking_date, check_in_time')
+        .select('username, badge_id, employee_name, status, tracking_date, check_in_time, dc_name')
         .eq('status', 'NOT_ACCESS');
 
     if (filters.startDate && filters.endDate) {
@@ -782,10 +795,23 @@ export async function getTopNotAccessMembers(limit: number = 10, filters: any = 
     const { data, error } = await query;
     if (error) throw error;
 
-    const map: Record<string, { name: string, details: { date: string, time: string }[] }> = {};
+    // Fetch resource locations for mapping
+    const { data: resources } = await supabase.from('resources').select('employee_id, location');
+    const locationMap: Record<string, string> = {};
+    resources?.forEach(r => {
+        if (r.employee_id && r.location) {
+            const cleanId = r.employee_id.toString().trim();
+            locationMap[cleanId] = r.location.toString().replace('lab', 'Lab ');
+        }
+    });
+
+    const map: Record<string, { name: string, details: { date: string, time: string, lab: string }[] }> = {};
     data?.forEach((r: any) => {
         if (!map[r.username]) map[r.username] = { name: r.employee_name, details: [] };
-        map[r.username].details.push({ date: r.tracking_date, time: r.check_in_time || "Not Access" });
+        const bId = r.badge_id?.toString().trim();
+        const uName = r.username?.toString().trim();
+        const lab = (bId && locationMap[bId]) || (uName && locationMap[uName]) || r.dc_name || 'N/A';
+        map[r.username].details.push({ date: r.tracking_date, time: r.check_in_time || "Not Access", lab });
     });
 
     return Object.entries(map)

@@ -10,9 +10,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-export async function sendNotificationEmail(subject: string, html: string) {
-  const adminEmail = process.env.ADMIN_EMAIL || process.env.EMAIL_USER;
-  
+export async function sendEmail(to: string, subject: string, html: string) {
   if (!process.env.EMAIL_HOST || !process.env.EMAIL_USER) {
     console.log("Email config missing. Skipping email send.");
     return;
@@ -21,11 +19,11 @@ export async function sendNotificationEmail(subject: string, html: string) {
   try {
     await transporter.sendMail({
       from: `"Team Management System" <${process.env.EMAIL_USER}>`,
-      to: adminEmail,
+      to: to,
       subject: subject,
       html: html,
     });
-    console.log("Notification email sent successfully to", adminEmail);
+    console.log("Email sent successfully to", to);
   } catch (error) {
     console.error("Failed to send notification email:", error);
   }
