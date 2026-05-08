@@ -201,7 +201,22 @@ export function ReportClient({
 
         text += `\n4. Hiring & Internships\n`;
         if (activeCandidates.length > 0) text += `   • Hiring Pipeline: ${activeCandidates.length} active candidates\n`;
-        if (activeInterns.length > 0) text += `   • Active Internships: ${activeInterns.length} members\n`;
+        if (activeInterns.length > 0) {
+            text += `   • Active Internships: ${activeInterns.length} members\n`;
+            activeInterns.forEach(i => {
+                let progressStr = "";
+                if (i.start_date && i.end_date) {
+                    const start = new Date(i.start_date).getTime();
+                    const end = new Date(i.end_date).getTime();
+                    const current = new Date().getTime();
+                    if (end > start) {
+                        const progress = Math.min(100, Math.max(0, ((current - start) / (end - start)) * 100));
+                        progressStr = ` (Progress: ${Math.round(progress)}%, ${i.start_date} to ${i.end_date})`;
+                    }
+                }
+                text += `     - ${i.candidate_name}${progressStr}\n`;
+            });
+        }
         if (customNotes.hiringExtra) text += `   ${stripHtml(customNotes.hiringExtra).replace(/\n/g, '\n   ')}\n`;
 
         text += `\n5. Work Tracker\n`;
@@ -420,7 +435,21 @@ export function ReportClient({
                         </div>
                         <div className="space-y-2">
                             <span className="text-[10px] font-black text-violet-600 uppercase tracking-widest mb-1 block">Interns</span>
-                            {activeInterns.length > 0 ? activeInterns.map(i => <Bullet key={i.candidate_id}><strong>{i.candidate_name}</strong></Bullet>) : <Bullet>No active interns.</Bullet>}
+                            {activeInterns.length > 0 ? activeInterns.map(i => {
+                                let progressStr = "";
+                                if (i.start_date && i.end_date) {
+                                    const start = new Date(i.start_date).getTime();
+                                    const end = new Date(i.end_date).getTime();
+                                    const current = new Date().getTime();
+                                    if (end > start) {
+                                        const progress = Math.min(100, Math.max(0, ((current - start) / (end - start)) * 100));
+                                        progressStr = ` — Progress: ${Math.round(progress)}% (${i.start_date} to ${i.end_date})`;
+                                    }
+                                } else if (i.start_date) {
+                                    progressStr = ` — Started: ${i.start_date}`;
+                                }
+                                return <Bullet key={i.candidate_id}><strong>{i.candidate_name}</strong>{progressStr}</Bullet>
+                            }) : <Bullet>No active interns.</Bullet>}
                         </div>
                     </div>
                     {renderEditableNote("hiringExtra", "✏️ Add hiring updates...")}
