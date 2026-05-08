@@ -754,7 +754,7 @@ export async function getTopLateMembers(limit: number = 10, filters: any = {}) {
     // Fetch resource locations for mapping
     const { data: resources } = await supabase.from('resources').select('employee_id, location');
     const locationMap: Record<string, string> = {};
-    resources?.forEach(r => {
+    resources?.forEach((r: any) => {
         if (r.employee_id && r.location) {
             const cleanId = r.employee_id.toString().trim();
             locationMap[cleanId] = r.location.toString().replace('lab', 'Lab ');
@@ -798,7 +798,7 @@ export async function getTopNotAccessMembers(limit: number = 10, filters: any = 
     // Fetch resource locations for mapping
     const { data: resources } = await supabase.from('resources').select('employee_id, location');
     const locationMap: Record<string, string> = {};
-    resources?.forEach(r => {
+    resources?.forEach((r: any) => {
         if (r.employee_id && r.location) {
             const cleanId = r.employee_id.toString().trim();
             locationMap[cleanId] = r.location.toString().replace('lab', 'Lab ');
