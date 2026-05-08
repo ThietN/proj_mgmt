@@ -180,6 +180,7 @@ export interface WeeklyReportData {
     program_notes: string;
     innovation_notes: string;
     activities_notes: string;
+    hiring_notes?: string;
     other_notes: string;
     effort_override?: number;
     updated_at: string;

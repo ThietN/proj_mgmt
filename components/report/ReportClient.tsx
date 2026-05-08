@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { RichTextEditor } from "@/components/ui/RichTextEditor";
 import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 interface ReportClientProps {
     resources: Resource[];
@@ -41,6 +42,7 @@ export function ReportClient({
     trackingTasks, workspaces, pastReports,
     attendanceStats, lateRankings, notAccessRankings
 }: ReportClientProps) {
+    const router = useRouter();
     const now = new Date();
     const currentYear = now.getFullYear();
     const currentWeekNum = getWeekNumber(now);
@@ -116,7 +118,7 @@ export function ReportClient({
                 programExtra: saved.program_notes || "",
                 innovationExtra: saved.innovation_notes || "",
                 activitiesExtra: saved.activities_notes || "",
-                hiringExtra: "",
+                hiringExtra: saved.hiring_notes || "",
                 otherUpdates: saved.other_notes || "",
             });
         } else {
@@ -139,16 +141,25 @@ export function ReportClient({
                     program_notes: notesToSave.programExtra,
                     innovation_notes: notesToSave.innovationExtra,
                     activities_notes: notesToSave.activitiesExtra,
+                    hiring_notes: notesToSave.hiringExtra,
                     other_notes: notesToSave.otherUpdates,
                     effort_override: null,
                 })
             });
+            
             if (res.ok) {
                 toast.success("Progress saved successfully!");
+                router.refresh();
+                return true;
+            } else {
+                const data = await res.json();
+                toast.error(data.error || "Failed to save progress.");
+                return false;
             }
         } catch (e) {
             console.error(e);
-            toast.error("Failed to save progress.");
+            toast.error("An error occurred while saving.");
+            return false;
         }
         setIsSaving(false);
     }
@@ -238,8 +249,14 @@ export function ReportClient({
                     />
                     <div className="flex justify-end p-2 border-t border-slate-100 bg-slate-50 gap-2">
                         <button onClick={() => setEditingSection(null)} className="px-4 py-1.5 text-xs font-bold text-slate-500 hover:bg-slate-200 rounded-lg">Cancel</button>
-                        <button onClick={() => { saveAllData({ ...customNotes, [field]: customNotes[field] }); setEditingSection(null); }} disabled={isSaving}
-                            className="flex items-center gap-1.5 px-4 py-1.5 bg-indigo-600 text-white text-xs font-bold rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-all">
+                        <button 
+                            onClick={async () => { 
+                                const success = await saveAllData({ ...customNotes, [field]: customNotes[field] }); 
+                                if (success) setEditingSection(null); 
+                            }} 
+                            disabled={isSaving}
+                            className="flex items-center gap-1.5 px-4 py-1.5 bg-indigo-600 text-white text-xs font-bold rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-all"
+                        >
                             {isSaving ? <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Check className="w-3.5 h-3.5" />} Done
                         </button>
                     </div>

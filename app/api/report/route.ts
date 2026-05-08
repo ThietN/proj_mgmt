@@ -20,6 +20,7 @@ export async function PUT(req: Request) {
             program_notes: body.program_notes || "",
             innovation_notes: body.innovation_notes || "",
             activities_notes: body.activities_notes || "",
+            hiring_notes: body.hiring_notes || "",
             other_notes: body.other_notes || "",
             effort_override: body.effort_override ? Number(body.effort_override) : null,
             updated_at: new Date().toISOString(),
