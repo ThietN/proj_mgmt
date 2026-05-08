@@ -25,6 +25,7 @@ interface ReportClientProps {
     attendanceStats: any;
     lateRankings: any[];
     notAccessRankings: any[];
+    interns: any[];
 }
 
 function getWeekNumber(d: Date): number {
@@ -40,7 +41,7 @@ function formatDate(d: Date): string {
 export function ReportClient({
     resources, projects, innovations, csat, esat, hiring,
     trackingTasks, workspaces, pastReports,
-    attendanceStats, lateRankings, notAccessRankings
+    attendanceStats, lateRankings, notAccessRankings, interns
 }: ReportClientProps) {
     const router = useRouter();
     const now = new Date();
@@ -79,7 +80,7 @@ export function ReportClient({
     const riskResources = resources.filter(r => r.risk_flag);
     const recentJoiners = resources.filter(r => r.is_ramp_up);
     const activeCandidates = hiring.filter(c => c.type === "Candidate" && c.interview_status !== "Rejected" && c.interview_status !== "Joined");
-    const activeInterns = hiring.filter(c => c.type === "Intern");
+    const activeInterns = interns.filter(i => i.status !== "Completed");
     const joinedRecent = hiring.filter(c => c.interview_status === "Joined" && c.type !== "Intern");
 
     const activeProjects = projects.filter(p => p.delivery_status !== "Completed");
@@ -214,7 +215,12 @@ export function ReportClient({
                         progressStr = ` (Progress: ${Math.round(progress)}%, ${i.start_date} to ${i.end_date})`;
                     }
                 }
-                text += `     - ${i.candidate_name}${progressStr}\n`;
+                let academicStr = "";
+                if (i.university) academicStr += ` | ${i.university}`;
+                if (i.gpa) academicStr += ` | GPA: ${i.gpa}`;
+                if (i.english_score) academicStr += ` | English: ${i.english_score}`;
+                
+                text += `     - ${i.full_name}${progressStr}${academicStr}\n`;
             });
         }
         if (customNotes.hiringExtra) text += `   ${stripHtml(customNotes.hiringExtra).replace(/\n/g, '\n   ')}\n`;
@@ -435,21 +441,46 @@ export function ReportClient({
                         </div>
                         <div className="space-y-2">
                             <span className="text-[10px] font-black text-violet-600 uppercase tracking-widest mb-1 block">Interns</span>
-                            {activeInterns.length > 0 ? activeInterns.map(i => {
+                            {activeInterns.map(i => {
+                                let progress = 0;
                                 let progressStr = "";
                                 if (i.start_date && i.end_date) {
                                     const start = new Date(i.start_date).getTime();
                                     const end = new Date(i.end_date).getTime();
                                     const current = new Date().getTime();
                                     if (end > start) {
-                                        const progress = Math.min(100, Math.max(0, ((current - start) / (end - start)) * 100));
+                                        progress = Math.min(100, Math.max(0, ((current - start) / (end - start)) * 100));
                                         progressStr = ` — Progress: ${Math.round(progress)}% (${i.start_date} to ${i.end_date})`;
                                     }
                                 } else if (i.start_date) {
                                     progressStr = ` — Started: ${i.start_date}`;
                                 }
-                                return <Bullet key={i.candidate_id}><strong>{i.candidate_name}</strong>{progressStr}</Bullet>
-                            }) : <Bullet>No active interns.</Bullet>}
+                                
+                                // New Filtering Logic:
+                                // Include if progress < 100
+                                // OR if progress is 100 but the end_date is in the selected report week/year
+                                let shouldShow = progress < 100;
+                                if (!shouldShow && i.end_date) {
+                                    const endD = new Date(i.end_date);
+                                    const endWeek = getWeekNumber(endD);
+                                    const endYear = endD.getFullYear();
+                                    if (endWeek === selectedWeek && endYear === selectedYear) {
+                                        shouldShow = true;
+                                    }
+                                }
+
+                                if (!shouldShow) return null;
+
+                                return (
+                                    <Bullet key={i.id}>
+                                        <strong>{i.full_name}</strong>{progressStr}
+                                        {i.university && <> | <span className="text-emerald-600 font-bold">{i.university}</span></>}
+                                        {i.gpa && <> | GPA: <span className="text-rose-600 font-bold">{i.gpa}</span></>}
+                                        {i.english_score && <> | English: <span className="text-rose-600 font-bold">{i.english_score}</span></>}
+                                    </Bullet>
+                                );
+                            }).filter(Boolean)}
+                            {activeInterns.length === 0 && <Bullet>No active interns.</Bullet>}
                         </div>
                     </div>
                     {renderEditableNote("hiringExtra", "✏️ Add hiring updates...")}

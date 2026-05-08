@@ -1,7 +1,7 @@
 import { 
     getResources, getProjects, getInnovations, getCSAT, getESAT, getHiring, 
     getTrackingTasks, getTrackingWorkspaces, getWeeklyReports,
-    getAttendanceStats, getTopLateMembers, getTopNotAccessMembers 
+    getAttendanceStats, getTopLateMembers, getTopNotAccessMembers, getInterns
 } from "@/lib/database";
 import { ReportClient } from "@/components/report/ReportClient";
 
@@ -11,7 +11,7 @@ export default async function ReportPage() {
     const [
         resources, projects, innovations, csat, esat, 
         hiring, trackingTasks, workspaces, pastReports,
-        attendanceStats, lateRankings, notAccessRankings
+        attendanceStats, lateRankings, notAccessRankings, interns
     ] = await Promise.all([
         getResources(),
         getProjects(),
@@ -25,6 +25,7 @@ export default async function ReportPage() {
         getAttendanceStats(),
         getTopLateMembers(15),
         getTopNotAccessMembers(15),
+        getInterns(),
     ]);
 
     return (
@@ -46,6 +47,7 @@ export default async function ReportPage() {
                 attendanceStats={attendanceStats}
                 lateRankings={lateRankings}
                 notAccessRankings={notAccessRankings}
+                interns={interns}
             />
         </div>
     );
