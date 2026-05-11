@@ -36,6 +36,7 @@ import {
     Loader2
 } from "lucide-react";
 import { Survey, SurveyQuestion, QuestionType } from "@/types";
+import { toast } from "react-hot-toast";
 
 type Tab = "questions" | "responses" | "settings";
 
@@ -118,7 +119,7 @@ export default function SurveyDesigner() {
     };
 
     const handleSave = async () => {
-        if (!survey.title?.trim()) return alert("Please enter a title");
+        if (!survey.title?.trim()) return toast.error("Please enter a title");
         setIsSaving(true);
         try {
             const isNew = !survey.id;
@@ -130,24 +131,24 @@ export default function SurveyDesigner() {
             if (!res.ok) throw new Error("Failed to save");
             
             const data = await res.json();
-            alert(isNew ? "Created successfully!" : "Updated successfully!");
+            toast.success(isNew ? "Survey created!" : "Survey updated!");
             fetchSurveys();
             if (isNew && data.survey) {
                 setSurvey(data.survey);
             }
             setShowList(true);
         } catch (err) {
-            alert("Error saving survey");
+            toast.error("Error saving survey");
         } finally {
             setIsSaving(false);
         }
     };
 
     const copyShareLink = () => {
-        if (!survey.id) return alert("Please save the survey first before sharing.");
+        if (!survey.id) return toast.error("Save the survey first!");
         const url = `${window.location.origin}/surveys/view/${survey.id}`;
         navigator.clipboard.writeText(url);
-        alert("Link copied to clipboard!");
+        toast.success("Link copied to clipboard!");
     };
 
     const handleDelete = async (id: string) => {
@@ -156,8 +157,9 @@ export default function SurveyDesigner() {
         try {
             await fetch(`/api/surveys?id=${id}`, { method: "DELETE" });
             setSurveys(prev => prev.filter(s => s.id !== id));
+            toast.success("Survey deleted");
         } catch (err) {
-            alert("Error deleting survey");
+            toast.error("Error deleting survey");
         } finally {
             setIsLoading(false);
         }

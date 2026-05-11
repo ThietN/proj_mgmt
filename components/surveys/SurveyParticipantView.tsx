@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { Survey, SurveyQuestion } from "@/types";
 import { Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { toast } from "react-hot-toast";
 
 export default function SurveyParticipantView({ surveyId }: { surveyId: string }) {
     const [survey, setSurvey] = useState<Survey | null>(null);
@@ -40,7 +41,7 @@ export default function SurveyParticipantView({ surveyId }: { surveyId: string }
         if (survey?.questions) {
             for (const q of survey.questions) {
                 if (q.required && !answers[q.id]) {
-                    return alert(`Please answer the required question: ${q.question}`);
+                    return toast.error(`Please answer: ${q.question}`);
                 }
             }
         }
@@ -59,8 +60,9 @@ export default function SurveyParticipantView({ surveyId }: { surveyId: string }
 
             if (!res.ok) throw new Error("Failed to submit");
             setIsSubmitted(true);
+            toast.success("Response submitted!");
         } catch (err) {
-            alert("Error submitting response");
+            toast.error("Error submitting response");
         } finally {
             setIsSubmitting(false);
         }
