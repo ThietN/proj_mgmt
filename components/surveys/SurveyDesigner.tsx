@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { 
     Plus, 
     Trash2, 
@@ -28,7 +29,11 @@ import {
     Grid,
     Grid3X3,
     Clock,
-    MoveHorizontal
+    MoveHorizontal,
+    ChevronLeft,
+    Activity,
+    Check,
+    Loader2
 } from "lucide-react";
 import { Survey, SurveyQuestion, QuestionType } from "@/types";
 
@@ -49,32 +54,129 @@ const QUESTION_TYPES: { value: QuestionType; label: string; icon: any }[] = [
     { value: "time", label: "Time", icon: Clock },
 ];
 
+const DEFAULT_SURVEY: Partial<Survey> = {
+    title: "Untitled form",
+    description: "",
+    questions: [
+        {
+            id: "q1",
+            order_index: 0,
+            type: "multiple_choice",
+            question: "Untitled Question",
+            required: false,
+            options: ["Option 1"]
+        }
+    ],
+    is_anonymous: true,
+    status: "Draft",
+    audience: "All"
+};
+
 export default function SurveyDesigner() {
+    const router = useRouter();
     const [activeTab, setActiveTab] = useState<Tab>("questions");
-    const [survey, setSurvey] = useState<Partial<Survey>>({
-        title: "Untitled form",
-        description: "",
-        questions: [
-            {
-                id: "q1",
-                order_index: 0,
-                type: "multiple_choice",
-                question: "Untitled Question",
-                required: false,
-                options: ["Option 1"]
-            }
-        ],
-        is_anonymous: true,
-    });
-
+    const [survey, setSurvey] = useState<Partial<Survey>>(DEFAULT_SURVEY);
     const [activeQuestionId, setActiveQuestionId] = useState<string | null>("q1");
+    const [showList, setShowList] = useState(true);
+    const [surveys, setSurveys] = useState<Survey[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
 
-    // Mock responses for the "Responses" tab
-    const mockResponses = [
-        { email: "john.doe@example.com", answers: { "q1": "Option 1" }, date: "2024-05-10" },
-        { email: "alice.smith@example.com", answers: { "q1": "Option 2" }, date: "2024-05-11" },
-        { email: "bob.wilson@example.com", answers: { "q1": "Option 1" }, date: "2024-05-11" },
-    ];
+    const [responses, setResponses] = useState<any[]>([]);
+
+    useEffect(() => {
+        fetchSurveys();
+    }, []);
+
+    useEffect(() => {
+        if (activeTab === "responses" && survey.id) {
+            fetchResponses();
+        }
+    }, [activeTab, survey.id]);
+
+    const fetchSurveys = async () => {
+        setIsLoading(true);
+        try {
+            const res = await fetch("/api/surveys");
+            const data = await res.json();
+            if (data.surveys) setSurveys(data.surveys);
+        } catch (err) {
+            console.error("Failed to fetch surveys", err);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const fetchResponses = async () => {
+        try {
+            const res = await fetch(`/api/surveys/responses?survey_id=${survey.id}`);
+            const data = await res.json();
+            if (data.responses) setResponses(data.responses);
+        } catch (err) {
+            console.error("Failed to fetch responses", err);
+        }
+    };
+
+    const handleSave = async () => {
+        if (!survey.title?.trim()) return alert("Please enter a title");
+        setIsSaving(true);
+        try {
+            const isNew = !survey.id;
+            const res = await fetch("/api/surveys", {
+                method: isNew ? "POST" : "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(survey),
+            });
+            if (!res.ok) throw new Error("Failed to save");
+            
+            const data = await res.json();
+            alert(isNew ? "Created successfully!" : "Updated successfully!");
+            fetchSurveys();
+            if (isNew && data.survey) {
+                setSurvey(data.survey);
+            }
+            setShowList(true);
+        } catch (err) {
+            alert("Error saving survey");
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const copyShareLink = () => {
+        if (!survey.id) return alert("Please save the survey first before sharing.");
+        const url = `${window.location.origin}/surveys/view/${survey.id}`;
+        navigator.clipboard.writeText(url);
+        alert("Link copied to clipboard!");
+    };
+
+    const handleDelete = async (id: string) => {
+        if (!confirm("Are you sure you want to delete this survey?")) return;
+        setIsLoading(true);
+        try {
+            await fetch(`/api/surveys?id=${id}`, { method: "DELETE" });
+            setSurveys(prev => prev.filter(s => s.id !== id));
+        } catch (err) {
+            alert("Error deleting survey");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const editSurvey = (s: Survey) => {
+        setSurvey({
+            ...s,
+            questions: s.questions.map(q => ({ ...q, options: q.options || [] }))
+        });
+        setActiveQuestionId(s.questions[0]?.id || null);
+        setShowList(false);
+    };
+
+    const createNew = () => {
+        setSurvey(DEFAULT_SURVEY);
+        setActiveQuestionId("q1");
+        setShowList(false);
+    };
 
     const addQuestion = () => {
         const newId = `q${Date.now()}`;
@@ -116,32 +218,138 @@ export default function SurveyDesigner() {
         }));
     };
 
+    if (showList) {
+        return (
+            <div className="min-h-screen bg-[#f8f9fa]">
+                <header className="bg-white px-6 py-4 flex items-center justify-between shadow-sm sticky top-0 z-10">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-purple-600 rounded text-white">
+                            <Layout size={20} />
+                        </div>
+                        <span className="text-xl font-medium text-gray-700">Surveys</span>
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <div className="relative group hidden md:block">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-purple-600" size={18} />
+                            <input className="bg-gray-100 focus:bg-white border-transparent focus:border-purple-600 focus:ring-2 focus:ring-purple-100 rounded-lg pl-10 pr-4 py-2 w-[400px] transition-all outline-none text-sm" placeholder="Search forms" />
+                        </div>
+                        <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">T</div>
+                    </div>
+                </header>
+
+                <main className="max-w-6xl mx-auto py-8 px-6">
+                    {/* Template Section */}
+                    <section className="mb-12">
+                        <h2 className="text-sm font-medium text-gray-600 mb-4">Start a new form</h2>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-6">
+                            <button onClick={createNew} className="group">
+                                <div className="aspect-[3/4] bg-white border border-gray-200 rounded-lg flex items-center justify-center hover:border-purple-600 transition-all shadow-sm">
+                                    <Plus size={48} className="text-purple-600" />
+                                </div>
+                                <p className="mt-2 text-sm font-medium text-gray-700 text-left">Blank</p>
+                            </button>
+                            {/* Dummy templates */}
+                            {["Contact Info", "RSVP", "Party Invite", "T-Shirt Sign Up", "Event Feedback"].map(t => (
+                                <div key={t} className="group opacity-50 cursor-not-allowed">
+                                    <div className="aspect-[3/4] bg-white border border-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
+                                        <div className="w-full h-full bg-gradient-to-br from-purple-50 to-indigo-50 flex items-center justify-center text-[10px] text-purple-300 font-bold uppercase rotate-[-20deg]">Template</div>
+                                    </div>
+                                    <p className="mt-2 text-sm font-medium text-gray-700 text-left">{t}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+
+                    {/* Recent Forms */}
+                    <section>
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-sm font-medium text-gray-700">Recent forms</h2>
+                            <div className="flex items-center gap-2">
+                                <button className="p-2 hover:bg-gray-200 rounded-full text-gray-600"><GripVertical size={18} /></button>
+                                <button className="p-2 hover:bg-gray-200 rounded-full text-gray-600"><MoreVertical size={18} /></button>
+                            </div>
+                        </div>
+
+                        {isLoading ? (
+                            <div className="flex flex-col items-center justify-center py-20 gap-4">
+                                <Loader2 className="animate-spin text-purple-600" size={32} />
+                                <p className="text-gray-500 text-sm">Loading your forms...</p>
+                            </div>
+                        ) : surveys.length === 0 ? (
+                            <div className="bg-white rounded-lg border border-dashed border-gray-300 py-20 flex flex-col items-center gap-4">
+                                <Activity className="text-gray-300" size={64} />
+                                <p className="text-gray-500">No forms found. Create your first one!</p>
+                                <button onClick={createNew} className="bg-purple-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-purple-700 transition-colors">Create blank form</button>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                                {surveys.map(s => (
+                                    <div key={s.id} onClick={() => editSurvey(s)} className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:border-purple-600 transition-all cursor-pointer group shadow-sm hover:shadow-md">
+                                        <div className="aspect-[16/9] bg-purple-50 flex items-center justify-center border-b border-gray-100">
+                                            <Layout className="text-purple-200" size={48} />
+                                        </div>
+                                        <div className="p-4 flex items-center justify-between">
+                                            <div className="flex-1 min-w-0">
+                                                <h3 className="text-sm font-medium text-gray-800 truncate">{s.title}</h3>
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <Layout size={12} className="text-purple-600" />
+                                                    <span className="text-[10px] text-gray-500 font-medium">Opened 10:24 AM</span>
+                                                </div>
+                                            </div>
+                                            <div className="relative group/menu">
+                                                <button 
+                                                    onClick={(e) => { e.stopPropagation(); handleDelete(s.id); }} 
+                                                    className="p-2 hover:bg-red-50 text-gray-400 hover:text-red-600 rounded-full transition-colors"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </section>
+                </main>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-[#f0ebf8] font-sans text-[#202124]">
             {/* Header */}
             <header className="sticky top-0 z-50 bg-white border-b border-[#dadce0]">
                 <div className="px-4 py-2 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 bg-purple-600 rounded-lg text-white">
-                            <Layout size={20} />
+                    <div className="flex items-center gap-2">
+                        <button onClick={() => setShowList(true)} className="p-2 hover:bg-gray-100 rounded-full text-gray-600 transition-colors mr-1">
+                            <ChevronLeft size={24} />
+                        </button>
+                        <div className="p-2 bg-purple-600 rounded text-white hidden sm:block">
+                            <Layout size={16} />
                         </div>
-                        <h1 className="text-xl font-medium truncate max-w-[300px]">
+                        <h1 className="text-lg font-medium truncate max-w-[300px]">
                             {survey.title || "Untitled form"}
                         </h1>
                     </div>
                     <div className="flex items-center gap-2">
+                        <button onClick={copyShareLink} className="p-2 hover:bg-gray-100 rounded-full text-purple-600 transition-colors" title="Copy Share Link">
+                            <Share2 size={20} />
+                        </button>
                         <button className="p-2 hover:bg-gray-100 rounded-full text-gray-600 transition-colors">
                             <Eye size={20} />
                         </button>
-                        <button className="bg-purple-700 hover:bg-purple-800 text-white px-6 py-2 rounded font-medium text-sm transition-colors ml-2">
-                            Send
+                        <button 
+                            onClick={handleSave} 
+                            disabled={isSaving}
+                            className="bg-purple-700 hover:bg-purple-800 disabled:bg-purple-400 text-white px-6 py-2 rounded font-medium text-sm transition-colors ml-2 flex items-center gap-2"
+                        >
+                            {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
+                            Save
                         </button>
                         <button className="p-2 hover:bg-gray-100 rounded-full text-gray-600 transition-colors ml-2">
                             <MoreVertical size={20} />
                         </button>
-                        <div className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs font-bold ml-4">
-                            T
-                        </div>
+                        <div className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs font-bold ml-4">T</div>
                     </div>
                 </div>
                 
@@ -407,11 +615,11 @@ export default function SurveyDesigner() {
                         <div className="bg-white rounded-lg shadow-sm p-6 space-y-6">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-baseline gap-2">
-                                    <h2 className="text-2xl font-normal text-gray-900">{mockResponses.length} responses</h2>
+                                    <h2 className="text-2xl font-normal text-gray-900">{responses.length} responses</h2>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <button className="flex items-center gap-1 text-green-700 font-medium text-sm hover:bg-green-50 px-3 py-2 rounded">
-                                        <Layout size={16} /> Link to Sheets
+                                    <button onClick={fetchResponses} className="p-2 hover:bg-gray-100 rounded-full text-gray-600">
+                                        <Activity size={20} />
                                     </button>
                                     <button className="p-2 hover:bg-gray-100 rounded-full text-gray-600">
                                         <MoreVertical size={20} />
@@ -419,28 +627,40 @@ export default function SurveyDesigner() {
                                 </div>
                             </div>
 
-                            {/* Response Stats / Summary (simplified) */}
-                            <div className="space-y-8">
-                                {survey.questions?.map(q => (
-                                    <div key={q.id} className="border border-gray-200 rounded-lg p-6">
-                                        <h3 className="text-base font-medium mb-4">{q.question}</h3>
-                                        <div className="text-xs text-gray-500 mb-4">{mockResponses.length} responses</div>
-                                        
-                                        {/* Inline Responses */}
-                                        <div className="space-y-2">
-                                            {mockResponses.map((res, i) => (
-                                                <div key={i} className="flex items-center gap-4 py-3 px-4 bg-gray-50 rounded-lg border border-gray-100">
-                                                    <div className="flex-1">
-                                                        <div className="text-sm font-medium text-gray-900">{res.answers[q.id as keyof typeof res.answers] || "No answer"}</div>
-                                                        <div className="text-xs text-gray-500 mt-0.5">{res.email} • {res.date}</div>
+                            {responses.length === 0 ? (
+                                <div className="bg-gray-50 border border-gray-200 rounded-lg p-10 flex flex-col items-center gap-4">
+                                    <MessageSquare className="text-gray-300" size={64} />
+                                    <p className="text-gray-500">Waiting for responses</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-8">
+                                    {survey.questions?.map(q => (
+                                        <div key={q.id} className="border border-gray-200 rounded-lg p-6">
+                                            <h3 className="text-base font-medium mb-4">{q.question}</h3>
+                                            
+                                            <div className="space-y-2">
+                                                {responses.filter(r => r.answers[q.id] !== undefined).map((res, i) => (
+                                                    <div key={i} className="flex items-center gap-4 py-3 px-4 bg-gray-50 rounded-lg border border-gray-100">
+                                                        <div className="flex-1">
+                                                            <div className="text-sm font-medium text-gray-900">
+                                                                {Array.isArray(res.answers[q.id]) 
+                                                                    ? res.answers[q.id].join(", ") 
+                                                                    : String(res.answers[q.id])}
+                                                            </div>
+                                                            <div className="text-xs text-gray-500 mt-0.5">
+                                                                {res.respondent_email || "Anonymous"} • {new Date(res.submitted_at).toLocaleString()}
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                    <button className="text-gray-400 hover:text-gray-600"><ChevronRight size={18} /></button>
-                                                </div>
-                                            ))}
+                                                ))}
+                                                {responses.filter(r => r.answers[q.id] !== undefined).length === 0 && (
+                                                    <div className="text-sm text-gray-400 italic">No answers for this question yet.</div>
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
-                            </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}
@@ -449,7 +669,6 @@ export default function SurveyDesigner() {
                     <div className="bg-white rounded-lg shadow-sm divide-y divide-gray-200">
                         <div className="p-6">
                             <h2 className="text-base font-medium text-gray-900 mb-6">General</h2>
-                            
                             <div className="space-y-8">
                                 <div className="flex items-start justify-between gap-4">
                                     <div className="flex-1">
@@ -460,7 +679,6 @@ export default function SurveyDesigner() {
                                         <div className="absolute top-1/2 -translate-y-1/2 left-[-4px] w-6 h-6 bg-white rounded-full shadow-md" />
                                     </div>
                                 </div>
-
                                 <div className="space-y-4">
                                     <div className="flex items-center gap-2 text-gray-700">
                                         <AtSign size={18} />
@@ -471,7 +689,6 @@ export default function SurveyDesigner() {
                                         <div className="flex items-start justify-between gap-4">
                                             <div className="flex-1">
                                                 <div className="text-sm text-gray-800">Collect email addresses</div>
-                                                <div className="text-xs text-gray-500 mt-1">Require users to sign in to respond</div>
                                             </div>
                                             <div 
                                                 className={`w-10 h-5 rounded-full relative transition-colors cursor-pointer ${!survey.is_anonymous ? "bg-purple-200" : "bg-gray-300"}`}
@@ -480,34 +697,13 @@ export default function SurveyDesigner() {
                                                 <div className={`absolute top-1/2 -translate-y-1/2 w-6 h-6 rounded-full shadow-md transition-all ${!survey.is_anonymous ? "right-[-4px] bg-purple-700" : "left-[-4px] bg-white"}`} />
                                             </div>
                                         </div>
-                                        
-                                        <div className="flex items-start justify-between gap-4">
-                                            <div className="flex-1">
-                                                <div className="text-sm text-gray-800">Limit to 1 response</div>
-                                            </div>
-                                            <div className="w-10 h-5 bg-gray-300 rounded-full relative cursor-pointer">
-                                                <div className="absolute top-1/2 -translate-y-1/2 left-[-4px] w-6 h-6 bg-white rounded-full shadow-md" />
-                                            </div>
-                                        </div>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="p-6">
-                            <h2 className="text-base font-medium text-gray-900 mb-6">Presentation</h2>
-                            <div className="space-y-4">
-                                <div className="flex items-center gap-2 text-gray-700">
-                                    <Layout size={18} />
-                                    <span className="text-sm font-medium">Form defaults</span>
-                                    <ChevronDown size={16} />
                                 </div>
                             </div>
                         </div>
                     </div>
                 )}
                 
-                {/* Footer Padding */}
                 <div className="h-20" />
             </main>
         </div>
