@@ -215,7 +215,19 @@ export interface Poll {
     total_votes: number;
 }
 
-export type QuestionType = "multiple_choice" | "rating" | "nps" | "text" | "checkbox";
+export type QuestionType = 
+    | "short_answer" 
+    | "paragraph" 
+    | "multiple_choice" 
+    | "checkbox" 
+    | "dropdown" 
+    | "file_upload" 
+    | "linear_scale" 
+    | "rating" 
+    | "multiple_choice_grid" 
+    | "checkbox_grid" 
+    | "date" 
+    | "time";
 
 export interface SurveyQuestion {
     id: string;

@@ -1,7 +1,10 @@
-import { getSurveys } from "@/lib/database";
-import SurveysClient from "@/components/surveys/SurveysClient";
+import SurveyDesigner from "@/components/surveys/SurveyDesigner";
 
-export default async function SurveysPage() {
-    const surveys = await getSurveys();
-    return <SurveysClient surveys={surveys} />;
+export const metadata = {
+    title: "Surveys | Project Mgmt",
+    description: "Manage your surveys",
+};
+
+export default function SurveysPage() {
+    return <SurveyDesigner />;
 }
