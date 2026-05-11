@@ -38,6 +38,8 @@ import {
 } from "lucide-react";
 import { Survey, SurveyQuestion, QuestionType } from "@/types";
 import { toast } from "react-hot-toast";
+import * as XLSX from "xlsx";
+import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 
 type Tab = "questions" | "responses" | "settings";
 
@@ -85,6 +87,10 @@ export default function SurveyDesigner() {
     const [isSaving, setIsSaving] = useState(false);
     const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
     const [responses, setResponses] = useState<any[]>([]);
+    
+    // Response deletion states
+    const [respDeleteId, setRespDeleteId] = useState<string | null>(null);
+    const [showDeleteAllResp, setShowDeleteAllResp] = useState(false);
 
     useEffect(() => {
         fetchSurveys();
@@ -164,11 +170,62 @@ export default function SurveyDesigner() {
             setSurveys(prev => prev.filter(s => s.id !== deleteConfirmId));
             toast.success("Survey deleted successfully.");
             setDeleteConfirmId(null);
-            setShowList(true); // Always go back to list after delete
+            setShowList(true); 
         } catch (err) {
             toast.error("Failed to delete survey.");
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleDeleteResponse = async () => {
+        if (!respDeleteId) return;
+        try {
+            await fetch(`/api/surveys/responses?id=${respDeleteId}`, { method: "DELETE" });
+            setResponses(prev => prev.filter(r => r.id !== respDeleteId));
+            toast.success("Response deleted");
+            setRespDeleteId(null);
+        } catch (err) {
+            toast.error("Failed to delete response");
+        }
+    };
+
+    const handleDeleteAllResponses = async () => {
+        if (!survey.id) return;
+        try {
+            await fetch(`/api/surveys/responses?survey_id=${survey.id}`, { method: "DELETE" });
+            setResponses([]);
+            toast.success("All responses deleted");
+            setShowDeleteAllResp(false);
+        } catch (err) {
+            toast.error("Failed to delete responses");
+        }
+    };
+
+    const exportToExcel = () => {
+        if (responses.length === 0) return toast.error("No responses to export");
+
+        try {
+            const data = responses.map(res => {
+                const row: any = {
+                    "Submitted At": new Date(res.submitted_at).toLocaleString(),
+                    "Respondent": res.respondent_email || "Anonymous"
+                };
+                survey.questions?.forEach(q => {
+                    let answer = res.answers[q.id];
+                    if (Array.isArray(answer)) answer = answer.join(", ");
+                    row[q.question] = answer || "";
+                });
+                return row;
+            });
+            const ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Responses");
+            XLSX.writeFile(wb, `${survey.title || "Survey"}_Responses.xlsx`);
+            toast.success("Excel file downloaded!");
+        } catch (err) {
+            console.error("Export failed", err);
+            toast.error("Failed to export to Excel");
         }
     };
 
@@ -225,6 +282,18 @@ export default function SurveyDesigner() {
                 q.id === qId ? { ...q, options: [...(q.options || []), `Option ${(q.options?.length || 0) + 1}`] } : q
             )
         }));
+    };
+
+    const onDragEnd = (result: DropResult) => {
+        if (!result.destination) return;
+        const items = Array.from(survey.questions || []);
+        const [reorderedItem] = items.splice(result.source.index, 1);
+        items.splice(result.destination.index, 0, reorderedItem);
+        const updatedItems = items.map((item, index) => ({
+            ...item,
+            order_index: index
+        }));
+        setSurvey(prev => ({ ...prev, questions: updatedItems }));
     };
 
     return (
@@ -399,173 +468,104 @@ export default function SurveyDesigner() {
                                     </div>
                                 </div>
 
-                                <div className="relative">
-                                    <div className="space-y-4">
-                                        {survey.questions?.map((q, idx) => (
-                                            <div 
-                                                key={q.id}
-                                                onClick={() => setActiveQuestionId(q.id)}
-                                                className={`bg-white rounded-lg shadow-sm border-l-4 transition-all duration-200 overflow-hidden ${
-                                                    activeQuestionId === q.id ? "border-blue-500 scale-[1.01] shadow-md" : "border-transparent"
-                                                }`}
-                                            >
-                                                <div className="flex justify-center py-1 opacity-50 cursor-grab">
-                                                    <GripVertical size={16} />
-                                                </div>
-                                                
-                                                <div className="p-6 pt-0">
-                                                    {activeQuestionId === q.id ? (
-                                                        <div className="space-y-6">
-                                                            <div className="flex gap-6">
-                                                                <input 
-                                                                    className="flex-1 bg-gray-50 p-4 border-b border-gray-300 focus:border-purple-700 focus:outline-none transition-all text-base"
-                                                                    value={q.question}
-                                                                    onChange={(e) => updateQuestion(q.id, { question: e.target.value })}
-                                                                    placeholder="Question"
-                                                                />
-                                                                <div className="w-[200px] relative">
-                                                                    <select 
-                                                                        className="w-full p-4 bg-white border border-gray-300 rounded focus:border-purple-700 focus:outline-none appearance-none text-sm cursor-pointer"
-                                                                        value={q.type}
-                                                                        onChange={(e) => updateQuestion(q.id, { type: e.target.value as QuestionType })}
-                                                                    >
-                                                                        {QUESTION_TYPES.map(type => (
-                                                                            <option key={type.value} value={type.value}>{type.label}</option>
-                                                                        ))}
-                                                                    </select>
-                                                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
-                                                                        <ChevronDown size={16} />
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-                                                            <div className="space-y-3">
-                                                                {(q.type === "multiple_choice" || q.type === "checkbox" || q.type === "dropdown") && (
-                                                                    <>
-                                                                        {q.options?.map((opt, optIdx) => (
-                                                                            <div key={optIdx} className="flex items-center gap-3">
-                                                                                {q.type === "multiple_choice" && <div className="w-5 h-5 border-2 border-gray-300 rounded-full" />}
-                                                                                {q.type === "checkbox" && <div className="w-5 h-5 border-2 border-gray-300 rounded" />}
-                                                                                {q.type === "dropdown" && <span className="text-gray-400 text-xs w-5 text-center">{optIdx + 1}</span>}
-                                                                                <input 
-                                                                                    className="flex-1 border-b border-transparent focus:border-gray-300 focus:outline-none py-1 text-sm"
-                                                                                    value={opt}
-                                                                                    onChange={(e) => {
-                                                                                        const newOpts = [...(q.options || [])];
-                                                                                        newOpts[optIdx] = e.target.value;
-                                                                                        updateQuestion(q.id, { options: newOpts });
-                                                                                    }}
-                                                                                />
-                                                                                <button 
-                                                                                    onClick={() => {
-                                                                                        const newOpts = q.options?.filter((_, i) => i !== optIdx);
-                                                                                        updateQuestion(q.id, { options: newOpts });
-                                                                                    }}
-                                                                                    className="p-1 text-gray-400 hover:text-gray-600"
-                                                                                >
-                                                                                    <Plus className="rotate-45" size={20} />
-                                                                                </button>
-                                                                            </div>
-                                                                        ))}
-                                                                        <div className="flex items-center gap-3 text-gray-500">
-                                                                            {q.type === "multiple_choice" && <div className="w-5 h-5 border-2 border-gray-300 rounded-full" />}
-                                                                            {q.type === "checkbox" && <div className="w-5 h-5 border-2 border-gray-300 rounded" />}
-                                                                            {q.type === "dropdown" && <span className="text-gray-400 text-xs w-5 text-center">{(q.options?.length || 0) + 1}</span>}
-                                                                            <button 
-                                                                                onClick={() => addOption(q.id)}
-                                                                                className="text-sm hover:underline"
-                                                                            >
-                                                                                Add option
-                                                                            </button>
-                                                                        </div>
-                                                                    </>
-                                                                )}
-                                                                {q.type === "short_answer" && <div className="text-gray-400 border-b border-gray-200 border-dashed pb-2 text-sm w-[60%]">Short answer text</div>}
-                                                                {q.type === "paragraph" && <div className="text-gray-400 border-b border-gray-200 border-dashed pb-2 text-sm w-[80%]">Long answer text</div>}
-                                                                {q.type === "file_upload" && (
-                                                                    <div className="border border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center gap-2 bg-gray-50">
-                                                                        <UploadCloud className="text-gray-400" size={32} />
-                                                                        <span className="text-xs text-gray-500">File upload enabled</span>
-                                                                    </div>
-                                                                )}
-                                                                {q.type === "linear_scale" && (
-                                                                    <div className="flex items-center gap-4 py-4">
-                                                                        <select className="bg-gray-50 border border-gray-300 rounded px-2 py-1 text-xs"><option>1</option></select>
-                                                                        <span className="text-xs text-gray-500">to</span>
-                                                                        <select className="bg-gray-50 border border-gray-300 rounded px-2 py-1 text-xs"><option>5</option></select>
-                                                                    </div>
-                                                                )}
-                                                                {q.type === "rating" && (
-                                                                    <div className="flex items-center gap-2 py-2">
-                                                                        {[1,2,3,4,5].map(n => <Star key={n} className="text-gray-300" size={24} />)}
-                                                                    </div>
-                                                                )}
-                                                                {(q.type === "multiple_choice_grid" || q.type === "checkbox_grid") && (
-                                                                    <div className="grid grid-cols-2 gap-4">
-                                                                        <div className="space-y-2">
-                                                                            <span className="text-[10px] uppercase font-bold text-gray-400">Rows</span>
-                                                                            <div className="text-sm text-gray-600 px-2 py-1 border-b border-gray-200">Row 1</div>
-                                                                            <div className="text-xs text-blue-600">+ Add row</div>
-                                                                        </div>
-                                                                        <div className="space-y-2">
-                                                                            <span className="text-[10px] uppercase font-bold text-gray-400">Columns</span>
-                                                                            <div className="text-sm text-gray-600 px-2 py-1 border-b border-gray-200">Column 1</div>
-                                                                            <div className="text-xs text-blue-600">+ Add column</div>
-                                                                        </div>
-                                                                    </div>
-                                                                )}
-                                                                {q.type === "date" && <div className="flex items-center gap-2 text-gray-400 border-b border-gray-200 pb-2 w-40"><Calendar size={18} /><span className="text-sm">Month, day, year</span></div>}
-                                                                {q.type === "time" && <div className="flex items-center gap-2 text-gray-400 border-b border-gray-200 pb-2 w-40"><Clock size={18} /><span className="text-sm">Time</span></div>}
-                                                            </div>
-
-                                                            <div className="pt-6 border-t border-gray-200 flex items-center justify-end gap-6 text-gray-500">
-                                                                <button className="hover:text-gray-900 transition-colors"><Copy size={20} /></button>
-                                                                <button onClick={() => deleteQuestion(q.id)} className="hover:text-red-600 transition-colors"><Trash2 size={20} /></button>
-                                                                <div className="h-6 w-[1px] bg-gray-300 mx-1" />
-                                                                <div className="flex items-center gap-2">
-                                                                    <span className="text-sm">Required</span>
+                                <div className="flex items-start">
+                                    <div className="flex-1">
+                                        <DragDropContext onDragEnd={onDragEnd}>
+                                            <Droppable droppableId="questions-list">
+                                                {(provided) => (
+                                                    <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-4">
+                                                        {survey.questions?.map((q, idx) => (
+                                                            <Draggable key={q.id} draggableId={q.id} index={idx}>
+                                                                {(provided, snapshot) => (
                                                                     <div 
-                                                                        className={`w-10 h-5 rounded-full relative transition-colors cursor-pointer ${q.required ? "bg-purple-200" : "bg-gray-300"}`}
-                                                                        onClick={() => updateQuestion(q.id, { required: !q.required })}
+                                                                        ref={provided.innerRef}
+                                                                        {...provided.draggableProps}
+                                                                        onClick={() => setActiveQuestionId(q.id)}
+                                                                        className={`bg-white rounded-lg shadow-sm border-l-4 transition-all duration-200 overflow-hidden ${activeQuestionId === q.id ? "border-blue-500 scale-[1.01] shadow-md" : "border-transparent"} ${snapshot.isDragging ? "shadow-2xl ring-2 ring-purple-400" : ""}`}
                                                                     >
-                                                                        <div className={`absolute top-1/2 -translate-y-1/2 w-6 h-6 rounded-full shadow-md transition-all ${q.required ? "right-[-4px] bg-purple-700" : "left-[-4px] bg-white"}`} />
+                                                                        <div {...provided.dragHandleProps} className="flex justify-center py-1 opacity-50 cursor-grab active:cursor-grabbing hover:opacity-100 transition-opacity">
+                                                                            <GripVertical size={16} />
+                                                                        </div>
+                                                                        <div className="p-6 pt-0">
+                                                                            {activeQuestionId === q.id ? (
+                                                                                <div className="space-y-6">
+                                                                                    <div className="flex flex-col sm:flex-row gap-6">
+                                                                                        <input className="flex-1 bg-gray-50 p-4 border-b border-gray-300 focus:border-purple-700 focus:outline-none transition-all text-base" value={q.question} onChange={(e) => updateQuestion(q.id, { question: e.target.value })} placeholder="Question" />
+                                                                                        <div className="w-full sm:w-[220px] relative">
+                                                                                            <select className="w-full p-4 bg-white border border-gray-300 rounded focus:border-purple-700 focus:outline-none appearance-none text-sm cursor-pointer" value={q.type} onChange={(e) => updateQuestion(q.id, { type: e.target.value as QuestionType })}>
+                                                                                                {QUESTION_TYPES.map(type => (
+                                                                                                    <option key={type.value} value={type.value}>{type.label}</option>
+                                                                                                ))}
+                                                                                            </select>
+                                                                                            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+                                                                                                <ChevronDown size={16} />
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                    <div className="space-y-3">
+                                                                                        {(q.type === "multiple_choice" || q.type === "checkbox" || q.type === "dropdown") && (
+                                                                                            <>
+                                                                                                {q.options?.map((opt, optIdx) => (
+                                                                                                    <div key={optIdx} className="flex items-center gap-3">
+                                                                                                        {q.type === "multiple_choice" && <div className="w-5 h-5 border-2 border-gray-300 rounded-full" />}
+                                                                                                        {q.type === "checkbox" && <div className="w-5 h-5 border-2 border-gray-300 rounded" />}
+                                                                                                        {q.type === "dropdown" && <span className="text-gray-400 text-xs w-5 text-center">{optIdx + 1}</span>}
+                                                                                                        <input className="flex-1 border-b border-transparent focus:border-gray-300 focus:outline-none py-1 text-sm" value={opt} onChange={(e) => {
+                                                                                                            const newOpts = [...(q.options || [])];
+                                                                                                            newOpts[optIdx] = e.target.value;
+                                                                                                            updateQuestion(q.id, { options: newOpts });
+                                                                                                        }} />
+                                                                                                        <button onClick={() => {
+                                                                                                            const newOpts = q.options?.filter((_, i) => i !== optIdx);
+                                                                                                            updateQuestion(q.id, { options: newOpts });
+                                                                                                        }} className="p-1 text-gray-400 hover:text-gray-600">
+                                                                                                            <Plus className="rotate-45" size={20} />
+                                                                                                        </button>
+                                                                                                    </div>
+                                                                                                ))}
+                                                                                                <div className="flex items-center gap-3 text-gray-500">
+                                                                                                    {q.type === "multiple_choice" && <div className="w-5 h-5 border-2 border-gray-300 rounded-full" />}
+                                                                                                    {q.type === "checkbox" && <div className="w-5 h-5 border-2 border-gray-300 rounded" />}
+                                                                                                    {q.type === "dropdown" && <span className="text-gray-400 text-xs w-5 text-center">{(q.options?.length || 0) + 1}</span>}
+                                                                                                    <button onClick={() => addOption(q.id)} className="text-sm hover:underline">Add option</button>
+                                                                                                </div>
+                                                                                            </>
+                                                                                        )}
+                                                                                        {q.type === "short_answer" && <div className="text-gray-400 border-b border-gray-200 border-dashed pb-2 text-sm w-[60%]">Short answer text</div>}
+                                                                                        {q.type === "paragraph" && <div className="text-gray-400 border-b border-gray-200 border-dashed pb-2 text-sm w-[80%]">Long answer text</div>}
+                                                                                    </div>
+                                                                                    <div className="pt-6 border-t border-gray-200 flex items-center justify-end gap-6 text-gray-500">
+                                                                                        <button className="hover:text-gray-900 transition-colors"><Copy size={20} /></button>
+                                                                                        <button onClick={() => deleteQuestion(q.id)} className="hover:text-red-600 transition-colors"><Trash2 size={20} /></button>
+                                                                                        <div className="h-6 w-[1px] bg-gray-300 mx-1" />
+                                                                                        <div className="flex items-center gap-2">
+                                                                                            <span className="text-sm">Required</span>
+                                                                                            <div className={`w-10 h-5 rounded-full relative transition-colors cursor-pointer ${q.required ? "bg-purple-200" : "bg-gray-300"}`} onClick={() => updateQuestion(q.id, { required: !q.required })}>
+                                                                                                <div className={`absolute top-1/2 -translate-y-1/2 w-6 h-6 rounded-full shadow-md transition-all ${q.required ? "right-[-4px] bg-purple-700" : "left-[-4px] bg-white"}`} />
+                                                                                            </div>
+                                                                                        </div>
+                                                                                        <button className="hover:text-gray-900 transition-colors"><MoreVertical size={20} /></button>
+                                                                                    </div>
+                                                                                </div>
+                                                                            ) : (
+                                                                                <div className="space-y-2">
+                                                                                    <div className="text-base font-normal">{q.question || "Untitled Question"}</div>
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
                                                                     </div>
-                                                                </div>
-                                                                <button className="hover:text-gray-900 transition-colors"><MoreVertical size={20} /></button>
-                                                            </div>
-                                                        </div>
-                                                    ) : (
-                                                        <div className="space-y-2">
-                                                            <div className="text-base font-normal">{q.question || "Untitled Question"}</div>
-                                                            <div className="space-y-2">
-                                                                {(q.type === "multiple_choice" || q.type === "checkbox" || q.type === "dropdown") && q.options?.map((opt, i) => (
-                                                                    <div key={i} className="flex items-center gap-3 text-sm text-gray-600">
-                                                                        {q.type === "multiple_choice" && <div className="w-4 h-4 border border-gray-400 rounded-full" />}
-                                                                        {q.type === "checkbox" && <div className="w-4 h-4 border border-gray-400 rounded" />}
-                                                                        {q.type === "dropdown" && <span className="text-xs text-gray-400">{i + 1}.</span>}
-                                                                        {opt}
-                                                                    </div>
-                                                                ))}
-                                                                {q.type === "short_answer" && <div className="text-gray-400 border-b border-gray-200 border-dashed pb-1 text-sm w-[60%]">Short answer text</div>}
-                                                                {q.type === "paragraph" && <div className="text-gray-400 border-b border-gray-200 border-dashed pb-1 text-sm w-[80%]">Long answer text</div>}
-                                                                {q.type === "rating" && <div className="flex gap-1">{[1,2,3,4,5].map(n => <Star key={n} className="text-gray-300" size={16} />)}</div>}
-                                                                {q.type === "date" && <div className="text-sm text-gray-400">Month, day, year</div>}
-                                                                {q.type === "time" && <div className="text-sm text-gray-400">Time</div>}
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        ))}
+                                                                )}
+                                                            </Draggable>
+                                                        ))}
+                                                        {provided.placeholder}
+                                                    </div>
+                                                )}
+                                            </Droppable>
+                                        </DragDropContext>
                                     </div>
-
-                                    <div className="hidden sm:flex absolute left-full ml-4 top-0 flex-col gap-2 bg-white rounded-lg shadow-md border border-gray-200 p-2">
+                                    <div className="hidden sm:flex sticky top-24 self-start ml-4 flex-col gap-2 bg-white rounded-lg shadow-md border border-gray-200 p-2 h-fit">
                                         <button onClick={addQuestion} className="p-2 hover:bg-gray-100 rounded text-gray-600 transition-colors" title="Add question"><Plus size={24} /></button>
-                                        <button className="p-2 hover:bg-gray-100 rounded text-gray-600 transition-colors" title="Import questions"><Share2 size={24} className="rotate-90" /></button>
                                         <button className="p-2 hover:bg-gray-100 rounded text-gray-600 transition-colors" title="Add title and description"><Type size={24} /></button>
-                                        <button className="p-2 hover:bg-gray-100 rounded text-gray-600 transition-colors" title="Add image"><Layout size={24} /></button>
-                                        <button className="p-2 hover:bg-gray-100 rounded text-gray-600 transition-colors" title="Add video"><Layout size={24} /></button>
-                                        <button className="p-2 hover:bg-gray-100 rounded text-gray-600 transition-colors" title="Add section"><Layout size={24} /></button>
                                     </div>
                                 </div>
                             </div>
@@ -579,8 +579,15 @@ export default function SurveyDesigner() {
                                             <h2 className="text-2xl font-normal text-gray-900">{responses.length} responses</h2>
                                         </div>
                                         <div className="flex items-center gap-2">
+                                            <button onClick={exportToExcel} className="flex items-center gap-2 text-green-700 font-medium text-sm hover:bg-green-50 px-3 py-2 rounded border border-green-200 transition-colors">
+                                                <Grid size={16} /> Export
+                                            </button>
+                                            {responses.length > 0 && (
+                                                <button onClick={() => setShowDeleteAllResp(true)} className="flex items-center gap-2 text-red-600 font-medium text-sm hover:bg-red-50 px-3 py-2 rounded border border-red-100 transition-colors">
+                                                    <Trash2 size={16} /> Delete All
+                                                </button>
+                                            )}
                                             <button onClick={fetchResponses} className="p-2 hover:bg-gray-100 rounded-full text-gray-600"><Activity size={20} /></button>
-                                            <button className="p-2 hover:bg-gray-100 rounded-full text-gray-600"><MoreVertical size={20} /></button>
                                         </div>
                                     </div>
                                     {responses.length === 0 ? (
@@ -594,11 +601,17 @@ export default function SurveyDesigner() {
                                                     <h3 className="text-base font-medium mb-4">{q.question}</h3>
                                                     <div className="space-y-2">
                                                         {responses.filter(r => r.answers[q.id] !== undefined).map((res, i) => (
-                                                            <div key={i} className="flex items-center gap-4 py-3 px-4 bg-gray-50 rounded-lg border border-gray-100">
+                                                            <div key={i} className="flex items-center gap-4 py-3 px-4 bg-gray-50 rounded-lg border border-gray-100 group">
                                                                 <div className="flex-1">
                                                                     <div className="text-sm font-medium text-gray-900">{Array.isArray(res.answers[q.id]) ? res.answers[q.id].join(", ") : String(res.answers[q.id])}</div>
                                                                     <div className="text-xs text-gray-500 mt-0.5">{res.respondent_email || "Anonymous"} • {new Date(res.submitted_at).toLocaleString()}</div>
                                                                 </div>
+                                                                <button 
+                                                                    onClick={() => setRespDeleteId(res.id)}
+                                                                    className="p-2 text-gray-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-all"
+                                                                >
+                                                                    <Trash2 size={16} />
+                                                                </button>
                                                             </div>
                                                         ))}
                                                     </div>
@@ -615,22 +628,12 @@ export default function SurveyDesigner() {
                                 <div className="p-6">
                                     <h2 className="text-base font-medium text-gray-900 mb-6">General</h2>
                                     <div className="space-y-8">
-                                        <div className="flex items-start justify-between gap-4">
-                                            <div className="flex-1">
-                                                <div className="text-sm font-medium text-gray-900">Make this a quiz</div>
-                                                <div className="text-xs text-gray-500 mt-1">Assign point values, set answers, and automatically provide feedback</div>
-                                            </div>
-                                            <div className="w-10 h-5 bg-gray-300 rounded-full relative cursor-pointer"><div className="absolute top-1/2 -translate-y-1/2 left-[-4px] w-6 h-6 bg-white rounded-full shadow-md" /></div>
-                                        </div>
                                         <div className="space-y-4">
                                             <div className="flex items-center gap-2 text-gray-700"><AtSign size={18} /><span className="text-sm font-medium">Responses</span><ChevronDown size={16} /></div>
                                             <div className="pl-6 space-y-6">
                                                 <div className="flex items-start justify-between gap-4">
                                                     <div className="flex-1"><div className="text-sm text-gray-800">Collect email addresses</div></div>
-                                                    <div 
-                                                        className={`w-10 h-5 rounded-full relative transition-colors cursor-pointer ${!survey.is_anonymous ? "bg-purple-200" : "bg-gray-300"}`}
-                                                        onClick={() => setSurvey({...survey, is_anonymous: !survey.is_anonymous})}
-                                                    >
+                                                    <div className={`w-10 h-5 rounded-full relative transition-colors cursor-pointer ${!survey.is_anonymous ? "bg-purple-200" : "bg-gray-300"}`} onClick={() => setSurvey({...survey, is_anonymous: !survey.is_anonymous})}>
                                                         <div className={`absolute top-1/2 -translate-y-1/2 w-6 h-6 rounded-full shadow-md transition-all ${!survey.is_anonymous ? "right-[-4px] bg-purple-700" : "left-[-4px] bg-white"}`} />
                                                     </div>
                                                 </div>
@@ -645,8 +648,8 @@ export default function SurveyDesigner() {
                 </div>
             )}
 
-            {/* Delete Confirmation Modal - Moved outside conditional blocks */}
-            {deleteConfirmId && (
+            {/* Modals */}
+            {(deleteConfirmId || respDeleteId || showDeleteAllResp) && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
                     <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in duration-300 border border-slate-200">
                         <div className="p-6 space-y-6 text-center">
@@ -654,24 +657,29 @@ export default function SurveyDesigner() {
                                 <Trash2 size={32} />
                             </div>
                             <div className="space-y-2">
-                                <h3 className="text-lg font-bold text-gray-900">Delete survey?</h3>
+                                <h3 className="text-lg font-bold text-gray-900">
+                                    {deleteConfirmId ? "Delete survey?" : respDeleteId ? "Delete response?" : "Delete all responses?"}
+                                </h3>
                                 <p className="text-sm text-gray-500 leading-relaxed">
-                                    This action will permanently remove the survey and all its responses. You cannot undo this.
+                                    {deleteConfirmId ? "This action will permanently remove the survey and all its responses." : "This action will permanently remove the selected data. You cannot undo this."}
                                 </p>
                             </div>
                             <div className="flex gap-3">
                                 <button
-                                    onClick={() => setDeleteConfirmId(null)}
+                                    onClick={() => { setDeleteConfirmId(null); setRespDeleteId(null); setShowDeleteAllResp(false); }}
                                     className="flex-1 py-2.5 text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-all"
                                 >
                                     Cancel
                                 </button>
                                 <button
-                                    onClick={confirmDelete}
-                                    disabled={isLoading}
-                                    className="flex-1 py-2.5 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg transition-all shadow-md active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+                                    onClick={() => {
+                                        if (deleteConfirmId) confirmDelete();
+                                        if (respDeleteId) handleDeleteResponse();
+                                        if (showDeleteAllResp) handleDeleteAllResponses();
+                                    }}
+                                    className="flex-1 py-2.5 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg transition-all shadow-md active:scale-95 flex items-center justify-center gap-2"
                                 >
-                                    {isLoading ? <Loader2 size={16} className="animate-spin" /> : "Delete"}
+                                    Delete
                                 </button>
                             </div>
                         </div>

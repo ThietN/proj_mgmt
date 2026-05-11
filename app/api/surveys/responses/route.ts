@@ -50,3 +50,38 @@ export async function GET(req: Request) {
         return NextResponse.json({ error: e.message }, { status: 500 });
     }
 }
+
+export async function DELETE(req: Request) {
+    try {
+        const { searchParams } = new URL(req.url);
+        const id = searchParams.get("id");
+        const survey_id = searchParams.get("survey_id");
+
+        if (id) {
+            const { error } = await supabase
+                .from("survey_responses")
+                .delete()
+                .eq("id", id);
+            if (error) throw error;
+        } else if (survey_id) {
+            const { error } = await supabase
+                .from("survey_responses")
+                .delete()
+                .eq("survey_id", survey_id);
+            if (error) throw error;
+
+            // Also reset response_count in surveys table
+            const { error: updateError } = await supabase
+                .from("surveys")
+                .update({ response_count: 0 })
+                .eq("id", survey_id);
+            if (updateError) throw updateError;
+        } else {
+            return NextResponse.json({ error: "Missing id or survey_id" }, { status: 400 });
+        }
+
+        return NextResponse.json({ success: true });
+    } catch (e: any) {
+        return NextResponse.json({ error: e.message }, { status: 500 });
+    }
+}
