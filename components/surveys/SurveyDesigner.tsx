@@ -82,6 +82,7 @@ export default function SurveyDesigner() {
     const [surveys, setSurveys] = useState<Survey[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
     const [responses, setResponses] = useState<any[]>([]);
 
@@ -151,15 +152,20 @@ export default function SurveyDesigner() {
         toast.success("Link copied to clipboard!");
     };
 
-    const handleDelete = async (id: string) => {
-        if (!confirm("Are you sure you want to delete this survey?")) return;
+    const handleDelete = (id: string) => {
+        setDeleteConfirmId(id);
+    };
+
+    const confirmDelete = async () => {
+        if (!deleteConfirmId) return;
         setIsLoading(true);
         try {
-            await fetch(`/api/surveys?id=${id}`, { method: "DELETE" });
-            setSurveys(prev => prev.filter(s => s.id !== id));
-            toast.success("Survey deleted");
+            await fetch(`/api/surveys?id=${deleteConfirmId}`, { method: "DELETE" });
+            setSurveys(prev => prev.filter(s => s.id !== deleteConfirmId));
+            toast.success("Survey deleted successfully.");
+            setDeleteConfirmId(null);
         } catch (err) {
-            toast.error("Error deleting survey");
+            toast.error("Failed to delete survey.");
         } finally {
             setIsLoading(false);
         }
@@ -708,6 +714,44 @@ export default function SurveyDesigner() {
                 
                 <div className="h-20" />
             </main>
+
+            {/* Delete Confirmation Modal */}
+            {deleteConfirmId && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in duration-300">
+                        <div className="p-4 bg-red-600 flex items-center justify-between">
+                            <h3 className="text-white text-sm font-black uppercase tracking-widest flex items-center gap-2">
+                                <AlertCircle className="w-4 h-4" /> Confirm Deletion
+                            </h3>
+                            <button onClick={() => setDeleteConfirmId(null)} className="text-red-200 hover:text-white transition-colors">
+                                <Plus className="w-5 h-5 rotate-45" />
+                            </button>
+                        </div>
+                        <div className="p-6 space-y-4">
+                            <div className="p-3 bg-red-50 border border-red-100 rounded-xl">
+                                <p className="text-[11px] text-red-700 font-medium">
+                                    Are you sure you want to delete this survey? This action cannot be undone and all response data will be lost.
+                                </p>
+                            </div>
+                            <div className="flex gap-3 pt-2">
+                                <button
+                                    onClick={() => setDeleteConfirmId(null)}
+                                    className="flex-1 py-3 text-xs font-black text-slate-400 uppercase tracking-widest hover:bg-slate-100 rounded-xl transition-all"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={confirmDelete}
+                                    disabled={isLoading}
+                                    className="flex-1 py-3 bg-red-600 text-white text-xs font-black uppercase tracking-widest rounded-xl hover:bg-red-700 shadow-xl shadow-red-100 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+                                >
+                                    {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Delete Survey"}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
