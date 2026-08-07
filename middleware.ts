@@ -2,13 +2,21 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { verifyToken } from './lib/auth';
 
-const publicRoutes = ['/login', '/register', '/api/auth/login', '/api/auth/register'];
+const publicRoutes = [
+    '/login', 
+    '/register', 
+    '/api/auth/login', 
+    '/api/auth/register',
+    '/surveys/view',
+    '/api/surveys/public',
+    '/api/surveys/responses'
+];
 
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
     // Let public routes pass
-    if (publicRoutes.includes(pathname)) {
+    if (publicRoutes.some(route => pathname.startsWith(route))) {
         return NextResponse.next();
     }
 
@@ -32,6 +40,16 @@ export async function middleware(request: NextRequest) {
             return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
         }
         return NextResponse.redirect(new URL('/login', request.url));
+    }
+
+    // Role Access Control: Normal users/admins only access /tracking. SuperAdmin sees everything.
+    if (payload.role !== 'SuperAdmin') {
+        const isTrackingRoute = pathname === '/tracking' || pathname.startsWith('/tracking/');
+        const isApiRoute = pathname.startsWith('/api');
+        
+        if (!isTrackingRoute && !isApiRoute) {
+            return NextResponse.redirect(new URL('/tracking', request.url));
+        }
     }
 
     return NextResponse.next();

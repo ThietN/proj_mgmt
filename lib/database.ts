@@ -26,7 +26,10 @@ import {
     SkillDefinition,
     SkillMatrixEntry,
     Certification,
-    MemberCertification
+    MemberCertification,
+    ManagedDocument,
+    DocumentLock,
+    DocumentVersion
 } from "@/types";
 
 // ==========================================
@@ -588,6 +591,20 @@ export async function getSurveys(): Promise<Survey[]> {
     return (data || []) as Survey[];
 }
 
+export async function getSurveyById(id: string): Promise<Survey | null> {
+    noStore();
+    const { data, error } = await supabase
+        .from('surveys')
+        .select('*')
+        .eq('id', id)
+        .single();
+    if (error) {
+        if (error.code === 'PGRST116') return null; // Not found
+        throw new Error(error.message);
+    }
+    return data as Survey;
+}
+
 export async function createSurvey(survey: Omit<Survey, 'id' | 'created_at' | 'updated_at' | 'response_count'>): Promise<Survey> {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { created_at, updated_at, ...cleanSurvey } = survey as any;
@@ -1139,3 +1156,482 @@ export async function deleteMemberCertification(id: string): Promise<void> {
         .eq('id', id);
     if (error) throw new Error(error.message);
 }
+
+// ==========================================
+// FILE LOCKING & VERSION CONTROL DATABASE LOGIC
+// ==========================================
+
+export async function getManagedDocuments(category?: string, projectId?: string): Promise<ManagedDocument[]> {
+    noStore();
+    let query = supabase.from('managed_documents').select('*');
+    if (category) query = query.eq('category', category);
+    if (projectId) query = query.eq('project_id', projectId);
+
+    const { data: docs, error } = await query.order('updated_at', { ascending: false });
+    if (error) {
+        if (error.code === '42P01') return [];
+        throw new Error(error.message);
+    }
+
+    if (!docs || docs.length === 0) return [];
+
+    // Fetch active locks
+    const docIds = docs.map((d: any) => d.id);
+    const { data: locks } = await supabase
+        .from('document_locks')
+        .select('*')
+        .in('document_id', docIds);
+
+    const lockMap: Record<string, DocumentLock> = {};
+    const now = new Date();
+
+    locks?.forEach((l: any) => {
+        const expiresAt = new Date(l.expires_at);
+        if (expiresAt > now) {
+            lockMap[l.document_id] = l as DocumentLock;
+        }
+    });
+
+    return docs.map((d: any) => {
+        const activeLock = lockMap[d.id];
+        let computedStatus = d.status;
+        if (activeLock) {
+            computedStatus = 'LOCKED';
+        } else if (d.status === 'LOCKED') {
+            computedStatus = 'EXPIRED';
+        }
+        return {
+            ...d,
+            status: computedStatus,
+            lock: activeLock || undefined
+        } as ManagedDocument;
+    });
+}
+
+export async function getManagedDocumentById(id: string): Promise<ManagedDocument | null> {
+    noStore();
+    const { data: doc, error } = await supabase
+        .from('managed_documents')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+    if (error) {
+        if (error.code === 'PGRST116' || error.code === '42P01') return null;
+        throw new Error(error.message);
+    }
+
+    const { data: lock } = await supabase
+        .from('document_locks')
+        .select('*')
+        .eq('document_id', id)
+        .single();
+
+    const now = new Date();
+    let activeLock: DocumentLock | undefined = undefined;
+    let computedStatus = doc.status;
+
+    if (lock) {
+        const expiresAt = new Date(lock.expires_at);
+        if (expiresAt > now) {
+            activeLock = lock as DocumentLock;
+            computedStatus = 'LOCKED';
+        } else {
+            computedStatus = 'EXPIRED';
+        }
+    }
+
+    return {
+        ...doc,
+        status: computedStatus,
+        lock: activeLock
+    } as ManagedDocument;
+}
+
+export async function createManagedDocument(doc: {
+    id: string;
+    title: string;
+    category: 'WEEKLY_REPORT' | 'PROJECT_DOC' | 'GENERAL';
+    project_id?: string;
+    content: string;
+    user: { id: string; name: string };
+}): Promise<ManagedDocument> {
+    const newDoc = {
+        id: doc.id,
+        title: doc.title,
+        category: doc.category,
+        project_id: doc.project_id || null,
+        content: doc.content,
+        draft_content: doc.content,
+        current_version: 1,
+        status: 'AVAILABLE',
+        created_by: doc.user.name,
+        updated_by: doc.user.name,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+    };
+
+    const { error } = await supabase.from('managed_documents').insert([newDoc]);
+    if (error) throw new Error(error.message);
+
+    // Initial Version Snapshot (V1)
+    const initialVersion: DocumentVersion = {
+        id: `VER_${doc.id}_1`,
+        document_id: doc.id,
+        version_number: 1,
+        content: doc.content,
+        change_summary: 'Initial document creation',
+        created_by_user_id: doc.user.id,
+        created_by_user_name: doc.user.name,
+        created_at: new Date().toISOString(),
+    };
+
+    await supabase.from('document_versions').insert([initialVersion]);
+    await logEnhancedAudit({
+        user_id: doc.user.id,
+        action: 'FILE_CREATED',
+        target_type: 'DOCUMENT',
+        target_id: doc.id,
+        details: `Created document: ${doc.title} (V1)`,
+        new_version: 1,
+    });
+
+    return newDoc as any;
+}
+
+export async function acquireDocumentLock(
+    documentId: string,
+    user: { id: string; name: string }
+): Promise<{ success: boolean; lock_token?: string; lock?: DocumentLock; message?: string }> {
+    noStore();
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + 60 * 60 * 1000).toISOString(); // 60 minutes TTL
+    const lockToken = `TOK_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+
+    // 1. Check current lock
+    const { data: existingLock } = await supabase
+        .from('document_locks')
+        .select('*')
+        .eq('document_id', documentId)
+        .single();
+
+    if (existingLock) {
+        const lockExpiration = new Date(existingLock.expires_at);
+        // If locked by another user and not expired
+        if (existingLock.locked_by_user_id !== user.id && lockExpiration > now) {
+            return {
+                success: false,
+                message: `File is locked by ${existingLock.locked_by_user_name}`,
+                lock: existingLock as DocumentLock,
+            };
+        }
+    }
+
+    // 2. Upsert lock (Atomic acquisition)
+    const lockPayload = {
+        document_id: documentId,
+        locked_by_user_id: user.id,
+        locked_by_user_name: user.name,
+        locked_at: now.toISOString(),
+        expires_at: expiresAt,
+        last_heartbeat: now.toISOString(),
+        lock_token: lockToken,
+    };
+
+    const { error: lockErr } = await supabase
+        .from('document_locks')
+        .upsert([lockPayload], { onConflict: 'document_id' });
+
+    if (lockErr) throw new Error(lockErr.message);
+
+    // Update document status
+    await supabase
+        .from('managed_documents')
+        .update({ status: 'LOCKED', updated_by: user.name, updated_at: now.toISOString() })
+        .eq('id', documentId);
+
+    await logEnhancedAudit({
+        user_id: user.id,
+        action: 'LOCK_ACQUIRED',
+        target_type: 'DOCUMENT',
+        target_id: documentId,
+        details: `Lock acquired by ${user.name} (Duration: 60m)`,
+    });
+
+    return {
+        success: true,
+        lock_token: lockToken,
+        lock: lockPayload as DocumentLock,
+    };
+}
+
+export async function releaseDocumentLock(
+    documentId: string,
+    lockToken: string,
+    userId: string
+): Promise<{ success: boolean; message?: string }> {
+    const { data: lock } = await supabase
+        .from('document_locks')
+        .select('*')
+        .eq('document_id', documentId)
+        .single();
+
+    if (!lock) {
+        await supabase
+            .from('managed_documents')
+            .update({ status: 'AVAILABLE' })
+            .eq('id', documentId);
+        return { success: true };
+    }
+
+    if (lock.lock_token !== lockToken && lock.locked_by_user_id !== userId) {
+        return { success: false, message: 'Invalid lock token or lock owner mismatch' };
+    }
+
+    await supabase.from('document_locks').delete().eq('document_id', documentId);
+
+    await supabase
+        .from('managed_documents')
+        .update({ status: 'AVAILABLE', updated_at: new Date().toISOString() })
+        .eq('id', documentId);
+
+    await logEnhancedAudit({
+        user_id: userId,
+        action: 'LOCK_RELEASED',
+        target_type: 'DOCUMENT',
+        target_id: documentId,
+        details: 'Lock released by owner',
+    });
+
+    return { success: true };
+}
+
+export async function extendDocumentLock(
+    documentId: string,
+    lockToken: string,
+    userId: string
+): Promise<{ success: boolean; expires_at?: string; message?: string }> {
+    const { data: lock } = await supabase
+        .from('document_locks')
+        .select('*')
+        .eq('document_id', documentId)
+        .single();
+
+    if (!lock || lock.lock_token !== lockToken) {
+        return { success: false, message: 'Lock lost or invalid lock token' };
+    }
+
+    const newExpiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+    const now = new Date().toISOString();
+
+    const { error } = await supabase
+        .from('document_locks')
+        .update({ expires_at: newExpiresAt, last_heartbeat: now })
+        .eq('document_id', documentId);
+
+    if (error) throw new Error(error.message);
+
+    await logEnhancedAudit({
+        user_id: userId,
+        action: 'LOCK_EXTENDED',
+        target_type: 'DOCUMENT',
+        target_id: documentId,
+        details: 'Extended lock by 60 minutes',
+    });
+
+    return { success: true, expires_at: newExpiresAt };
+}
+
+export async function heartbeatDocumentLock(documentId: string, lockToken: string): Promise<boolean> {
+    const { data: lock } = await supabase
+        .from('document_locks')
+        .select('*')
+        .eq('document_id', documentId)
+        .single();
+
+    if (!lock || lock.lock_token !== lockToken) return false;
+
+    const now = new Date();
+    if (new Date(lock.expires_at) < now) return false;
+
+    await supabase
+        .from('document_locks')
+        .update({ last_heartbeat: now.toISOString() })
+        .eq('document_id', documentId);
+
+    return true;
+}
+
+export async function forceUnlockDocument(
+    documentId: string,
+    adminUser: { id: string; name: string },
+    reason: string
+): Promise<void> {
+    const { data: lock } = await supabase
+        .from('document_locks')
+        .select('*')
+        .eq('document_id', documentId)
+        .single();
+
+    const lockedUser = lock ? lock.locked_by_user_name : 'Unknown';
+
+    await supabase.from('document_locks').delete().eq('document_id', documentId);
+
+    await supabase
+        .from('managed_documents')
+        .update({ status: 'RELEASED', updated_at: new Date().toISOString() })
+        .eq('id', documentId);
+
+    await logEnhancedAudit({
+        user_id: adminUser.id,
+        action: 'LOCK_FORCE_UNLOCKED',
+        target_type: 'DOCUMENT',
+        target_id: documentId,
+        details: `Super Admin ${adminUser.name} force-unlocked document (previously held by ${lockedUser})`,
+        reason: reason || 'Super Admin intervention',
+    });
+}
+
+export async function saveDocumentDraft(
+    documentId: string,
+    draftContent: string,
+    lockToken: string,
+    userId: string
+): Promise<{ success: boolean; message?: string }> {
+    const { data: lock } = await supabase
+        .from('document_locks')
+        .select('*')
+        .eq('document_id', documentId)
+        .single();
+
+    if (!lock || lock.lock_token !== lockToken) {
+        return { success: false, message: 'Lock lost or expired. Draft save rejected.' };
+    }
+
+    const { error } = await supabase
+        .from('managed_documents')
+        .update({ draft_content: draftContent, updated_at: new Date().toISOString() })
+        .eq('id', documentId);
+
+    if (error) throw new Error(error.message);
+
+    await logEnhancedAudit({
+        user_id: userId,
+        action: 'DRAFT_SAVED',
+        target_type: 'DOCUMENT',
+        target_id: documentId,
+        details: 'Saved draft changes',
+    });
+
+    return { success: true };
+}
+
+export async function publishDocumentVersion(
+    documentId: string,
+    content: string,
+    changeSummary: string,
+    lockToken: string,
+    user: { id: string; name: string }
+): Promise<{ success: boolean; version?: DocumentVersion; message?: string }> {
+    // 1. Verify lock
+    const { data: lock } = await supabase
+        .from('document_locks')
+        .select('*')
+        .eq('document_id', documentId)
+        .single();
+
+    if (!lock || lock.lock_token !== lockToken) {
+        return { success: false, message: 'Lock lost or expired. Cannot publish version.' };
+    }
+
+    // 2. Fetch doc current version
+    const { data: doc } = await supabase
+        .from('managed_documents')
+        .select('*')
+        .eq('id', documentId)
+        .single();
+
+    if (!doc) throw new Error('Document not found');
+
+    const nextVersion = (doc.current_version || 1) + 1;
+    const now = new Date().toISOString();
+
+    const versionRecord: DocumentVersion = {
+        id: `VER_${documentId}_${nextVersion}`,
+        document_id: documentId,
+        version_number: nextVersion,
+        content: content,
+        change_summary: changeSummary || `Published version ${nextVersion}`,
+        created_by_user_id: user.id,
+        created_by_user_name: user.name,
+        created_at: now,
+    };
+
+    // Insert new version
+    const { error: vErr } = await supabase.from('document_versions').insert([versionRecord]);
+    if (vErr) throw new Error(vErr.message);
+
+    // Update document content & version
+    await supabase
+        .from('managed_documents')
+        .update({
+            content: content,
+            draft_content: content,
+            current_version: nextVersion,
+            status: 'AVAILABLE',
+            updated_by: user.name,
+            updated_at: now,
+        })
+        .eq('id', documentId);
+
+    // Delete lock
+    await supabase.from('document_locks').delete().eq('document_id', documentId);
+
+    await logEnhancedAudit({
+        user_id: user.id,
+        action: 'VERSION_PUBLISHED',
+        target_type: 'DOCUMENT',
+        target_id: documentId,
+        details: `Published Version ${nextVersion}: ${changeSummary || 'Update'}`,
+        previous_version: doc.current_version,
+        new_version: nextVersion,
+    });
+
+    return { success: true, version: versionRecord };
+}
+
+export async function getDocumentVersions(documentId: string): Promise<DocumentVersion[]> {
+    noStore();
+    const { data, error } = await supabase
+        .from('document_versions')
+        .select('*')
+        .eq('document_id', documentId)
+        .order('version_number', { ascending: false });
+
+    if (error) {
+        if (error.code === '42P01') return [];
+        throw new Error(error.message);
+    }
+
+    return (data || []) as DocumentVersion[];
+}
+
+export async function logEnhancedAudit(log: Partial<AuditLog>): Promise<void> {
+    const entry = {
+        id: `A${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+        user_id: log.user_id || 'system',
+        action: log.action || 'UNKNOWN',
+        target_type: log.target_type || 'DOCUMENT',
+        target_id: log.target_id || '',
+        details: log.details || '',
+        reason: log.reason || null,
+        ip_address: log.ip_address || '127.0.0.1',
+        session_id: log.session_id || null,
+        previous_version: log.previous_version || null,
+        new_version: log.new_version || null,
+        timestamp: new Date().toISOString(),
+    };
+
+    await supabase.from('audit_logs').insert([entry]);
+}
+

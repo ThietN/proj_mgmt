@@ -19,13 +19,12 @@ export default function SurveyParticipantView({ surveyId }: { surveyId: string }
 
     const fetchSurvey = async () => {
         try {
-            const res = await fetch("/api/surveys");
+            const res = await fetch(`/api/surveys/public?id=${surveyId}`);
             const data = await res.json();
-            const found = data.surveys?.find((s: any) => s.id === surveyId);
-            if (found) {
-                setSurvey(found);
+            if (data.survey) {
+                setSurvey(data.survey);
             } else {
-                setError("Survey not found");
+                setError(data.error || "Survey not found");
             }
         } catch (err) {
             setError("Failed to load survey");

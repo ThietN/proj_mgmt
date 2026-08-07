@@ -11,6 +11,12 @@ import {
 import { RichTextEditor } from "@/components/ui/RichTextEditor";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import { LockStatusBadge } from "@/components/locks/LockStatusBadge";
+import { LiveLockBanner } from "@/components/locks/LiveLockBanner";
+import { ForceUnlockModal } from "@/components/locks/ForceUnlockModal";
+import { VersionHistoryModal } from "@/components/documents/VersionHistoryModal";
+import { ManagedDocument, DocumentLock } from "@/types";
+import { Lock, History, ShieldAlert, Save, Send, Unlock } from "lucide-react";
 
 interface ReportClientProps {
     resources: Resource[];
@@ -52,6 +58,121 @@ export function ReportClient({
     const reportRef = useRef<HTMLDivElement>(null);
     const [copied, setCopied] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [currentUser, setCurrentUser] = useState<{ id: string; name: string; role: string } | null>(null);
+
+    // Locking & Versioning states for Weekly Report
+    const reportDocId = `WR_${selectedYear}_${selectedWeek}`;
+    const [reportDoc, setReportDoc] = useState<ManagedDocument | null>(null);
+    const [lockToken, setLockToken] = useState<string | null>(null);
+    const [showVersionHistory, setShowVersionHistory] = useState<boolean>(false);
+    const [showForceUnlock, setShowForceUnlock] = useState<boolean>(false);
+
+    // Fetch Current User
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const res = await fetch("/api/auth/me");
+                if (res.ok) {
+                    const data = await res.json();
+                    setCurrentUser(data.user);
+                }
+            } catch (err) {}
+        };
+        fetchUser();
+    }, []);
+
+    // Fetch or create Managed Document for the selected Weekly Report
+    const loadReportDoc = async () => {
+        try {
+            const res = await fetch(`/api/documents/${reportDocId}`);
+            if (res.ok) {
+                const data = await res.json();
+                setReportDoc(data.document);
+                if (data.document?.lock?.lock_token) {
+                    // Check if current user is owner
+                    if (currentUser && data.document.lock.locked_by_user_id === currentUser.id) {
+                        setLockToken(data.document.lock.lock_token);
+                    }
+                }
+            } else if (res.status === 404 && currentUser) {
+                // Auto-initialize managed document entry for this report
+                const createRes = await fetch("/api/documents", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        id: reportDocId,
+                        title: `Weekly Report W${selectedWeek}-${selectedYear}`,
+                        category: "WEEKLY_REPORT",
+                        content: `Weekly Report for Week ${selectedWeek}, Year ${selectedYear}`,
+                    }),
+                });
+                if (createRes.ok) {
+                    const createData = await createRes.json();
+                    setReportDoc(createData.document);
+                }
+            }
+        } catch (err) {}
+    };
+
+    useEffect(() => {
+        loadReportDoc();
+    }, [selectedWeek, selectedYear, currentUser?.id]);
+
+    const acquireReportLock = async () => {
+        if (!currentUser) {
+            toast.error("Please login to edit reports.");
+            return;
+        }
+        try {
+            const res = await fetch("/api/locks", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    action: "acquire",
+                    document_id: reportDocId,
+                }),
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                setLockToken(data.lock_token);
+                setReportDoc((prev: any) => ({
+                    ...prev,
+                    status: "LOCKED",
+                    lock: data.lock,
+                }));
+                toast.success("🔒 Acquired edit lock for this Weekly Report!");
+            } else if (res.status === 409 && data.lock) {
+                setReportDoc((prev: any) => ({
+                    ...prev,
+                    status: "LOCKED",
+                    lock: data.lock,
+                }));
+                toast.error(`Locked by ${data.lock.locked_by_user_name}`);
+            }
+        } catch (err: any) {
+            toast.error(err.message || "Failed to acquire lock");
+        }
+    };
+
+    const releaseReportLock = async () => {
+        if (!lockToken) return;
+        try {
+            const res = await fetch("/api/locks", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    action: "release",
+                    document_id: reportDocId,
+                    lock_token: lockToken,
+                }),
+            });
+            if (res.ok) {
+                toast.success("🔓 Lock released.");
+                setLockToken(null);
+                loadReportDoc();
+            }
+        } catch (err) {}
+    };
 
     // Filter available weeks
     const availableWeeks = useMemo(() => {
@@ -332,11 +453,74 @@ export function ReportClient({
                         {copied ? <><Check className="w-3.5 h-3.5" /> Copied!</> : <><Copy className="w-3.5 h-3.5" /> Copy Report</>}
                     </button>
                     <button onClick={() => window.print()} className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold text-slate-600 bg-white ring-1 ring-slate-200 hover:bg-slate-50 shadow-sm"><Printer className="w-3.5 h-3.5" /> Print</button>
-                    <button onClick={() => saveAllData()} disabled={isSaving} className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold text-white bg-slate-800 hover:bg-slate-900 shadow-sm disabled:opacity-50">
-                        {isSaving ? "Saving..." : <><Check className="w-3.5 h-3.5" /> Save Section</>}
-                    </button>
+                    
+                    {reportDoc?.status === "LOCKED" && reportDoc.lock?.locked_by_user_id === currentUser?.id ? (
+                        <button onClick={releaseReportLock} className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold text-amber-800 bg-amber-100 hover:bg-amber-200 shadow-sm">
+                            <Unlock className="w-3.5 h-3.5" /> Release Lock
+                        </button>
+                    ) : reportDoc?.status === "LOCKED" ? (
+                        <span className="text-xs text-amber-700 bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-200 font-medium">
+                            🔒 Locked by {reportDoc.lock?.locked_by_user_name}
+                        </span>
+                    ) : (
+                        <button onClick={acquireReportLock} className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 shadow-sm">
+                            <Lock className="w-3.5 h-3.5" /> Lock & Edit Report
+                        </button>
+                    )}
+
+                    {reportDoc && (
+                        <button onClick={() => setShowVersionHistory(true)} className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200">
+                            <History className="w-3.5 h-3.5 text-slate-500" /> History (V{reportDoc.current_version})
+                        </button>
+                    )}
+
+                    {reportDoc?.status === "LOCKED" && reportDoc.lock?.locked_by_user_id !== currentUser?.id && currentUser?.role === "SuperAdmin" && (
+                        <button onClick={() => setShowForceUnlock(true)} className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold text-red-700 bg-red-50 hover:bg-red-100 border border-red-200">
+                            <ShieldAlert className="w-3.5 h-3.5 text-red-600" /> Force Unlock
+                        </button>
+                    )}
                 </div>
             </div>
+
+            {/* Live Lock Banner for Weekly Report */}
+            {reportDoc?.status === "LOCKED" && reportDoc.lock && currentUser && (
+                <LiveLockBanner
+                    lock={reportDoc.lock}
+                    lockToken={lockToken || ""}
+                    currentUser={currentUser}
+                    onLockExtended={(newExpires) => {
+                        setReportDoc((prev: any) => ({
+                            ...prev,
+                            lock: prev.lock ? { ...prev.lock, expires_at: newExpires } : undefined,
+                        }));
+                    }}
+                    onLockLost={() => {
+                        toast.error("Lock lost or expired!");
+                        setLockToken(null);
+                        loadReportDoc();
+                    }}
+                />
+            )}
+
+            {/* Modals */}
+            {reportDoc && (
+                <>
+                    <VersionHistoryModal
+                        document={reportDoc}
+                        isOpen={showVersionHistory}
+                        onClose={() => setShowVersionHistory(false)}
+                    />
+                    <ForceUnlockModal
+                        document={reportDoc}
+                        isOpen={showForceUnlock}
+                        onClose={() => setShowForceUnlock(false)}
+                        onUnlocked={() => {
+                            setLockToken(null);
+                            loadReportDoc();
+                        }}
+                    />
+                </>
+            )}
 
             <div ref={reportRef} className="space-y-4 print:space-y-6">
                 {/* ═══ 1. RESOURCE UPDATE ═══ */}

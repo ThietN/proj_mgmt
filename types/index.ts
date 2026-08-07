@@ -137,6 +137,11 @@ export interface AuditLog {
     target_id: string;
     details: string;
     timestamp: string;
+    reason?: string;
+    ip_address?: string;
+    session_id?: string;
+    previous_version?: number;
+    new_version?: number;
 }
 
 export interface TrackingTask {
@@ -546,3 +551,50 @@ export interface MemberCertification {
     member?: Resource;
     certification?: Certification;
 }
+
+// ============================================================
+// FILE LOCKING & VERSION CONTROL TYPES
+// ============================================================
+
+export type LockStatus = "AVAILABLE" | "LOCKED" | "EXPIRED" | "RELEASED";
+export type DocumentCategory = "WEEKLY_REPORT" | "PROJECT_DOC" | "GENERAL";
+
+export interface ManagedDocument {
+    id: string;
+    title: string;
+    category: DocumentCategory;
+    project_id?: string;
+    content: string;
+    draft_content?: string;
+    current_version: number;
+    status: LockStatus;
+    created_by: string;
+    updated_by: string;
+    created_at: string;
+    updated_at: string;
+    
+    // Lock details joined if available
+    lock?: DocumentLock;
+}
+
+export interface DocumentLock {
+    document_id: string;
+    locked_by_user_id: string;
+    locked_by_user_name: string;
+    locked_at: string;
+    expires_at: string;
+    last_heartbeat: string;
+    lock_token: string;
+}
+
+export interface DocumentVersion {
+    id: string;
+    document_id: string;
+    version_number: number;
+    content: string;
+    change_summary: string;
+    created_by_user_id: string;
+    created_by_user_name: string;
+    created_at: string;
+}
+
