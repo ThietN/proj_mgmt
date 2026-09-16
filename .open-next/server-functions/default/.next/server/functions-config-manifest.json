@@ -1,6 +1,8 @@
 {
   "version": 1,
   "functions": {
-    "/api/audit": {}
+    "/api/audit": {},
+    "/api/wiki/lock": {},
+    "/api/wiki": {}
   }
 }

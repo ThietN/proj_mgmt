@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getUserByEmail, saveUser, logAudit } from "@/lib/database";
-import { sendEmail, sendVerificationEmail } from "@/lib/email";
+import { sendEmail } from "@/lib/email";
 import bcrypt from "bcryptjs";
 
 const ALLOWED_DOMAIN = "@tma.com.vn";
@@ -27,7 +27,6 @@ export async function POST(req: Request) {
         }
 
         const passwordHash = await bcrypt.hash(password, 10);
-        const verificationToken = crypto.randomUUID();
 
         const newUser = {
             id: crypto.randomUUID(),
@@ -36,29 +35,26 @@ export async function POST(req: Request) {
             name,
             role: "User" as const,
             createdAt: new Date().toISOString(),
-            email_verified: false,
-            verification_token: verificationToken,
+            email_verified: true,
+            verification_token: null,
         };
 
         await saveUser(newUser as any);
-        await logAudit(email, "CREATE", "User", newUser.id, `User registered (pending verification): ${email}`);
-
-        // Send verification email to user
-        await sendVerificationEmail(email, name, verificationToken);
+        await logAudit(email, "CREATE", "User", newUser.id, `User registered: ${email}`);
 
         // Notify admin of new registration
         const adminEmail = process.env.ADMIN_EMAIL || process.env.EMAIL_USER;
         if (adminEmail) {
             await sendEmail(
                 adminEmail,
-                "New User Registration (Pending Activation)",
-                `<p>Người dùng mới đã đăng ký: <b>${name}</b> (${email}) lúc ${new Date().toLocaleString("vi-VN")}.<br>Đang chờ xác nhận email.</p>`
+                "New User Registration",
+                `<p>Người dùng mới đã đăng ký: <b>${name}</b> (${email}) lúc ${new Date().toLocaleString("vi-VN")}.<br>Tài khoản đã được kích hoạt ngay sau khi tạo.</p>`
             );
         }
 
         return NextResponse.json({
             success: true,
-            message: "Đăng ký thành công! Vui lòng kiểm tra hộp thư @tma.com.vn để kích hoạt tài khoản."
+            message: "Đăng ký thành công! Bạn có thể đăng nhập ngay."
         });
 
     } catch (e: any) {

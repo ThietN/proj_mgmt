@@ -18,7 +18,40 @@
     "afterFiles": [],
     "fallback": []
   },
-  "dynamicRoutes": [],
+  "dynamicRoutes": [
+    {
+      "page": "/api/documents/[id]",
+      "regex": "^/api/documents/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/documents/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/documents/[id]/publish",
+      "regex": "^/api/documents/([^/]+?)/publish(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/documents/(?<nxtPid>[^/]+?)/publish(?:/)?$"
+    },
+    {
+      "page": "/api/documents/[id]/versions",
+      "regex": "^/api/documents/([^/]+?)/versions(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/documents/(?<nxtPid>[^/]+?)/versions(?:/)?$"
+    },
+    {
+      "page": "/surveys/view/[id]",
+      "regex": "^/surveys/view/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/surveys/view/(?<nxtPid>[^/]+?)(?:/)?$"
+    }
+  ],
   "staticRoutes": [
     {
       "page": "/",
@@ -57,6 +90,30 @@
       "namedRegex": "^/audit(?:/)?$"
     },
     {
+      "page": "/certifications",
+      "regex": "^/certifications(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/certifications(?:/)?$"
+    },
+    {
+      "page": "/certifications/catalog",
+      "regex": "^/certifications/catalog(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/certifications/catalog(?:/)?$"
+    },
+    {
+      "page": "/certifications/my",
+      "regex": "^/certifications/my(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/certifications/my(?:/)?$"
+    },
+    {
+      "page": "/certifications/tracking",
+      "regex": "^/certifications/tracking(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/certifications/tracking(?:/)?$"
+    },
+    {
       "page": "/csat",
       "regex": "^/csat(?:/)?$",
       "routeKeys": {},
@@ -67,6 +124,12 @@
       "regex": "^/delivery(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/delivery(?:/)?$"
+    },
+    {
+      "page": "/documents",
+      "regex": "^/documents(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/documents(?:/)?$"
     },
     {
       "page": "/esat",
@@ -153,16 +216,28 @@
       "namedRegex": "^/surveys(?:/)?$"
     },
     {
+      "page": "/surveys/designer",
+      "regex": "^/surveys/designer(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/surveys/designer(?:/)?$"
+    },
+    {
       "page": "/tracking",
       "regex": "^/tracking(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/tracking(?:/)?$"
+    },
+    {
+      "page": "/wiki",
+      "regex": "^/wiki(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/wiki(?:/)?$"
     }
   ],
   "dataRoutes": [
     {
       "page": "/_dummy",
-      "dataRouteRegex": "^/_next/data/ouLQFs370s1vpKiYAhVcl/_dummy\\.json$"
+      "dataRouteRegex": "^/_next/data/DwJVIve67o4LR2kVeprxt/_dummy\\.json$"
     }
   ],
   "rsc": {

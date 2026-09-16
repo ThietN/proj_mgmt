@@ -60,31 +60,21 @@ export default function RegisterPage() {
                     </div>
                     <h1 className="text-xl font-bold text-slate-900 mb-2">Đăng ký thành công!</h1>
                     <p className="text-sm text-slate-500 mb-6">
-                        Tài khoản của bạn đã được tạo. Vui lòng kiểm tra hộp thư để kích hoạt.
+                        Tài khoản của bạn đã được tạo và có thể đăng nhập ngay.
                     </p>
 
-                    {/* Email info box */}
                     <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-6 text-left">
                         <div className="flex items-start gap-3">
                             <Mail className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
                             <div>
                                 <p className="text-sm font-semibold text-blue-800 mb-1">
-                                    Kiểm tra email của bạn
-                                </p>
-                                <p className="text-xs text-blue-600">
-                                    Chúng tôi đã gửi link kích hoạt đến:
+                                    Email đăng ký
                                 </p>
                                 <p className="text-sm font-bold text-blue-800 mt-1 break-all">
                                     {registeredEmail}
                                 </p>
                             </div>
                         </div>
-                    </div>
-
-                    <div className="bg-amber-50 border border-amber-100 rounded-lg px-4 py-3 mb-6 text-left">
-                        <p className="text-xs text-amber-700">
-                            <strong>Lưu ý:</strong> Bạn phải click vào link trong email trước khi có thể đăng nhập. Kiểm tra cả thư mục <strong>Spam</strong> nếu không thấy.
-                        </p>
                     </div>
 
                     <Link

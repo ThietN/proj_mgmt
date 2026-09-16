@@ -7,7 +7,6 @@ const publicRoutes = [
     '/register', 
     '/api/auth/login', 
     '/api/auth/register',
-    '/api/auth/verify-email',
     '/surveys/view',
     '/api/surveys/public',
     '/api/surveys/responses'

@@ -25,8 +25,7 @@
         "x-next-revalidate-tag-token"
       ]
     },
-    "/_not-found": {
-      "initialStatus": 404,
+    "/documents": {
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -39,8 +38,8 @@
         }
       ],
       "initialRevalidateSeconds": false,
-      "srcRoute": "/_not-found",
-      "dataRoute": "/_not-found.rsc",
+      "srcRoute": "/documents",
+      "dataRoute": "/documents.rsc",
       "allowHeader": [
         "host",
         "x-matched-path",
@@ -97,13 +96,86 @@
         "x-next-revalidated-tags",
         "x-next-revalidate-tag-token"
       ]
+    },
+    "/_not-found": {
+      "initialStatus": 404,
+      "experimentalBypassFor": [
+        {
+          "type": "header",
+          "key": "next-action"
+        },
+        {
+          "type": "header",
+          "key": "content-type",
+          "value": "multipart/form-data;.*"
+        }
+      ],
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/_not-found",
+      "dataRoute": "/_not-found.rsc",
+      "allowHeader": [
+        "host",
+        "x-matched-path",
+        "x-prerender-revalidate",
+        "x-prerender-revalidate-if-generated",
+        "x-next-revalidated-tags",
+        "x-next-revalidate-tag-token"
+      ]
+    },
+    "/surveys/designer": {
+      "experimentalBypassFor": [
+        {
+          "type": "header",
+          "key": "next-action"
+        },
+        {
+          "type": "header",
+          "key": "content-type",
+          "value": "multipart/form-data;.*"
+        }
+      ],
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/surveys/designer",
+      "dataRoute": "/surveys/designer.rsc",
+      "allowHeader": [
+        "host",
+        "x-matched-path",
+        "x-prerender-revalidate",
+        "x-prerender-revalidate-if-generated",
+        "x-next-revalidated-tags",
+        "x-next-revalidate-tag-token"
+      ]
+    },
+    "/surveys": {
+      "experimentalBypassFor": [
+        {
+          "type": "header",
+          "key": "next-action"
+        },
+        {
+          "type": "header",
+          "key": "content-type",
+          "value": "multipart/form-data;.*"
+        }
+      ],
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/surveys",
+      "dataRoute": "/surveys.rsc",
+      "allowHeader": [
+        "host",
+        "x-matched-path",
+        "x-prerender-revalidate",
+        "x-prerender-revalidate-if-generated",
+        "x-next-revalidated-tags",
+        "x-next-revalidate-tag-token"
+      ]
     }
   },
   "dynamicRoutes": {},
   "notFoundRoutes": [],
   "preview": {
-    "previewModeId": "7815e11fba2e54be42b333a874cbc7c9",
-    "previewModeSigningKey": "5eb644529b2675e81f2aac3d530703e826e2f786ec015bb51968576050262244",
-    "previewModeEncryptionKey": "efc99ac158027fc0294f18a25d08af6a9f387cac286ea97e6cb3ce058c7b4646"
+    "previewModeId": "db1c2d2183c811475b7943f77bb655ff",
+    "previewModeSigningKey": "bf564f16fada08bd48fe9cfa40eb420036111eddc9409f3925cbf859257e815e",
+    "previewModeEncryptionKey": "7699beae3f21948fdb3115f32fef7280840ec04016b33d390c47f068e33b8915"
   }
 }

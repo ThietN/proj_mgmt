@@ -24,17 +24,6 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Email hoặc mật khẩu không đúng" }, { status: 401 });
         }
 
-        // Block login if email not verified
-        if (!user.email_verified) {
-            return NextResponse.json(
-                {
-                    error: "Tài khoản chưa được kích hoạt. Vui lòng kiểm tra hộp thư @tma.com.vn và click vào link kích hoạt.",
-                    needsVerification: true
-                },
-                { status: 403 }
-            );
-        }
-
         await logAudit(email, "LOGIN", "System", "NA", "User logged in");
 
         const token = await createToken({ id: user.id, email: user.email, name: user.name, role: user.role });
