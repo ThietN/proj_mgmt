@@ -14,18 +14,25 @@ export async function POST(req: Request) {
         const user = await getUserByEmail(email);
         console.log("[LOGIN DEBUG] email:", email);
         console.log("[LOGIN DEBUG] user found:", user ? "YES" : "NO");
-        console.log("[LOGIN DEBUG] user data:", JSON.stringify(user, null, 2));
 
         if (!user) {
-            return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+            return NextResponse.json({ error: "Email hoặc mật khẩu không đúng" }, { status: 401 });
         }
 
-        console.log("[LOGIN DEBUG] password input:", password);
-        console.log("[LOGIN DEBUG] passwordHash from DB:", user.passwordHash);
         const isValid = await bcrypt.compare(password, user.passwordHash);
-        console.log("[LOGIN DEBUG] bcrypt.compare result:", isValid);
         if (!isValid) {
-            return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+            return NextResponse.json({ error: "Email hoặc mật khẩu không đúng" }, { status: 401 });
+        }
+
+        // Block login if email not verified
+        if (!user.email_verified) {
+            return NextResponse.json(
+                {
+                    error: "Tài khoản chưa được kích hoạt. Vui lòng kiểm tra hộp thư @tma.com.vn và click vào link kích hoạt.",
+                    needsVerification: true
+                },
+                { status: 403 }
+            );
         }
 
         await logAudit(email, "LOGIN", "System", "NA", "User logged in");
@@ -42,6 +49,8 @@ export async function POST(req: Request) {
 
         return response;
     } catch (e) {
+        console.error("[POST /api/auth/login] error:", e);
         return NextResponse.json({ error: "Server error" }, { status: 500 });
     }
 }
+

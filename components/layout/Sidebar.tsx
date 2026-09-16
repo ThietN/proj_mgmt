@@ -23,7 +23,8 @@ import {
     Upload,
     GraduationCap,
     Award,
-    Lock
+    Lock,
+    BookOpen
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
@@ -39,6 +40,7 @@ const navItems = [
     { href: "/tracking", label: "Tracking Tool", icon: KanbanSquare },
     { href: "/report", label: "Weekly Report", icon: ClipboardList },
     { href: "/documents", label: "Documents & Locks", icon: Lock },
+    { href: "/wiki", label: "Wiki", icon: BookOpen },
     { href: "/certifications", label: "Certifications", icon: Award },
     { href: "/audit", label: "Audit Logs", icon: FileText },
 ];

@@ -29,7 +29,8 @@ import {
     MemberCertification,
     ManagedDocument,
     DocumentLock,
-    DocumentVersion
+    DocumentVersion,
+    WikiPage
 } from "@/types";
 
 // ==========================================
@@ -372,18 +373,49 @@ export async function getUserByEmail(email: string): Promise<User | null> {
     return {
         ...u,
         passwordHash: u.password_hash,
+        email_verified: u.email_verified ?? false,
+        verification_token: u.verification_token ?? null,
         createdAt: typeof u.created_at === 'object' && u.created_at !== null && 'toISOString' in u.created_at
             ? (u.created_at as Date).toISOString()
             : u.created_at
     } as User;
 }
 
+export async function getUserByVerificationToken(token: string): Promise<User | null> {
+    const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('verification_token', token);
+    if (error) throw new Error(error.message);
+    if (!data || data.length === 0) return null;
+    const u = data[0];
+    return {
+        ...u,
+        passwordHash: u.password_hash,
+        email_verified: u.email_verified ?? false,
+        verification_token: u.verification_token ?? null,
+        createdAt: typeof u.created_at === 'object' && u.created_at !== null && 'toISOString' in u.created_at
+            ? (u.created_at as Date).toISOString()
+            : u.created_at
+    } as User;
+}
+
+export async function activateUser(id: string): Promise<void> {
+    const { error } = await supabase
+        .from('users')
+        .update({ email_verified: true, verification_token: null })
+        .eq('id', id);
+    if (error) throw new Error(error.message);
+}
+
 export async function saveUser(u: User): Promise<void> {
-    const { passwordHash, createdAt, ...rest } = u;
+    const { passwordHash, createdAt, email_verified, verification_token, ...rest } = u;
     const { error } = await supabase.from('users').upsert([{
         ...rest,
         password_hash: passwordHash,
-        created_at: createdAt
+        created_at: createdAt,
+        email_verified: email_verified ?? false,
+        verification_token: verification_token ?? null
     }], { onConflict: 'id' });
     if (error) throw new Error(error.message);
 }
@@ -1633,5 +1665,138 @@ export async function logEnhancedAudit(log: Partial<AuditLog>): Promise<void> {
     };
 
     await supabase.from('audit_logs').insert([entry]);
+}
+
+// ==========================================
+// WIKI PAGES
+// ==========================================
+
+const DEFAULT_WIKI_ID = 'WIKI_GLOBAL';
+
+export async function getWikiPage(): Promise<WikiPage> {
+    noStore();
+
+    const { data, error } = await supabase
+        .from('wiki_pages')
+        .select('*')
+        .eq('id', DEFAULT_WIKI_ID)
+        .single();
+
+    // Auto-create the default wiki page if it doesn't exist
+    if (error || !data) {
+        const defaultPage: WikiPage = {
+            id: DEFAULT_WIKI_ID,
+            title: 'Project Notes',
+            content: '',
+            is_locked: false,
+            created_by: 'system',
+            updated_by: 'system',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+        };
+
+        const { error: insertError } = await supabase
+            .from('wiki_pages')
+            .insert([defaultPage]);
+
+        // If insert fails due to race condition (already exists), fetch it
+        if (insertError) {
+            const { data: retryData } = await supabase
+                .from('wiki_pages')
+                .select('*')
+                .eq('id', DEFAULT_WIKI_ID)
+                .single();
+            if (retryData) return retryData as WikiPage;
+        }
+
+        return defaultPage;
+    }
+
+    return data as WikiPage;
+}
+
+export async function updateWikiPage(
+    id: string,
+    updates: Partial<WikiPage>,
+    user: { id: string; name: string }
+): Promise<void> {
+    const payload = {
+        ...updates,
+        updated_by: user.name,
+        updated_at: new Date().toISOString(),
+    };
+
+    const { error } = await supabase
+        .from('wiki_pages')
+        .update(payload)
+        .eq('id', id);
+
+    if (error) throw new Error(error.message);
+
+    await logAudit(
+        user.id,
+        'WIKI_UPDATED',
+        'WikiPage',
+        id,
+        `Wiki page updated by ${user.name}`
+    );
+}
+
+export async function lockWikiPage(
+    id: string,
+    user: { id: string; name: string }
+): Promise<void> {
+    const now = new Date().toISOString();
+
+    const { error } = await supabase
+        .from('wiki_pages')
+        .update({
+            is_locked: true,
+            locked_by_user_id: user.id,
+            locked_by_user_name: user.name,
+            locked_at: now,
+            updated_by: user.name,
+            updated_at: now,
+        })
+        .eq('id', id);
+
+    if (error) throw new Error(error.message);
+
+    await logAudit(
+        user.id,
+        'WIKI_LOCKED',
+        'WikiPage',
+        id,
+        `Wiki page locked by ${user.name}`
+    );
+}
+
+export async function unlockWikiPage(
+    id: string,
+    user: { id: string; name: string }
+): Promise<void> {
+    const now = new Date().toISOString();
+
+    const { error } = await supabase
+        .from('wiki_pages')
+        .update({
+            is_locked: false,
+            locked_by_user_id: null,
+            locked_by_user_name: null,
+            locked_at: null,
+            updated_by: user.name,
+            updated_at: now,
+        })
+        .eq('id', id);
+
+    if (error) throw new Error(error.message);
+
+    await logAudit(
+        user.id,
+        'WIKI_UNLOCKED',
+        'WikiPage',
+        id,
+        `Wiki page unlocked by ${user.name}`
+    );
 }
 

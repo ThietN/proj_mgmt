@@ -127,6 +127,8 @@ export interface User {
     name: string;
     role: "SuperAdmin" | "User";
     createdAt: string;
+    email_verified?: boolean;
+    verification_token?: string | null;
 }
 
 export interface AuditLog {
@@ -596,5 +598,24 @@ export interface DocumentVersion {
     created_by_user_id: string;
     created_by_user_name: string;
     created_at: string;
+}
+
+// ============================================================
+// WIKI TYPES
+// ============================================================
+
+export interface WikiPage {
+    id: string;
+    title: string;
+    content: string;
+    project_id?: string;
+    is_locked: boolean;
+    locked_by_user_id?: string;
+    locked_by_user_name?: string;
+    locked_at?: string;
+    created_by: string;
+    updated_by: string;
+    created_at: string;
+    updated_at: string;
 }
 

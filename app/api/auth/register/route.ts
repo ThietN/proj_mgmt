@@ -1,68 +1,69 @@
 import { NextResponse } from "next/server";
 import { getUserByEmail, saveUser, logAudit } from "@/lib/database";
-import { createToken } from "@/lib/auth";
-import { sendEmail } from "@/lib/email";
+import { sendEmail, sendVerificationEmail } from "@/lib/email";
 import bcrypt from "bcryptjs";
+
+const ALLOWED_DOMAIN = "@tma.com.vn";
 
 export async function POST(req: Request) {
     try {
         const { email, password, name, role } = await req.json();
 
         if (!email || !password || !name) {
-            return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+            return NextResponse.json({ error: "Vui lòng điền đầy đủ thông tin" }, { status: 400 });
+        }
+
+        // Enforce @tma.com.vn domain (server-side)
+        if (!email.toLowerCase().endsWith(ALLOWED_DOMAIN)) {
+            return NextResponse.json(
+                { error: `Chỉ chấp nhận email có domain ${ALLOWED_DOMAIN}` },
+                { status: 400 }
+            );
         }
 
         const existing = await getUserByEmail(email);
         if (existing) {
-            return NextResponse.json({ error: "Email exists" }, { status: 400 });
+            return NextResponse.json({ error: "Email này đã được đăng ký" }, { status: 400 });
         }
 
         const passwordHash = await bcrypt.hash(password, 10);
+        const verificationToken = crypto.randomUUID();
+
         const newUser = {
             id: crypto.randomUUID(),
             email,
             passwordHash,
             name,
-            role: "User",
-            createdAt: new Date().toISOString()
+            role: "User" as const,
+            createdAt: new Date().toISOString(),
+            email_verified: false,
+            verification_token: verificationToken,
         };
 
         await saveUser(newUser as any);
+        await logAudit(email, "CREATE", "User", newUser.id, `User registered (pending verification): ${email}`);
 
-        await logAudit(email, "CREATE", "User", newUser.id, `User registered: ${email}`);
+        // Send verification email to user
+        await sendVerificationEmail(email, name, verificationToken);
 
-        // 1. Notify Admin
+        // Notify admin of new registration
         const adminEmail = process.env.ADMIN_EMAIL || process.env.EMAIL_USER;
         if (adminEmail) {
             await sendEmail(
                 adminEmail,
-                "New User Registered",
-                `<p>A new user has registered: <b>${name}</b> (${email}) at ${new Date().toLocaleString()}</p>`
+                "New User Registration (Pending Activation)",
+                `<p>Người dùng mới đã đăng ký: <b>${name}</b> (${email}) lúc ${new Date().toLocaleString("vi-VN")}.<br>Đang chờ xác nhận email.</p>`
             );
         }
 
-        // 2. Send Welcome Email to User
-        await sendEmail(
-            email,
-            "Welcome to Team Management System",
-            `<h1>Hi ${name},</h1>
-             <p>Welcome to our platform! Your account has been successfully created.</p>
-             <p>You can now log in and start managing your certifications.</p>`
-        );
-
-        const token = await createToken({ id: newUser.id, email, name, role: newUser.role as any });
-
-        const response = NextResponse.json({ success: true });
-        response.cookies.set("auth_token", token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-            maxAge: 60 * 60 * 24 // 1 day
+        return NextResponse.json({
+            success: true,
+            message: "Đăng ký thành công! Vui lòng kiểm tra hộp thư @tma.com.vn để kích hoạt tài khoản."
         });
 
-        return response;
     } catch (e: any) {
         console.error("[POST /api/auth/register] error:", e, e?.message);
         return NextResponse.json({ error: e?.message || "Server error" }, { status: 500 });
     }
 }
+
